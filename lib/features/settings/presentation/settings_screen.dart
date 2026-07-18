@@ -25,6 +25,15 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 12),
             ListTile(
               contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.notifications_outlined,
+                  color: SyuColors.crimsonSoft),
+              title: const Text('Notifications'),
+              subtitle: const Text('In-app notification center'),
+              onTap: () => context.push('/notifications'),
+            ),
+            const Divider(color: Color(0xFF2A2A2A)),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.lock_reset_rounded,
                   color: SyuColors.crimsonSoft),
               title: const Text('Reset password'),
