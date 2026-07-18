@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:syu_sri_lanka/core/app_info.dart';
+import 'package:syu_sri_lanka/core/permissions/app_permissions.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
@@ -12,7 +14,7 @@ import 'package:syu_sri_lanka/features/events/presentation/events_list_screen.da
 import 'package:syu_sri_lanka/features/admin/presentation/admin_overlay.dart';
 import 'package:syu_sri_lanka/features/announcements/presentation/announcements_feed.dart';
 
-/// Bump after registration/profile changes so Home/Profile CTAs refresh.
+/// Bump after registration/profile changes so Home/Settings CTAs refresh.
 final profileStatusTickProvider = StateProvider<int>((ref) => 0);
 
 class HomeShell extends ConsumerStatefulWidget {
@@ -39,7 +41,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           const AnnouncementsFeed(),
           const EventsListScreen(),
           ConversationsListScreen(active: _index == 3),
-          _ProfileTab(
+          _SettingsTab(
             email: email,
             onSignOut: () async {
               await ref.read(authRepositoryProvider).signOut();
@@ -84,9 +86,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             label: 'Chat',
           ),
           const NavigationDestination(
-            icon: SyuIcon(SyuIcons.user),
-            selectedIcon: SyuIcon(SyuIcons.userCircle),
-            label: 'Profile',
+            icon: SyuIcon(SyuIcons.settings),
+            selectedIcon: SyuIcon(SyuIcons.settings),
+            label: 'Settings',
           ),
         ],
       ),
@@ -251,22 +253,23 @@ class _AdminHomeDashboard extends StatelessWidget {
         const SizedBox(height: 20),
         Text(
           'Admin dashboard',
-          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: SyuColors.ink,
-                fontSize: 40,
+                fontWeight: FontWeight.w700,
+                fontSize: 22,
               ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Text(
           'Manage members, publish news and events, and reach youth across districts.',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: SyuColors.mist,
-                height: 1.45,
+                height: 1.4,
               ),
         ),
-        const SizedBox(height: 24),
-        Text('Members', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 10),
+        const SizedBox(height: 18),
+        Text('Members', style: _adminSectionTitle(context)),
+        const SizedBox(height: 8),
         const _AdminTileGrid(
           tiles: [
             _AdminSquareTile(
@@ -283,9 +286,9 @@ class _AdminHomeDashboard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 20),
-        Text('Quick access', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 10),
+        const SizedBox(height: 16),
+        Text('Quick access', style: _adminSectionTitle(context)),
+        const SizedBox(height: 8),
         const _AdminTileGrid(
           tiles: [
             _AdminChatSquareTile(),
@@ -297,9 +300,9 @@ class _AdminHomeDashboard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 20),
-        Text('Publish', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 10),
+        const SizedBox(height: 16),
+        Text('Publish', style: _adminSectionTitle(context)),
+        const SizedBox(height: 8),
         const _AdminTileGrid(
           tiles: [
             _AdminSquareTile(
@@ -316,9 +319,9 @@ class _AdminHomeDashboard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 20),
-        Text('Other tools', style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: 10),
+        const SizedBox(height: 16),
+        Text('Other tools', style: _adminSectionTitle(context)),
+        const SizedBox(height: 8),
         const _AdminTileGrid(
           tiles: [
             _AdminSquareTile(
@@ -346,6 +349,14 @@ class _AdminHomeDashboard extends StatelessWidget {
   }
 }
 
+TextStyle? _adminSectionTitle(BuildContext context) =>
+    Theme.of(context).textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+          letterSpacing: 0.2,
+          color: SyuColors.mist,
+        );
+
 class _AdminTileGrid extends StatelessWidget {
   const _AdminTileGrid({required this.tiles});
 
@@ -355,7 +366,7 @@ class _AdminTileGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        const gap = 10.0;
+        const gap = 8.0;
         final tileWidth = (constraints.maxWidth - gap) / 2;
         return Wrap(
           spacing: gap,
@@ -364,7 +375,6 @@ class _AdminTileGrid extends StatelessWidget {
             for (final tile in tiles)
               SizedBox(
                 width: tileWidth,
-                height: tileWidth,
                 child: tile,
               ),
           ],
@@ -410,53 +420,60 @@ class _AdminSquareTile extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         onTap: () => openAdminOverlay(context, adminTab),
         child: Ink(
           decoration: BoxDecoration(
             color: SyuColors.inkElevated,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(color: SyuColors.border),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 12, 12),
+            padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: SyuColors.crimson.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: SyuIcon(
-                      icon,
-                      color: iconColor ?? SyuIcons.accent,
-                      size: 22,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                        height: 1.15,
+                Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: SyuColors.crimson.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(9),
                       ),
+                      child: Center(
+                        child: SyuIcon(
+                          icon,
+                          color: iconColor ?? SyuIcons.accent,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              height: 1.15,
+                            ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: SyuColors.mist,
-                        fontSize: 12,
+                        fontSize: 11,
                         height: 1.25,
                       ),
                 ),
@@ -571,17 +588,17 @@ class _ActionTile extends StatelessWidget {
   }
 }
 
-class _ProfileTab extends ConsumerStatefulWidget {
-  const _ProfileTab({required this.email, required this.onSignOut});
+class _SettingsTab extends ConsumerStatefulWidget {
+  const _SettingsTab({required this.email, required this.onSignOut});
 
   final String email;
   final VoidCallback onSignOut;
 
   @override
-  ConsumerState<_ProfileTab> createState() => _ProfileTabState();
+  ConsumerState<_SettingsTab> createState() => _SettingsTabState();
 }
 
-class _ProfileTabState extends ConsumerState<_ProfileTab> {
+class _SettingsTabState extends ConsumerState<_SettingsTab> {
   String? _status;
   String? _fullName;
   bool _loading = true;
@@ -607,33 +624,42 @@ class _ProfileTabState extends ConsumerState<_ProfileTab> {
         _status = row?['status'] as String? ?? 'pending_registration';
       });
     } catch (_) {
-      // Soft-fail: profile tab still shows email + sign out.
+      // Soft-fail: settings still shows email + sign out.
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  String get _statusLabel => switch (_status) {
-        'pending_registration' => 'Registration incomplete',
-        'pending_approval' => 'Pending (legacy)',
-        'active' => 'Active member',
-        'suspended' => 'Suspended',
-        _ => _status ?? 'Unknown',
-      };
+  Future<void> _openLink(String url) async {
+    final ok = await AppPermissions.openLink(url);
+    if (!mounted || ok) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Could not open link')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     ref.listen<int>(profileStatusTickProvider, (_, _) {
       _load();
     });
+    final mistStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: SyuColors.mist,
+          fontSize: 11,
+          height: 1.35,
+        );
+    final buttonGap = const SizedBox(height: 8);
     return SyuGradientBackground(
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Profile', style: Theme.of(context).textTheme.headlineMedium),
+              Text(
+                'Settings',
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
               const SizedBox(height: 8),
               Text(
                 _fullName?.isNotEmpty == true ? _fullName! : widget.email,
@@ -641,24 +667,15 @@ class _ProfileTabState extends ConsumerState<_ProfileTab> {
               ),
               if (_fullName?.isNotEmpty == true) ...[
                 const SizedBox(height: 4),
-                Text(widget.email, style: Theme.of(context).textTheme.bodyMedium),
-              ],
-              const SizedBox(height: 16),
-              if (_loading)
-                const LinearProgressIndicator(color: SyuColors.crimson)
-              else
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: SyuColors.inkElevated.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: SyuColors.border),
-                  ),
-                  child: Text(
-                    _statusLabel,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
+                Text(
+                  widget.email,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
+              ],
+              if (_loading) ...[
+                const SizedBox(height: 10),
+                const LinearProgressIndicator(color: SyuColors.crimson),
+              ],
               if (_status == 'pending_registration') ...[
                 const SizedBox(height: 12),
                 FilledButton(
@@ -666,7 +683,7 @@ class _ProfileTabState extends ConsumerState<_ProfileTab> {
                   child: const Text('Complete registration'),
                 ),
               ],
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               OutlinedButton.icon(
                 onPressed: () => context.push('/profile/edit'),
                 icon: const SyuIcon(SyuIcons.edit, size: 20),
@@ -676,22 +693,84 @@ class _ProfileTabState extends ConsumerState<_ProfileTab> {
                       : 'Update your details',
                 ),
               ),
-              const SizedBox(height: 8),
+              buttonGap,
               OutlinedButton.icon(
                 onPressed: () => context.push('/settings'),
-                icon: const SyuIcon(SyuIcons.settings, size: 20),
-                label: const Text('Settings'),
+                icon: const SyuIcon(SyuIcons.notification, size: 20),
+                label: const Text('Notifications & account'),
               ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => openAdminOverlay(context, 'members'),
-                child: const Text('Admin console'),
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: SyuColors.crimson,
+                  side: const BorderSide(color: SyuColors.crimson),
+                  iconColor: SyuColors.crimson,
+                ),
+                onPressed: widget.onSignOut,
+                icon: const SyuIcon(
+                  SyuIcons.logout,
+                  size: 20,
+                  color: SyuColors.crimson,
+                ),
+                label: const Text('Sign out'),
               ),
               const Spacer(),
-              OutlinedButton.icon(
-                onPressed: widget.onSignOut,
-                icon: const SyuIcon(SyuIcons.logout, size: 20),
-                label: const Text('Sign out'),
+              Text(
+                'App version ${AppInfo.versionLabel}',
+                textAlign: TextAlign.center,
+                style: mistStyle,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                AppInfo.copyright,
+                textAlign: TextAlign.center,
+                style: mistStyle,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Developed by ${AppInfo.developerName}',
+                textAlign: TextAlign.center,
+                style: mistStyle,
+              ),
+              const SizedBox(height: 2),
+              Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
+                children: [
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      textStyle: mistStyle?.copyWith(
+                        decoration: TextDecoration.underline,
+                        color: SyuColors.crimson,
+                        fontSize: 11,
+                      ),
+                    ),
+                    onPressed: () => _openLink(AppInfo.developerLinkedIn),
+                    child: const Text('LinkedIn'),
+                  ),
+                  Text('·', style: mistStyle),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      textStyle: mistStyle?.copyWith(
+                        decoration: TextDecoration.underline,
+                        color: SyuColors.crimson,
+                        fontSize: 11,
+                      ),
+                    ),
+                    onPressed: () =>
+                        _openLink('mailto:${AppInfo.developerEmail}'),
+                    child: Text(AppInfo.developerEmail),
+                  ),
+                ],
               ),
             ],
           ),

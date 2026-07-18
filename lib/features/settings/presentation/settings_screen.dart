@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:syu_sri_lanka/core/app_info.dart';
 import 'package:syu_sri_lanka/core/permissions/app_permissions.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
@@ -117,8 +118,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () {
                 showAboutDialog(
                   context: context,
-                  applicationName: 'SYU Sri Lanka',
-                  applicationVersion: '0.2.0',
+                  applicationName: AppInfo.name,
+                  applicationVersion: AppInfo.versionLabel,
                   applicationLegalese: '© SYU Sri Lanka',
                 );
               },
