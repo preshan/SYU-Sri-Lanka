@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
@@ -52,36 +53,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) context.go('/home');
     } catch (e) {
       if (!mounted) return;
-      final msg = _friendlyError(e);
+      final msg = AppErrorMapper.message(e);
       if (msg.contains('Confirm your email')) {
         context.go(
           '/confirm-email?email=${Uri.encodeComponent(_email.text.trim())}',
         );
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg)),
-      );
+      AppErrorMapper.showSnackBar(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  String _friendlyError(Object e) {
-    final text = e.toString().toLowerCase();
-    if (text.contains('email not confirmed') ||
-        text.contains('email_not_confirmed')) {
-      return 'Confirm your email before signing in.';
-    }
-    if (text.contains('invalid login') ||
-        text.contains('invalid_credentials') ||
-        text.contains('invalid_grant')) {
-      return 'Email or password is incorrect.';
-    }
-    if (text.contains('network') || text.contains('socket')) {
-      return 'Network error. Check your connection.';
-    }
-    return 'Could not sign in. Please try again.';
   }
 
   @override
@@ -173,7 +155,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () => context.go(
+                            '/forgot-password?email=${Uri.encodeComponent(_email.text.trim())}',
+                          ),
+                          child: const Text('Forgot password?'),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       FilledButton(
                         onPressed: _loading ? null : _submit,
                         child: _loading

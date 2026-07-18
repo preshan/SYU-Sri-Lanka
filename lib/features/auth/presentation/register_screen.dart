@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
@@ -48,17 +49,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       context.go('/home');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not register: ${_short(e)}')),
-      );
+      AppErrorMapper.showSnackBar(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
-  }
-
-  String _short(Object e) {
-    final s = e.toString();
-    return s.length > 120 ? '${s.substring(0, 120)}…' : s;
   }
 
   @override

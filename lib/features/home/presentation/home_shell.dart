@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
+import 'package:syu_sri_lanka/features/announcements/presentation/announcements_feed.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
+import 'package:syu_sri_lanka/features/events/presentation/events_list_screen.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -25,19 +28,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         index: _index,
         children: [
           _HomeTab(email: email),
-          const _PlaceholderTab(
-            title: 'Announcements',
-            subtitle: 'Organization updates will appear here.',
-            icon: Icons.campaign_outlined,
-          ),
-          const _PlaceholderTab(
-            title: 'Events',
-            subtitle: 'Discover and RSVP to SYU events.',
-            icon: Icons.event_outlined,
-          ),
+          const AnnouncementsFeed(),
+          const EventsListScreen(),
           const _PlaceholderTab(
             title: 'Messages',
-            subtitle: 'Club and direct conversations.',
+            subtitle: 'Club and direct conversations (Sprint 4).',
             icon: Icons.chat_bubble_outline_rounded,
           ),
           _ProfileTab(
@@ -139,18 +134,19 @@ class _HomeTab extends StatelessWidget {
               icon: Icons.how_to_reg_outlined,
               title: 'Complete registration',
               subtitle: 'Finish your member profile for approval.',
+              onTapRoute: '/registration',
             ),
             const SizedBox(height: 12),
             const _ActionTile(
               icon: Icons.campaign_outlined,
               title: 'Latest announcements',
-              subtitle: 'Coming in Sprint 3.',
+              subtitle: 'Open the News tab for updates.',
             ),
             const SizedBox(height: 12),
             const _ActionTile(
               icon: Icons.event_available_outlined,
               title: 'Upcoming events',
-              subtitle: 'Coming in Sprint 5.',
+              subtitle: 'Browse and RSVP in the Events tab.',
             ),
           ],
         ),
@@ -164,15 +160,17 @@ class _ActionTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.onTapRoute,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final String? onTapRoute;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final child = Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: SyuColors.inkElevated.withValues(alpha: 0.9),
@@ -201,7 +199,19 @@ class _ActionTile extends StatelessWidget {
               ],
             ),
           ),
+          if (onTapRoute != null)
+            const Icon(Icons.chevron_right_rounded, color: SyuColors.mist),
         ],
+      ),
+    );
+
+    if (onTapRoute == null) return child;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => context.push(onTapRoute!),
+        child: child,
       ),
     );
   }
@@ -244,11 +254,55 @@ class _PlaceholderTab extends StatelessWidget {
   }
 }
 
-class _ProfileTab extends StatelessWidget {
+class _ProfileTab extends ConsumerStatefulWidget {
   const _ProfileTab({required this.email, required this.onSignOut});
 
   final String email;
   final VoidCallback onSignOut;
+
+  @override
+  ConsumerState<_ProfileTab> createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends ConsumerState<_ProfileTab> {
+  String? _status;
+  String? _fullName;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final user = SupabaseBootstrap.client.auth.currentUser;
+      if (user == null) return;
+      final row = await SupabaseBootstrap.client
+          .from('profiles')
+          .select('full_name,status')
+          .eq('id', user.id)
+          .maybeSingle();
+      if (!mounted) return;
+      setState(() {
+        _fullName = row?['full_name'] as String?;
+        _status = row?['status'] as String? ?? 'pending_registration';
+      });
+    } catch (_) {
+      // Soft-fail: profile tab still shows email + sign out.
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  String get _statusLabel => switch (_status) {
+        'pending_registration' => 'Registration incomplete',
+        'pending_approval' => 'Pending admin approval',
+        'active' => 'Active member',
+        'suspended' => 'Suspended',
+        _ => _status ?? 'Unknown',
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -261,10 +315,40 @@ class _ProfileTab extends StatelessWidget {
             children: [
               Text('Profile', style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 8),
-              Text(email, style: Theme.of(context).textTheme.bodyLarge),
+              Text(
+                _fullName?.isNotEmpty == true ? _fullName! : widget.email,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              if (_fullName?.isNotEmpty == true) ...[
+                const SizedBox(height: 4),
+                Text(widget.email, style: Theme.of(context).textTheme.bodyMedium),
+              ],
+              const SizedBox(height: 16),
+              if (_loading)
+                const LinearProgressIndicator(color: SyuColors.crimson)
+              else
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: SyuColors.inkElevated.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFF2A2A2A)),
+                  ),
+                  child: Text(
+                    _statusLabel,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              if (_status == 'pending_registration') ...[
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: () => context.push('/registration'),
+                  child: const Text('Complete registration'),
+                ),
+              ],
               const Spacer(),
               OutlinedButton.icon(
-                onPressed: onSignOut,
+                onPressed: widget.onSignOut,
                 icon: const Icon(Icons.logout_rounded),
                 label: const Text('Sign out'),
               ),

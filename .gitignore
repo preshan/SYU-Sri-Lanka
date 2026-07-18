@@ -56,3 +56,6 @@ app.*.map.json
 key.properties
 
 .admin-credentials.local
+
+releases/
+*.apk
