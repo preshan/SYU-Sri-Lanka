@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
+import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 
+/// White splash: logo → Welcome → SYU Sri Lanka, then route by session.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -11,50 +14,154 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _fade;
-  late final Animation<double> _scale;
+    with TickerProviderStateMixin {
+  late final AnimationController _logoCtrl;
+  late final AnimationController _welcomeCtrl;
+  late final AnimationController _brandCtrl;
+
+  late final Animation<double> _logoFade;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _welcomeFade;
+  late final Animation<Offset> _welcomeSlide;
+  late final Animation<double> _brandFade;
+  late final Animation<Offset> _brandSlide;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+    );
+
+    _logoCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1100),
+      duration: const Duration(milliseconds: 900),
     );
-    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
-    _scale = Tween<double>(begin: 0.92, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    _welcomeCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 750),
     );
-    _controller.forward();
-    _boot();
+    _brandCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+
+    _logoFade = CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOut);
+    _logoScale = Tween<double>(begin: 0.82, end: 1).animate(
+      CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOutBack),
+    );
+
+    _welcomeFade = CurvedAnimation(parent: _welcomeCtrl, curve: Curves.easeOut);
+    _welcomeSlide = Tween<Offset>(
+      begin: const Offset(0, 0.18),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _welcomeCtrl, curve: Curves.easeOutCubic));
+
+    _brandFade = CurvedAnimation(parent: _brandCtrl, curve: Curves.easeOut);
+    _brandSlide = Tween<Offset>(
+      begin: const Offset(0, 0.14),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _brandCtrl, curve: Curves.easeOutCubic));
+
+    _runSequence();
   }
 
-  Future<void> _boot() async {
-    await Future<void>.delayed(const Duration(milliseconds: 1400));
+  Future<void> _runSequence() async {
+    await Future<void>.delayed(const Duration(milliseconds: 280));
     if (!mounted) return;
+    await _logoCtrl.forward();
+
+    await Future<void>.delayed(const Duration(milliseconds: 220));
+    if (!mounted) return;
+    await _welcomeCtrl.forward();
+
+    await Future<void>.delayed(const Duration(milliseconds: 180));
+    if (!mounted) return;
+    await _brandCtrl.forward();
+
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+    if (!mounted) return;
+
     final session = Supabase.instance.client.auth.currentSession;
     context.go(session == null ? '/login' : '/home');
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _logoCtrl.dispose();
+    _welcomeCtrl.dispose();
+    _brandCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SyuGradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(
-          child: FadeTransition(
-            opacity: _fade,
-            child: ScaleTransition(
-              scale: _scale,
-              child: const SyuBrandMark(height: 96),
+    final welcomeStyle = GoogleFonts.bebasNeue(
+      fontSize: 56,
+      height: 1.05,
+      letterSpacing: 1.4,
+      color: SyuColors.ink,
+    );
+    final brandStyle = GoogleFonts.outfit(
+      fontSize: 22,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.6,
+      color: SyuColors.crimson,
+    );
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FadeTransition(
+                  opacity: _logoFade,
+                  child: ScaleTransition(
+                    scale: _logoScale,
+                    child: Image.asset(
+                      'assets/brand/syu_logo_256.png',
+                      height: 112,
+                      errorBuilder: (_, _, _) => Image.asset(
+                        'assets/brand/syu_logo.png',
+                        height: 112,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 36),
+                FadeTransition(
+                  opacity: _welcomeFade,
+                  child: SlideTransition(
+                    position: _welcomeSlide,
+                    child: Text(
+                      'Welcome',
+                      textAlign: TextAlign.center,
+                      style: welcomeStyle,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                FadeTransition(
+                  opacity: _brandFade,
+                  child: SlideTransition(
+                    position: _brandSlide,
+                    child: Text(
+                      'SYU Sri Lanka',
+                      textAlign: TextAlign.center,
+                      style: brandStyle,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
