@@ -258,7 +258,7 @@ class _ProfileTabState extends ConsumerState<_ProfileTab> {
 
   String get _statusLabel => switch (_status) {
         'pending_registration' => 'Registration incomplete',
-        'pending_approval' => 'Pending admin approval',
+        'pending_approval' => 'Pending (legacy)',
         'active' => 'Active member',
         'suspended' => 'Suspended',
         _ => _status ?? 'Unknown',

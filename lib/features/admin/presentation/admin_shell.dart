@@ -147,102 +147,33 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   }
 }
 
-class _ApprovalQueue extends StatefulWidget {
+class _ApprovalQueue extends StatelessWidget {
   const _ApprovalQueue();
 
   @override
-  State<_ApprovalQueue> createState() => _ApprovalQueueState();
-}
-
-class _ApprovalQueueState extends State<_ApprovalQueue> {
-  List<Map<String, dynamic>> _rows = [];
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final rows = await SupabaseBootstrap.client
-          .from('profiles')
-          .select(
-            'id,full_name,email,phone,nic,status,created_at,requested_youth_club_name',
-          )
-          .eq('status', 'pending_approval')
-          .order('created_at');
-      setState(() => _rows = List<Map<String, dynamic>>.from(rows as List));
-    } catch (e) {
-      if (mounted) AppErrorMapper.showSnackBar(context, e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _setStatus(String id, String status) async {
-    try {
-      await SupabaseBootstrap.client
-          .from('profiles')
-          .update({'status': status}).eq('id', id);
-      await _load();
-    } catch (e) {
-      if (mounted) AppErrorMapper.showSnackBar(context, e);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: SyuColors.crimson),
-      );
-    }
-    if (_rows.isEmpty) {
-      return const Center(child: Text('No pending registrations'));
-    }
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: _rows.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 10),
-        itemBuilder: (context, i) {
-          final p = _rows[i];
-          return Card(
-            child: ListTile(
-              title: Text(p['full_name'] as String? ?? 'Unnamed'),
-              subtitle: Text(
-                [
-                  '${p['email'] ?? ''}',
-                  '${p['phone'] ?? ''} · NIC ${p['nic'] ?? '-'}',
-                  if ((p['requested_youth_club_name'] as String?)
-                          ?.trim()
-                          .isNotEmpty ==
-                      true)
-                    'Club: ${p['requested_youth_club_name']}',
-                ].join('\n'),
-              ),
-              isThreeLine: true,
-              trailing: Wrap(
-                spacing: 8,
-                children: [
-                  TextButton(
-                    onPressed: () => _setStatus(p['id'] as String, 'active'),
-                    child: const Text('Approve'),
-                  ),
-                  TextButton(
-                    onPressed: () =>
-                        _setStatus(p['id'] as String, 'suspended'),
-                    child: const Text('Reject'),
-                  ),
-                ],
-              ),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.verified_outlined,
+                size: 48, color: SyuColors.crimsonSoft),
+            const SizedBox(height: 16),
+            Text(
+              'Registrations are auto-approved',
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
             ),
-          );
-        },
+            const SizedBox(height: 10),
+            Text(
+              'New members become active on submit. Use the Members tab to filter by district / DS and manage accounts.',
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

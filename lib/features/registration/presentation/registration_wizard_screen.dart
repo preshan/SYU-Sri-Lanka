@@ -178,9 +178,7 @@ class _RegistrationWizardScreenState
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Registration submitted. An admin will review your application.',
-          ),
+          content: Text('Registration complete. Your membership is active.'),
         ),
       );
       context.go('/home');
@@ -520,7 +518,7 @@ class _RegistrationWizardScreenState
           ),
           const SizedBox(height: 16),
           Text(
-            'After submit, your status becomes pending approval.',
+            'After submit, your membership becomes active immediately.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
