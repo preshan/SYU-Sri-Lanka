@@ -318,6 +318,11 @@ class _ProfileTabState extends ConsumerState<_ProfileTab> {
                 icon: const Icon(Icons.settings_outlined),
                 label: const Text('Settings'),
               ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => context.push('/admin'),
+                child: const Text('Admin console'),
+              ),
               const Spacer(),
               OutlinedButton.icon(
                 onPressed: widget.onSignOut,

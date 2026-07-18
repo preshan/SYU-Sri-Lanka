@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_shell.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/confirm_email_screen.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/forgot_password_screen.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/login_screen.dart';
@@ -85,6 +86,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/notifications',
         builder: (_, _) => const NotificationCenterScreen(),
+      ),
+      GoRoute(
+        path: '/admin',
+        builder: (_, _) => const AdminShell(),
       ),
     ],
   );
