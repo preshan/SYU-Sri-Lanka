@@ -1,29 +1,23 @@
--- Sprint 2: registration constraints, safe submit RPC, seed clubs
+-- O/L & A/L display names + requested club name for existing clubs
 
--- Unique NIC when present (case-insensitive via upper)
-create unique index if not exists profiles_nic_unique_idx
-  on public.profiles (upper(nic))
-  where nic is not null and length(trim(nic)) > 0;
+update public.qualifications
+set name_en = 'O/L'
+where code = 'ol';
 
--- Age eligibility helper (15–35 inclusive by default)
-create or replace function public.syu_age_years(dob date)
-returns integer
-language sql
-immutable
-as $$
-  select extract(year from age(current_date, dob))::integer;
-$$;
+update public.qualifications
+set name_en = 'A/L'
+where code = 'al';
 
-create or replace function public.syu_is_eligible_age(dob date)
-returns boolean
-language sql
-immutable
-as $$
-  select dob is not null
-    and public.syu_age_years(dob) between 15 and 35;
-$$;
+alter table public.profiles
+  add column if not exists requested_youth_club_name text;
 
--- Safe registration submit (atomic profile + qualifications)
+drop function if exists public.submit_member_registration(
+  text, text, text, date, text, integer, integer, integer, uuid, uuid[]
+);
+drop function if exists public.submit_member_registration(
+  text, text, text, date, text, integer, integer, integer, uuid, uuid[], text
+);
+
 create or replace function public.submit_member_registration(
   p_full_name text,
   p_phone text,
@@ -34,7 +28,8 @@ create or replace function public.submit_member_registration(
   p_ds_division_id integer,
   p_gn_division_id integer,
   p_youth_club_id uuid,
-  p_qualification_ids uuid[]
+  p_qualification_ids uuid[],
+  p_requested_youth_club_name text default null
 )
 returns public.profiles
 language plpgsql
@@ -44,6 +39,7 @@ as $$
 declare
   uid uuid := auth.uid();
   nic_norm text := upper(trim(p_nic));
+  club_name text := nullif(trim(coalesce(p_requested_youth_club_name, '')), '');
   row public.profiles;
 begin
   if uid is null then
@@ -75,6 +71,7 @@ begin
     ds_division_id = p_ds_division_id,
     gn_division_id = p_gn_division_id,
     youth_club_id = p_youth_club_id,
+    requested_youth_club_name = club_name,
     status = 'pending_approval',
     updated_at = now()
   where id = uid
@@ -97,7 +94,10 @@ begin
     'registration_submitted',
     'profile',
     uid,
-    jsonb_build_object('status', 'pending_approval')
+    jsonb_build_object(
+      'status', 'pending_approval',
+      'requested_youth_club_name', club_name
+    )
   );
 
   return row;
@@ -105,45 +105,9 @@ end;
 $$;
 
 revoke all on function public.submit_member_registration(
-  text, text, text, date, text, integer, integer, integer, uuid, uuid[]
+  text, text, text, date, text, integer, integer, integer, uuid, uuid[], text
 ) from public;
+
 grant execute on function public.submit_member_registration(
-  text, text, text, date, text, integer, integer, integer, uuid, uuid[]
+  text, text, text, date, text, integer, integer, integer, uuid, uuid[], text
 ) to authenticated;
-
--- Seed sample youth clubs (linked to first few districts when present)
-insert into public.youth_clubs (code, name, district_id, is_active)
-select v.code, v.name, d.id, true
-from (values
-  ('colombo-central', 'Colombo Central Youth Club'),
-  ('kandy-east', 'Kandy East Youth Club'),
-  ('galle-south', 'Galle South Youth Club'),
-  ('jaffna-north', 'Jaffna North Youth Club'),
-  ('national-unassigned', 'National (Unassigned Pool)')
-) as v(code, name)
-left join lateral (
-  select id from public.districts
-  where lower(name) like
-    case
-      when v.code like 'colombo%' then '%colombo%'
-      when v.code like 'kandy%' then '%kandy%'
-      when v.code like 'galle%' then '%galle%'
-      when v.code like 'jaffna%' then '%jaffna%'
-      else '%'
-    end
-  order by id
-  limit 1
-) d on true
-on conflict (code) do update set
-  name = excluded.name,
-  is_active = true;
-
--- Ensure qualifications seed remains present
-insert into public.qualifications (code, name_en, level_order) values
-  ('ol', 'O/L', 10),
-  ('al', 'A/L', 20),
-  ('diploma', 'Diploma', 30),
-  ('bachelor', 'Bachelor Degree', 40),
-  ('master', 'Master Degree', 50),
-  ('other', 'Other', 99)
-on conflict (code) do nothing;

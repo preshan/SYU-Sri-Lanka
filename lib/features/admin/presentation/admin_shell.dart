@@ -169,7 +169,9 @@ class _ApprovalQueueState extends State<_ApprovalQueue> {
     try {
       final rows = await SupabaseBootstrap.client
           .from('profiles')
-          .select('id,full_name,email,phone,nic,status,created_at')
+          .select(
+            'id,full_name,email,phone,nic,status,created_at,requested_youth_club_name',
+          )
           .eq('status', 'pending_approval')
           .order('created_at');
       setState(() => _rows = List<Map<String, dynamic>>.from(rows as List));
@@ -213,7 +215,15 @@ class _ApprovalQueueState extends State<_ApprovalQueue> {
             child: ListTile(
               title: Text(p['full_name'] as String? ?? 'Unnamed'),
               subtitle: Text(
-                '${p['email'] ?? ''}\n${p['phone'] ?? ''} · NIC ${p['nic'] ?? '-'}',
+                [
+                  '${p['email'] ?? ''}',
+                  '${p['phone'] ?? ''} · NIC ${p['nic'] ?? '-'}',
+                  if ((p['requested_youth_club_name'] as String?)
+                          ?.trim()
+                          .isNotEmpty ==
+                      true)
+                    'Club: ${p['requested_youth_club_name']}',
+                ].join('\n'),
               ),
               isThreeLine: true,
               trailing: Wrap(

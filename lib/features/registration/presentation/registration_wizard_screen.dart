@@ -27,7 +27,10 @@ class _RegistrationWizardScreenState
   LocationSelection _location = const LocationSelection();
   String? _gender;
   final Set<String> _qualificationCodes = {};
+  /// none | listed | existing
+  String _clubMode = 'none';
   String? _clubId;
+  final _clubName = TextEditingController();
   List<Map<String, dynamic>> _qualifications = [];
   List<Map<String, dynamic>> _clubs = [];
   bool _loadingMeta = true;
@@ -69,6 +72,7 @@ class _RegistrationWizardScreenState
     _fullName.dispose();
     _phone.dispose();
     _nic.dispose();
+    _clubName.dispose();
     super.dispose();
   }
 
@@ -105,6 +109,14 @@ class _RegistrationWizardScreenState
     if (_step == 1 && _location.districtId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Select your district')),
+      );
+      return;
+    }
+    if (_step == 1 &&
+        _clubMode == 'existing' &&
+        _clubName.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter your club name')),
       );
       return;
     }
@@ -155,8 +167,11 @@ class _RegistrationWizardScreenState
           'p_district_id': _location.districtId,
           'p_ds_division_id': _location.dsDivisionId,
           'p_gn_division_id': _location.gnDivisionId,
-          'p_youth_club_id': _clubId,
-          'p_qualification_ids': selected.map((q) => q['id'] as String).toList(),
+          'p_youth_club_id': _clubMode == 'listed' ? _clubId : null,
+          'p_qualification_ids':
+              selected.map((q) => q['id'] as String).toList(),
+          'p_requested_youth_club_name':
+              _clubMode == 'existing' ? _clubName.text.trim() : null,
         },
       );
 
@@ -326,32 +341,93 @@ class _RegistrationWizardScreenState
             },
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            // ignore: deprecated_member_use
-            value: _clubId ?? '',
-            decoration: const InputDecoration(labelText: 'Youth club'),
-            items: [
-              const DropdownMenuItem(
-                value: '',
-                child: Text('Unassigned / request later'),
-              ),
-              ..._clubs
-                  .where(
-                    (c) =>
-                        _location.districtId == null ||
-                        c['district_id'] == null ||
-                        c['district_id'] == _location.districtId,
-                  )
-                  .map(
-                    (c) => DropdownMenuItem(
-                      value: c['id'] as String,
-                      child: Text(c['name'] as String),
-                    ),
-                  ),
-            ],
-            onChanged: (v) =>
-                setState(() => _clubId = (v == null || v.isEmpty) ? null : v),
+          Text(
+            'Youth club',
+            style: Theme.of(context).textTheme.titleMedium,
           ),
+          const SizedBox(height: 8),
+          RadioListTile<String>(
+            value: 'none',
+            // ignore: deprecated_member_use
+            groupValue: _clubMode,
+            title: const Text('Not in a club yet'),
+            // ignore: deprecated_member_use
+            onChanged: (v) => setState(() {
+              _clubMode = v!;
+              _clubId = null;
+              _clubName.clear();
+            }),
+          ),
+          RadioListTile<String>(
+            value: 'listed',
+            // ignore: deprecated_member_use
+            groupValue: _clubMode,
+            title: const Text('Select from the list'),
+            // ignore: deprecated_member_use
+            onChanged: (v) => setState(() {
+              _clubMode = v!;
+              _clubName.clear();
+            }),
+          ),
+          RadioListTile<String>(
+            value: 'existing',
+            // ignore: deprecated_member_use
+            groupValue: _clubMode,
+            title: const Text('Already registered with a club'),
+            // ignore: deprecated_member_use
+            onChanged: (v) => setState(() {
+              _clubMode = v!;
+              _clubId = null;
+            }),
+          ),
+          if (_clubMode == 'listed') ...[
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              // ignore: deprecated_member_use
+              value: _clubId ?? '',
+              decoration: const InputDecoration(labelText: 'Youth club'),
+              items: [
+                const DropdownMenuItem(
+                  value: '',
+                  child: Text('Choose a club'),
+                ),
+                ..._clubs
+                    .where(
+                      (c) =>
+                          _location.districtId == null ||
+                          c['district_id'] == null ||
+                          c['district_id'] == _location.districtId,
+                    )
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c['id'] as String,
+                        child: Text(c['name'] as String),
+                      ),
+                    ),
+              ],
+              onChanged: (v) => setState(
+                () => _clubId = (v == null || v.isEmpty) ? null : v,
+              ),
+            ),
+          ],
+          if (_clubMode == 'existing') ...[
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _clubName,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'Club name',
+                hintText: 'Enter your youth club name',
+              ),
+              validator: (v) {
+                if (_clubMode != 'existing') return null;
+                if (v == null || v.trim().isEmpty) {
+                  return 'Enter your club name';
+                }
+                return null;
+              },
+            ),
+          ],
         ],
       ),
     );
@@ -379,7 +455,7 @@ class _RegistrationWizardScreenState
             return CheckboxListTile(
               value: selected,
               activeColor: SyuColors.crimson,
-              title: Text(q['name_en'] as String),
+              title: Text(_qualificationLabel(q)),
               onChanged: (v) {
                 setState(() {
                   if (v == true) {
@@ -394,6 +470,14 @@ class _RegistrationWizardScreenState
         ],
       ),
     );
+  }
+
+  /// Always show O/L and A/L in capitals regardless of stored casing.
+  String _qualificationLabel(Map<String, dynamic> q) {
+    final code = (q['code'] as String?)?.toLowerCase();
+    if (code == 'ol') return 'O/L';
+    if (code == 'al') return 'A/L';
+    return q['name_en'] as String? ?? code ?? '';
   }
 
   Widget _reviewStep() {
@@ -413,10 +497,26 @@ class _RegistrationWizardScreenState
           ),
           _row('District ID', '${_location.districtId ?? '-'}'),
           _row(
+            'Club',
+            switch (_clubMode) {
+              'listed' => () {
+                final matches =
+                    _clubs.where((c) => c['id'] == _clubId).toList();
+                if (matches.isEmpty) return 'Selected';
+                return matches.first['name'] as String? ?? 'Selected';
+              }(),
+              'existing' => _clubName.text.trim(),
+              _ => 'Not assigned',
+            },
+          ),
+          _row(
             'Qualifications',
             _qualificationCodes.isEmpty
                 ? 'None'
-                : _qualificationCodes.join(', '),
+                : _qualifications
+                    .where((q) => _qualificationCodes.contains(q['code']))
+                    .map(_qualificationLabel)
+                    .join(', '),
           ),
           const SizedBox(height: 16),
           Text(

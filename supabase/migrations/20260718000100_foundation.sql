@@ -75,8 +75,8 @@ create table if not exists public.qualifications (
 );
 
 insert into public.qualifications (code, name_en, level_order) values
-  ('ol', 'G.C.E. Ordinary Level', 10),
-  ('al', 'G.C.E. Advanced Level', 20),
+  ('ol', 'O/L', 10),
+  ('al', 'A/L', 20),
   ('diploma', 'Diploma', 30),
   ('bachelor', 'Bachelor Degree', 40),
   ('master', 'Master Degree', 50),
