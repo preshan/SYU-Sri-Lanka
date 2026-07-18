@@ -5,6 +5,9 @@ import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_audit_panel.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_clubs_panel.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_members_panel.dart';
 
 class AdminShell extends ConsumerStatefulWidget {
   const AdminShell({super.key});
@@ -86,34 +89,57 @@ class _AdminShellState extends ConsumerState<AdminShell> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _tab,
-        children: const [
-          _ApprovalQueue(),
-          _AdminAnnouncements(),
-          _AdminEvents(),
-          _AdminReports(),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.how_to_reg_outlined),
-            label: 'Approvals',
+      body: Row(
+        children: [
+          NavigationRail(
+            selectedIndex: _tab,
+            onDestinationSelected: (i) => setState(() => _tab = i),
+            labelType: NavigationRailLabelType.all,
+            destinations: const [
+              NavigationRailDestination(
+                icon: Icon(Icons.how_to_reg_outlined),
+                label: Text('Approvals'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.people_outline),
+                label: Text('Members'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.groups_outlined),
+                label: Text('Clubs'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.campaign_outlined),
+                label: Text('News'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.event_outlined),
+                label: Text('Events'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.bar_chart_outlined),
+                label: Text('Reports'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.history),
+                label: Text('Audit'),
+              ),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.campaign_outlined),
-            label: 'News',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.event_outlined),
-            label: 'Events',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            label: 'Reports',
+          const VerticalDivider(width: 1),
+          Expanded(
+            child: IndexedStack(
+              index: _tab,
+              children: const [
+                _ApprovalQueue(),
+                AdminMembersPanel(),
+                AdminClubsPanel(),
+                _AdminAnnouncements(),
+                _AdminEvents(),
+                _AdminReports(),
+                AdminAuditPanel(),
+              ],
+            ),
           ),
         ],
       ),

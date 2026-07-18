@@ -1,49 +1,61 @@
 # SYU Sri Lanka
 
-Flutter (Android-first) membership app for SYU Sri Lanka.
+Flutter membership app for SYU Sri Lanka (Android-first, Flutter Web admin).
 
 ## Stack
 
 - Flutter 3.44+
 - Supabase (Auth + Postgres + Storage + Realtime)
-- Firebase Cloud Messaging (later)
-- Flutter Web admin (later)
+- Flutter Web admin at `/admin` (super_admin)
+- FCM planned later
 
 ## Android targets
 
 - `minSdk`: 26 (Android 8+)
-- `targetSdk`: 35 (Android 15 runtime behavior)
-- `compileSdk`: 36 (current AndroidX requirement)
+- `targetSdk`: 35 (Android 15)
+- `compileSdk`: 36
 
 ## Setup
 
-1. Copy env file:
+1. Copy env:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Fill `SUPABASE_URL` and `SUPABASE_ANON_KEY` (anon key only — never put service role in the app).
+2. Fill `SUPABASE_URL` and `SUPABASE_ANON_KEY` only (never service role in the app).
 
-3. Install & run:
+3. Run:
 
 ```bash
 flutter pub get
-dart run flutter_launcher_icons
-dart run flutter_native_splash:create
 flutter run
+# Admin on web:
+flutter run -d chrome --web-port=5280
+# then open /admin while signed in as super_admin
 ```
 
 ## Brand
 
-Logo assets live in `assets/brand/` (`syu_logo.png`, launcher icon variants).
-Primary brand: crimson `#E10600` on near-black `#0A0A0A`.
+Assets in `assets/brand/`. Crimson `#E10600` on near-black `#0A0A0A`.
 
 ## Database
 
-SQL migrations are in `supabase/migrations/`.
-Apply with Supabase CLI or Management API against your project.
+Migrations: `supabase/migrations/`. Apply via Management API or Supabase CLI.
+
+## Docs
+
+| Doc | Purpose |
+|-----|---------|
+| `docs/DATABASE_SCHEMA.md` | Schema overview |
+| `docs/AUTH_RECOVERY.md` | Password reset / redirects |
+| `docs/SECURITY_CHECKLIST.md` | Production security |
+| `docs/RELEASE_RUNBOOK.md` | Ship APK / tags |
+| `docs/UAT_PLAN.md` | Critical journey tests |
+| `docs/LOCALIZATION.md` | EN / SI / TA scaffold |
 
 ## GitHub
 
-Project board: https://github.com/users/preshan/projects/2
+- Repo: https://github.com/preshan/SYU-Sri-Lanka
+- Project: https://github.com/users/preshan/projects/2
+- Releases: installable APKs under GitHub Releases

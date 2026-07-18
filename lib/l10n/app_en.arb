@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "appTitle": "SYU Sri Lanka",
+  "@appTitle": {
+    "description": "Application title"
+  },
+  "riseTogether": "Rise together.",
+  "signIn": "Sign in",
+  "signOut": "Sign out",
+  "completeRegistration": "Complete registration"
+}
