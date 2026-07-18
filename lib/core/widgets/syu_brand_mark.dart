@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 
+/// Brand mark using the full logo asset as-is (no image editing).
 class SyuBrandMark extends StatelessWidget {
   const SyuBrandMark({
     super.key,
     this.height = 72,
-    this.showWordmark = true,
+    this.showWordmark = false,
   });
 
   final double height;

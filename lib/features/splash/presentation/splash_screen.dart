@@ -127,12 +127,12 @@ class _SplashScreenState extends State<SplashScreen>
                   opacity: _logoFade,
                   child: ScaleTransition(
                     scale: _logoScale,
-                    child: Image.asset(
-                      'assets/brand/syu_logo_256.png',
-                      height: 112,
-                      errorBuilder: (_, _, _) => Image.asset(
+                    child: SizedBox(
+                      height: 120,
+                      child: Image.asset(
                         'assets/brand/syu_logo.png',
-                        height: 112,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.high,
                       ),
                     ),
                   ),

@@ -46,9 +46,9 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#0A0A0A"
-  image: assets/brand/syu_logo_512.png
+  image: assets/brand/syu_logo.png
   android: true
   ios: true
   android_12:
     color: "#0A0A0A"
-    image: assets/brand/syu_logo_512.png
+    image: assets/brand/syu_logo.png

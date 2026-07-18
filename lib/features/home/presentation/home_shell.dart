@@ -90,7 +90,12 @@ class _HomeTab extends StatelessWidget {
           children: [
             Row(
               children: [
-                Image.asset('assets/brand/syu_logo_128.png', height: 40),
+                Image.asset(
+                  'assets/brand/syu_logo.png',
+                  height: 40,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
