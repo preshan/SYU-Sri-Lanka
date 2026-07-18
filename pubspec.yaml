@@ -1,7 +1,7 @@
 name: syu_sri_lanka
 description: SYU Sri Lanka — youth membership, announcements, events, and messaging.
 publish_to: "none"
-version: 0.5.0+6
+version: 0.6.0+7
 
 environment:
   sdk: ^3.12.2
@@ -23,6 +23,7 @@ dependencies:
   permission_handler: ^12.0.3
   url_launcher: ^6.3.2
   shared_preferences: ^2.5.5
+  mailer: ^7.1.0
 
 dev_dependencies:
   flutter_test:

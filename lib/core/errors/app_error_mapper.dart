@@ -24,6 +24,15 @@ class AppErrorMapper {
       if (raw.contains('rate') || raw.contains('too many')) {
         return 'Too many attempts. Please wait and try again.';
       }
+      if (raw.contains('error sending') ||
+          raw.contains('smtp') ||
+          raw.contains('confirmation email')) {
+        return 'Could not send the verification email. Try again shortly.';
+      }
+      // Surface short Auth messages in debug; keep release copy generic.
+      if (kDebugMode && error.message.isNotEmpty) {
+        return error.message;
+      }
       return 'Authentication failed. Please try again.';
     }
 

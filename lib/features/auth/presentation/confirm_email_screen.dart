@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
+import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
@@ -46,16 +47,20 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
       _message = null;
     });
     try {
-      final res = await ref.read(authRepositoryProvider).verifySignupOtp(
+      await ref.read(authRepositoryProvider).verifySignupOtp(
             email: widget.email,
             token: _code,
           );
       if (!mounted) return;
-      if (res.session != null) {
+      final hasSession =
+          SupabaseBootstrap.client.auth.currentSession != null;
+      if (hasSession) {
         context.go('/home');
-        return;
+      } else {
+        context.go(
+          '/login?email=${Uri.encodeComponent(widget.email)}',
+        );
       }
-      context.go('/login');
     } catch (e) {
       if (!mounted) return;
       AppErrorMapper.showSnackBar(context, e);

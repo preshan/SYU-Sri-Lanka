@@ -37,19 +37,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      final res = await ref.read(authRepositoryProvider).signUp(
+      await ref.read(authRepositoryProvider).signUp(
             email: _email.text.trim(),
             password: _password.text,
             fullName: _name.text.trim(),
           );
       if (!mounted) return;
-      if (res.session == null) {
-        context.go(
-          '/confirm-email?email=${Uri.encodeComponent(_email.text.trim())}',
-        );
-        return;
-      }
-      context.go('/home');
+      // Always confirm via app-sent OTP (even if Auth autoconfirm created a session).
+      context.go(
+        '/confirm-email?email=${Uri.encodeComponent(_email.text.trim())}',
+      );
     } catch (e) {
       if (!mounted) return;
       AppErrorMapper.showSnackBar(context, e);

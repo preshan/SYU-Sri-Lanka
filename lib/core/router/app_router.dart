@@ -44,8 +44,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           loc == '/forgot-password';
 
       if (session == null && !isPublicAuth) return '/login';
-      if (session != null &&
-          (loc == '/login' || loc == '/register' || loc == '/confirm-email')) {
+      // Allow /confirm-email while signed in (app email OTP gate).
+      if (session != null && (loc == '/login' || loc == '/register')) {
         return '/home';
       }
       return null;

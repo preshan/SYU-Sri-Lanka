@@ -96,7 +96,26 @@ class _SplashScreenState extends State<SplashScreen>
     }
 
     final session = Supabase.instance.client.auth.currentSession;
-    context.go(session == null ? '/login' : '/home');
+    if (session == null) {
+      context.go('/login');
+      return;
+    }
+    try {
+      final verified =
+          await Supabase.instance.client.rpc('is_app_email_verified');
+      if (!mounted) return;
+      if (verified == true) {
+        context.go('/home');
+      } else {
+        final email = session.user.email ?? '';
+        context.go(
+          '/confirm-email?email=${Uri.encodeComponent(email)}',
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+      context.go('/home');
+    }
   }
 
   @override

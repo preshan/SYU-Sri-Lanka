@@ -54,7 +54,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             email: _email.text.trim(),
             password: _password.text,
           );
-      if (mounted) context.go('/home');
+      if (!mounted) return;
+      final verified =
+          await ref.read(authRepositoryProvider).isAppEmailVerified();
+      if (!mounted) return;
+      if (!verified) {
+        context.go(
+          '/confirm-email?email=${Uri.encodeComponent(_email.text.trim())}',
+        );
+        return;
+      }
+      context.go('/home');
     } catch (e) {
       if (!mounted) return;
       final msg = AppErrorMapper.message(e);

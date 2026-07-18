@@ -201,12 +201,19 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
       final row = await SupabaseBootstrap.client
           .from('profiles')
           .select(
-            'status,full_name,phone,nic,date_of_birth,district_id',
+            'status,full_name,phone,nic,date_of_birth,district_id,app_email_verified',
           )
           .eq('id', user.id)
           .maybeSingle();
       final admin = await SupabaseBootstrap.client.rpc('is_super_admin');
       if (!mounted) return;
+      if (row != null && row['app_email_verified'] != true && admin != true) {
+        final email = user.email ?? '';
+        context.go(
+          '/confirm-email?email=${Uri.encodeComponent(email)}',
+        );
+        return;
+      }
       final status = row?['status'] as String? ?? 'active';
       final completeness = ProfileCompleteness.fromProfile(row);
       setState(() {

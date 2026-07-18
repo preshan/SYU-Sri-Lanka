@@ -73,6 +73,8 @@ Deno.serve(async (req) => {
       smtp_admin_email: fromEmail,
       smtp_sender_name: row.from_name || 'SYU Sri Lanka',
       smtp_max_frequency: 1,
+      // Project-wide Auth emails/hour (signup, recovery, email change, etc.).
+      rate_limit_email_sent: 5,
     }
 
     const patchRes = await fetch(
