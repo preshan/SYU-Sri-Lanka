@@ -609,4 +609,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phoneRequired => 'Phone number is required';
+
+  @override
+  String get userTypes => 'User Types';
+
+  @override
+  String get userTypeMembers => 'Members';
+
+  @override
+  String get userTypeDistrictAdmins => 'District admins';
+
+  @override
+  String get userTypeDivisionAdmins => 'Division admins';
 }

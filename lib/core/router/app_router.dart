@@ -78,18 +78,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (_, state) {
           final tab = state.uri.queryParameters['tab'];
           final index = adminTabIndexFromName(tab) ?? 1;
+          final list = state.uri.queryParameters['list'];
           // Zero-duration page avoids web back leaving a tap-blocking barrier.
           return NoTransitionPage<void>(
             key: ValueKey(
-              'admin-$index-${state.uri.queryParameters['member'] ?? ''}',
+              'admin-$index-${list ?? ''}-${state.uri.queryParameters['member'] ?? ''}',
             ),
             child: AdminShell(
               key: ValueKey(
-                'admin-shell-$index-${state.uri.queryParameters['member'] ?? ''}',
+                'admin-shell-$index-${list ?? ''}-${state.uri.queryParameters['member'] ?? ''}',
               ),
               initialTab: index,
               initialMemberId: state.uri.queryParameters['member'],
               initialMemberName: state.uri.queryParameters['name'],
+              initialMembersListMode: list,
             ),
           );
         },

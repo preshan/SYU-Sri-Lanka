@@ -49,7 +49,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   Future<void> _loadAdmin() async {
     try {
-      final admin = await SupabaseBootstrap.client.rpc('is_org_admin');
+      final admin = await SupabaseBootstrap.client.rpc('is_staff_admin');
       if (mounted) setState(() => _isAdmin = admin == true);
     } catch (_) {
       if (mounted) setState(() => _isAdmin = false);
@@ -207,7 +207,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
           .eq('id', user.id)
           .maybeSingle();
       final results = await Future.wait([
-        SupabaseBootstrap.client.rpc('is_org_admin'),
+        SupabaseBootstrap.client.rpc('is_staff_admin'),
         SupabaseBootstrap.client.rpc('is_super_admin'),
         SupabaseBootstrap.client.rpc('is_division_admin'),
       ]);
@@ -549,6 +549,7 @@ class _AdminHomeDashboard extends StatelessWidget {
               title: l10n.saved,
               subtitle: l10n.quickShortlist,
               adminTab: 'members',
+              listMode: 'saved',
             ),
           ],
         ),
@@ -675,6 +676,7 @@ class _AdminSquareTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.adminTab,
+    this.listMode,
     this.onTap,
     this.iconColor,
   }) : assert(adminTab != null || onTap != null);
@@ -683,6 +685,7 @@ class _AdminSquareTile extends StatelessWidget {
   final String title;
   final String subtitle;
   final String? adminTab;
+  final String? listMode;
   final VoidCallback? onTap;
   final Color? iconColor;
 
@@ -692,7 +695,12 @@ class _AdminSquareTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: onTap ?? () => openAdminOverlay(context, adminTab!),
+        onTap: onTap ??
+            () => openAdminOverlay(
+                  context,
+                  adminTab!,
+                  list: listMode,
+                ),
         child: Ink(
           decoration: BoxDecoration(
             color: SyuColors.inkElevated,

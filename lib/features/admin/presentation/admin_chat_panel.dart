@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
@@ -29,14 +30,20 @@ class AdminChatPanel extends ConsumerStatefulWidget {
 }
 
 class AdminChatPanelState extends ConsumerState<AdminChatPanel> {
+  static const _pageSize = 30;
+
   List<Map<String, dynamic>> _chats = [];
   bool _loading = true;
+  int _page = 0;
+  int _total = 0;
   String? _openId;
   String? _openTitle;
   String? _openSubtitle;
   String? _openStatus;
 
   bool get hasOpenThread => _openId != null;
+
+  int get _totalPages => _total == 0 ? 1 : ((_total - 1) ~/ _pageSize) + 1;
 
   /// System / gesture back: close open thread. Returns true if consumed.
   bool handleSystemBack() {
@@ -47,7 +54,7 @@ class AdminChatPanelState extends ConsumerState<AdminChatPanel> {
       _openSubtitle = null;
       _openStatus = null;
     });
-    _load();
+    _load(resetPage: true);
     return true;
   }
 
@@ -58,7 +65,7 @@ class AdminChatPanelState extends ConsumerState<AdminChatPanel> {
   }
 
   Future<void> _boot() async {
-    await _load();
+    await _load(resetPage: true);
     if (widget.initialMemberId != null && mounted) {
       await _openWithMember(
         widget.initialMemberId!,
@@ -67,16 +74,31 @@ class AdminChatPanelState extends ConsumerState<AdminChatPanel> {
     }
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool resetPage = false}) async {
+    if (resetPage) _page = 0;
     setState(() => _loading = true);
     try {
-      final res = await SupabaseBootstrap.client.rpc('admin_list_direct_chats');
-      final list = res is List
+      final res = await SupabaseBootstrap.client.rpc(
+        'admin_list_direct_chats',
+        params: {
+          'p_limit': _pageSize,
+          'p_offset': _page * _pageSize,
+        },
+      );
+      final map = res is Map
+          ? Map<String, dynamic>.from(res)
+          : <String, dynamic>{};
+      final rawItems = map['items'];
+      final list = rawItems is List
           ? List<Map<String, dynamic>>.from(
-              res.map((e) => Map<String, dynamic>.from(e as Map)),
+              rawItems.map((e) => Map<String, dynamic>.from(e as Map)),
             )
           : <Map<String, dynamic>>[];
-      setState(() => _chats = list);
+      final total = map['total'];
+      setState(() {
+        _chats = list;
+        _total = total is int ? total : int.tryParse('$total') ?? list.length;
+      });
       await ref.read(unreadChatsProvider.notifier).refresh();
     } catch (e) {
       if (mounted) AppErrorMapper.showSnackBar(context, e);
@@ -116,7 +138,7 @@ class AdminChatPanelState extends ConsumerState<AdminChatPanel> {
         params: {'p_member_id': memberId},
       );
       final map = Map<String, dynamic>.from(res as Map);
-      await _load();
+      await _load(resetPage: true);
       if (!mounted) return;
       final match = _chats.cast<Map<String, dynamic>?>().firstWhere(
             (c) => c?['id'] == map['conversation_id'],
@@ -161,7 +183,7 @@ class AdminChatPanelState extends ConsumerState<AdminChatPanel> {
         onBack: handleSystemBack,
         onClosed: () {
           setState(() => _openStatus = 'closed');
-          _load();
+          _load(resetPage: true);
         },
       );
     }
@@ -194,14 +216,14 @@ class AdminChatPanelState extends ConsumerState<AdminChatPanel> {
                   child: CircularProgressIndicator(color: SyuColors.crimson),
                 )
               : RefreshIndicator(
-                  onRefresh: _load,
+                  onRefresh: () => _load(resetPage: true),
                   child: _chats.isEmpty
                       ? ListView(
                           children: [
                             const SizedBox(height: 40),
                             Center(
                               child: Text(
-                                'No member chats yet',
+                                'No chats yet — tap Message to start one',
                                 style: AdminPanelChrome.hintStyle(context),
                               ),
                             ),
@@ -258,7 +280,83 @@ class AdminChatPanelState extends ConsumerState<AdminChatPanel> {
                         ),
                 ),
         ),
+        if (!_loading && _total > _pageSize)
+          _ChatPaginationBar(
+            page: _page,
+            totalPages: _totalPages,
+            total: _total,
+            pageSize: _pageSize,
+            onPrev: _page <= 0
+                ? null
+                : () async {
+                    setState(() => _page -= 1);
+                    await _load();
+                  },
+            onNext: _page + 1 >= _totalPages
+                ? null
+                : () async {
+                    setState(() => _page += 1);
+                    await _load();
+                  },
+          ),
       ],
+    );
+  }
+}
+
+class _ChatPaginationBar extends StatelessWidget {
+  const _ChatPaginationBar({
+    required this.page,
+    required this.totalPages,
+    required this.total,
+    required this.pageSize,
+    required this.onPrev,
+    required this.onNext,
+  });
+
+  final int page;
+  final int totalPages;
+  final int total;
+  final int pageSize;
+  final VoidCallback? onPrev;
+  final VoidCallback? onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final from = total == 0 ? 0 : page * pageSize + 1;
+    final to = total == 0 ? 0 : ((page + 1) * pageSize).clamp(0, total);
+    return Material(
+      color: SyuColors.inkElevated,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: [
+              Text(
+                l10n.rangeOf(from, to, total),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: onPrev,
+                icon: const SyuIcon(SyuIcons.chevronLeft),
+                tooltip: 'Previous page',
+              ),
+              Text(
+                l10n.pageLabel(page + 1, totalPages),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              IconButton(
+                onPressed: onNext,
+                icon: const SyuIcon(SyuIcons.chevronRight),
+                tooltip: 'Next page',
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -277,14 +375,20 @@ class _MemberPickerDialog extends StatefulWidget {
 }
 
 class _MemberPickerDialogState extends State<_MemberPickerDialog> {
+  static const _pageSize = 30;
+
   final _query = TextEditingController();
   List<Map<String, dynamic>> _rows = [];
   bool _loading = true;
+  int _page = 0;
+  int _total = 0;
+
+  int get _totalPages => _total == 0 ? 1 : ((_total - 1) ~/ _pageSize) + 1;
 
   @override
   void initState() {
     super.initState();
-    _search();
+    _search(resetPage: true);
   }
 
   @override
@@ -293,20 +397,28 @@ class _MemberPickerDialogState extends State<_MemberPickerDialog> {
     super.dispose();
   }
 
-  Future<void> _search() async {
+  Future<void> _search({bool resetPage = false}) async {
+    if (resetPage) _page = 0;
     setState(() => _loading = true);
     try {
-      final text = _query.text.trim();
-      dynamic q = SupabaseBootstrap.client
+      final text = _query.text.trim().replaceAll(RegExp(r'[%*,()]'), '');
+      var q = SupabaseBootstrap.client
           .from('profiles')
           .select('id,full_name,email')
           .eq('status', 'active');
       if (text.isNotEmpty) {
-        q = q.or('full_name.ilike.%$text%,email.ilike.%$text%');
+        final pattern = '%$text%';
+        q = q.or('full_name.ilike.$pattern,email.ilike.$pattern');
       }
-      final rows = await q.order('full_name').limit(40);
+      final from = _page * _pageSize;
+      final to = from + _pageSize - 1;
+      final response = await q
+          .order('full_name')
+          .range(from, to)
+          .count(CountOption.exact);
       setState(() {
-        _rows = List<Map<String, dynamic>>.from(rows as List);
+        _rows = List<Map<String, dynamic>>.from(response.data as List);
+        _total = response.count;
       });
     } catch (e) {
       if (mounted) AppErrorMapper.showSnackBar(context, e);
@@ -330,11 +442,11 @@ class _MemberPickerDialogState extends State<_MemberPickerDialog> {
               decoration: InputDecoration(
                 hintText: l10n.searchNameOrEmail,
                 suffixIcon: IconButton(
-                  onPressed: _search,
+                  onPressed: () => _search(resetPage: true),
                   icon: const SyuIcon(SyuIcons.search),
                 ),
               ),
-              onSubmitted: (_) => _search(),
+              onSubmitted: (_) => _search(resetPage: true),
             ),
             const SizedBox(height: 12),
             Expanded(
@@ -342,26 +454,70 @@ class _MemberPickerDialogState extends State<_MemberPickerDialog> {
                   ? const Center(
                       child: CircularProgressIndicator(color: SyuColors.crimson),
                     )
-                  : ListView.builder(
-                      itemCount: _rows.length,
-                      itemBuilder: (context, i) {
-                        final p = _rows[i];
-                        final name = (p['full_name'] as String?)?.trim().isNotEmpty ==
-                                true
-                            ? p['full_name'] as String
-                            : (p['email'] as String? ?? 'Member');
-                        return ListTile(
-                          leading: const SyuIcon(SyuIcons.user),
-                          title: Text(name),
-                          subtitle: Text(p['email'] as String? ?? ''),
-                          onTap: () => Navigator.pop(
-                            context,
-                            _MemberPick(p['id'] as String, name),
+                  : _rows.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No members found',
+                            style: AdminPanelChrome.hintStyle(context),
                           ),
-                        );
-                      },
-                    ),
+                        )
+                      : ListView.builder(
+                          itemCount: _rows.length,
+                          itemBuilder: (context, i) {
+                            final p = _rows[i];
+                            final name =
+                                (p['full_name'] as String?)?.trim().isNotEmpty ==
+                                        true
+                                    ? p['full_name'] as String
+                                    : (p['email'] as String? ?? 'Member');
+                            return ListTile(
+                              leading: const SyuIcon(SyuIcons.user),
+                              title: Text(name),
+                              subtitle: Text(p['email'] as String? ?? ''),
+                              onTap: () => Navigator.pop(
+                                context,
+                                _MemberPick(p['id'] as String, name),
+                              ),
+                            );
+                          },
+                        ),
             ),
+            if (!_loading && _total > _pageSize)
+              Row(
+                children: [
+                  Text(
+                    l10n.rangeOf(
+                      _total == 0 ? 0 : _page * _pageSize + 1,
+                      ((_page + 1) * _pageSize).clamp(0, _total),
+                      _total,
+                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: _page <= 0
+                        ? null
+                        : () async {
+                            setState(() => _page -= 1);
+                            await _search();
+                          },
+                    icon: const SyuIcon(SyuIcons.chevronLeft),
+                  ),
+                  Text(
+                    l10n.pageLabel(_page + 1, _totalPages),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  IconButton(
+                    onPressed: _page + 1 >= _totalPages
+                        ? null
+                        : () async {
+                            setState(() => _page += 1);
+                            await _search();
+                          },
+                    icon: const SyuIcon(SyuIcons.chevronRight),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

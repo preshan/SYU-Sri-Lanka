@@ -30,6 +30,8 @@ class ConversationsListScreen extends ConsumerStatefulWidget {
 
 class ConversationsListScreenState
     extends ConsumerState<ConversationsListScreen> {
+  static const _pageSize = 30;
+
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
   String? _error;
@@ -37,8 +39,12 @@ class ConversationsListScreenState
   String? _openTitle;
   String? _openSubtitle;
   String? _openStatus;
+  int _page = 0;
+  int _total = 0;
 
   bool get hasOpenThread => _openId != null;
+
+  int get _totalPages => _total == 0 ? 1 : ((_total - 1) ~/ _pageSize) + 1;
 
   /// System / gesture back: close open thread. Returns true if consumed.
   bool handleSystemBack() {
@@ -49,25 +55,26 @@ class ConversationsListScreenState
       _openSubtitle = null;
       _openStatus = null;
     });
-    _load();
+    _load(resetPage: true);
     return true;
   }
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _load(resetPage: true);
   }
 
   @override
   void didUpdateWidget(covariant ConversationsListScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.active && !oldWidget.active && _openId == null) {
-      _load();
+      _load(resetPage: true);
     }
   }
 
-  Future<void> _load() async {
+  Future<void> _load({bool resetPage = false}) async {
+    if (resetPage) _page = 0;
     setState(() {
       _loading = true;
       _error = null;
@@ -75,13 +82,27 @@ class ConversationsListScreenState
     try {
       final uid = SupabaseBootstrap.client.auth.currentUser?.id;
       if (uid == null) return;
-      final res = await SupabaseBootstrap.client.rpc('member_list_conversations');
-      final list = res is List
+      final res = await SupabaseBootstrap.client.rpc(
+        'member_list_conversations',
+        params: {
+          'p_limit': _pageSize,
+          'p_offset': _page * _pageSize,
+        },
+      );
+      final map = res is Map
+          ? Map<String, dynamic>.from(res)
+          : <String, dynamic>{};
+      final rawItems = map['items'];
+      final list = rawItems is List
           ? List<Map<String, dynamic>>.from(
-              res.map((e) => Map<String, dynamic>.from(e as Map)),
+              rawItems.map((e) => Map<String, dynamic>.from(e as Map)),
             )
           : <Map<String, dynamic>>[];
-      setState(() => _items = list);
+      final total = map['total'];
+      setState(() {
+        _items = list;
+        _total = total is int ? total : int.tryParse('$total') ?? list.length;
+      });
     } catch (e) {
       AppErrorMapper.log(e);
       setState(() => _error = AppErrorMapper.message(e));
@@ -133,142 +154,203 @@ class ConversationsListScreenState
           )
         : SyuGradientBackground(
             child: SafeArea(
-              child: RefreshIndicator(
-                color: SyuColors.crimson,
-                onRefresh: _load,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-                  children: [
-                    Row(
-                      children: [
-                        if (context.canPop())
-                          IconButton(
-                            onPressed: () => context.pop(),
-                            icon: const SyuIcon(SyuIcons.back),
-                          ),
-                        Expanded(
-                          child: Text(
-                            l10n.chat,
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.chatListSubtitle,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 20),
-                    if (_loading)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 48),
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: SyuColors.crimson,
-                          ),
-                        ),
-                      )
-                    else if (_error != null)
-                      Text(
-                        _error!,
-                        style: const TextStyle(color: SyuColors.danger),
-                      )
-                    else if (_items.isEmpty)
-                      Text(
-                        l10n.noConversationsYet,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      )
-                    else
-                      ..._items.map((c) {
-                        final closed = c['status'] == 'closed';
-                        final subtitle = _displaySubtitle(c);
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(18),
-                              onTap: () => _openChat(c),
-                              child: Container(
-                                padding: const EdgeInsets.all(18),
-                                decoration: BoxDecoration(
-                                  color: SyuColors.inkElevated
-                                      .withValues(alpha: 0.9),
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(color: SyuColors.border),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: SyuColors.crimson,
+                      onRefresh: () => _load(resetPage: true),
+                      child: ListView(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                        children: [
+                          Row(
+                            children: [
+                              if (context.canPop())
+                                IconButton(
+                                  onPressed: () => context.pop(),
+                                  icon: const SyuIcon(SyuIcons.back),
                                 ),
-                                child: Row(
-                                  children: [
-                                    SyuIcon(
-                                      closed ? SyuIcons.lock : SyuIcons.chat,
-                                      color: SyuColors.crimsonSoft,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                              Expanded(
+                                child: Text(
+                                  l10n.chat,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.chatListSubtitle,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 20),
+                          if (_loading)
+                            const Padding(
+                              padding: EdgeInsets.only(top: 48),
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: SyuColors.crimson,
+                                ),
+                              ),
+                            )
+                          else if (_error != null)
+                            Text(
+                              _error!,
+                              style: const TextStyle(color: SyuColors.danger),
+                            )
+                          else if (_items.isEmpty)
+                            Text(
+                              l10n.noConversationsYet,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            )
+                          else
+                            ..._items.map((c) {
+                              final closed = c['status'] == 'closed';
+                              final subtitle = _displaySubtitle(c);
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(18),
+                                    onTap: () => _openChat(c),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(18),
+                                      decoration: BoxDecoration(
+                                        color: SyuColors.inkElevated
+                                            .withValues(alpha: 0.9),
+                                        borderRadius:
+                                            BorderRadius.circular(18),
+                                        border: Border.all(
+                                          color: SyuColors.border,
+                                        ),
+                                      ),
+                                      child: Row(
                                         children: [
-                                          Text(
-                                            _displayTitle(c),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium,
+                                          SyuIcon(
+                                            closed
+                                                ? SyuIcons.lock
+                                                : SyuIcons.chat,
+                                            color: SyuColors.crimsonSoft,
                                           ),
-                                          if (subtitle.isNotEmpty)
-                                            Text(
-                                              subtitle,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall
-                                                  ?.copyWith(
-                                                    color: SyuColors.mist,
-                                                    fontSize: 11,
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  _displayTitle(c),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleMedium,
+                                                ),
+                                                if (subtitle.isNotEmpty)
+                                                  Text(
+                                                    subtitle,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          color: SyuColors.mist,
+                                                          fontSize: 11,
+                                                        ),
                                                   ),
+                                                if (closed)
+                                                  Text(
+                                                    'Chat ended',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          color: SyuColors.mist,
+                                                        ),
+                                                  )
+                                                else if ((c['last_message']
+                                                            as String?)
+                                                        ?.isNotEmpty ==
+                                                    true)
+                                                  Text(
+                                                    c['last_message'] as String,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          color: SyuColors.mist,
+                                                        ),
+                                                  ),
+                                              ],
                                             ),
-                                          if (closed)
-                                            Text(
-                                              'Chat ended',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall
-                                                  ?.copyWith(
-                                                    color: SyuColors.mist,
-                                                  ),
-                                            )
-                                          else if ((c['last_message'] as String?)
-                                                  ?.isNotEmpty ==
-                                              true)
-                                            Text(
-                                              c['last_message'] as String,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall
-                                                  ?.copyWith(
-                                                    color: SyuColors.mist,
-                                                  ),
-                                            ),
+                                          ),
+                                          const SyuIcon(
+                                            SyuIcons.chevronRight,
+                                            color: SyuColors.mist,
+                                          ),
                                         ],
                                       ),
                                     ),
-                                    const SyuIcon(
-                                      SyuIcons.chevronRight,
-                                      color: SyuColors.mist,
-                                    ),
-                                  ],
+                                  ),
                                 ),
+                              );
+                            }),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (!_loading && _total > _pageSize)
+                    Material(
+                      color: SyuColors.inkElevated,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              l10n.rangeOf(
+                                _total == 0 ? 0 : _page * _pageSize + 1,
+                                ((_page + 1) * _pageSize).clamp(0, _total),
+                                _total,
                               ),
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
-                          ),
-                        );
-                      }),
-                  ],
-                ),
+                            const Spacer(),
+                            IconButton(
+                              onPressed: _page <= 0
+                                  ? null
+                                  : () async {
+                                      setState(() => _page -= 1);
+                                      await _load();
+                                    },
+                              icon: const SyuIcon(SyuIcons.chevronLeft),
+                            ),
+                            Text(
+                              l10n.pageLabel(_page + 1, _totalPages),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            IconButton(
+                              onPressed: _page + 1 >= _totalPages
+                                  ? null
+                                  : () async {
+                                      setState(() => _page += 1);
+                                      await _load();
+                                    },
+                              icon: const SyuIcon(SyuIcons.chevronRight),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           );

@@ -615,4 +615,16 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get phoneRequired => 'தொலைபேசி எண் தேவை';
+
+  @override
+  String get userTypes => 'பயனர் வகைகள்';
+
+  @override
+  String get userTypeMembers => 'உறுப்பினர்கள்';
+
+  @override
+  String get userTypeDistrictAdmins => 'மாவட்ட நிர்வாகிகள்';
+
+  @override
+  String get userTypeDivisionAdmins => 'பிரிவு நிர்வாகிகள்';
 }

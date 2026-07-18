@@ -239,5 +239,9 @@
   "divisionAdminContactBody": "දිස්ත්‍රික් පරිපාලකයන්ට සම්බන්ධ වීමට අංශ පරිපාලකයන් නම සහ දුරකථන අංකය ලබා දිය යුතුය.",
   "addContactDetails": "සම්බන්ධතා විස්තර එක් කරන්න",
   "nameRequired": "නම අවශ්‍යයි",
-  "phoneRequired": "දුරකථන අංකය අවශ්‍යයි"
+  "phoneRequired": "දුරකථන අංකය අවශ්‍යයි",
+  "userTypes": "පරිශීලක වර්ග",
+  "userTypeMembers": "සාමාජිකයන්",
+  "userTypeDistrictAdmins": "දිස්ත්‍රික් පරිපාලකයන්",
+  "userTypeDivisionAdmins": "අංශ පරිපාලකයන්"
 }

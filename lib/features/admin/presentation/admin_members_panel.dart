@@ -13,7 +13,10 @@ import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class AdminMembersPanel extends StatefulWidget {
-  const AdminMembersPanel({super.key});
+  const AdminMembersPanel({super.key, this.initialListMode});
+
+  /// `all` | `saved`
+  final String? initialListMode;
 
   @override
   State<AdminMembersPanel> createState() => _AdminMembersPanelState();
@@ -30,6 +33,12 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
   bool _loadingDivisionAdmins = false;
   /// When true, district filter is fixed to the district admin's scope.
   bool _districtFilterLocked = false;
+  bool _dsFilterLocked = false;
+  bool _isSuperAdmin = false;
+  bool _isDistrictAdmin = false;
+  bool _isDivisionAdmin = false;
+  /// Multi-select user types. Default: members only.
+  final Set<String> _userTypes = {'member'};
 
   /// null = ALL districts
   int? _districtFilter;
@@ -43,7 +52,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
   bool? _filterTamil;
   bool? _filterEnglish;
   /// 'all' | 'saved'
-  String _listMode = 'all';
+  late String _listMode;
   final Set<String> _savedIds = {};
   final _search = TextEditingController();
   Timer? _searchDebounce;
@@ -58,6 +67,8 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
   @override
   void initState() {
     super.initState();
+    final mode = widget.initialListMode;
+    _listMode = mode == 'saved' ? 'saved' : 'all';
     _bootstrap();
   }
 
@@ -87,6 +98,17 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     });
   }
 
+  bool get _isDivisionOnly =>
+      _isDivisionAdmin && !_isSuperAdmin && !_isDistrictAdmin;
+
+  bool get _canFilterDistrictAdmins =>
+      _isSuperAdmin || _isDistrictAdmin;
+
+  bool get _showDivisionAdminsStrip =>
+      !_isDivisionOnly &&
+      (_isSuperAdmin || _isDistrictAdmin) &&
+      _districtFilter != null;
+
   Future<void> _bootstrap() async {
     setState(() => _bootstrapping = true);
     try {
@@ -96,18 +118,26 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
           .select('id,name')
           .order('name');
       int? adminDistrict;
+      int? lockedDs;
       var lockDistrict = false;
+      var lockDs = false;
+      var isSuper = false;
+      var isDistrictAdmin = false;
+      var isDivisionAdmin = false;
       if (uid != null) {
         final me = await SupabaseBootstrap.client
             .from('profiles')
-            .select('district_id')
+            .select('district_id,ds_division_id')
             .eq('id', uid)
             .maybeSingle();
-        final isSuper =
+        isSuper =
             await SupabaseBootstrap.client.rpc('is_super_admin') == true;
-        final isDistrictAdmin =
+        isDistrictAdmin =
             await SupabaseBootstrap.client.rpc('is_district_admin') == true;
+        isDivisionAdmin =
+            await SupabaseBootstrap.client.rpc('is_division_admin') == true;
         adminDistrict = me?['district_id'] as int?;
+
         if (isDistrictAdmin && !isSuper) {
           lockDistrict = true;
           final scoped = await SupabaseBootstrap.client
@@ -121,14 +151,50 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
             adminDistrict = ids.first;
           }
         }
+
+        // Division-only: lock district + DS to their scope.
+        if (isDivisionAdmin && !isSuper && !isDistrictAdmin) {
+          lockDistrict = true;
+          lockDs = true;
+          final scopedDs = await SupabaseBootstrap.client
+              .rpc('my_division_admin_ds_ids');
+          final dsIds = (scopedDs as List?)
+                  ?.map((e) => e is int ? e : int.tryParse('$e'))
+                  .whereType<int>()
+                  .toList() ??
+              const <int>[];
+          if (dsIds.isNotEmpty) {
+            lockedDs = dsIds.first;
+            final dsRow = await SupabaseBootstrap.client
+                .from('ds_divisions')
+                .select('district_id')
+                .eq('id', lockedDs)
+                .maybeSingle();
+            adminDistrict = dsRow?['district_id'] as int? ?? adminDistrict;
+          }
+        }
       }
       setState(() {
         _districts = List<Map<String, dynamic>>.from(districts as List);
         _districtFilter = adminDistrict;
         _districtFilterLocked = lockDistrict && adminDistrict != null;
+        _dsFilterLocked = lockDs && lockedDs != null;
+        _isSuperAdmin = isSuper;
+        _isDistrictAdmin = isDistrictAdmin;
+        _isDivisionAdmin = isDivisionAdmin;
+        _userTypes
+          ..clear()
+          ..add('member');
+        if (!_canFilterDistrictAdmins) {
+          _userTypes.remove('district_admin');
+        }
       });
       if (adminDistrict != null) {
         await _loadDs(adminDistrict);
+        if (lockedDs != null) {
+          setState(() => _dsFilter = lockedDs);
+          await _loadGs(lockedDs);
+        }
       }
       await _loadSavedIds();
       await _loadDivisionAdmins();
@@ -144,7 +210,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     if (districtId == null) {
       setState(() {
         _dsDivisions = [];
-        _dsFilter = null;
+        if (!_dsFilterLocked) _dsFilter = null;
         _gsDivisions = [];
         _gsFilter = null;
       });
@@ -157,9 +223,11 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
         .order('name');
     setState(() {
       _dsDivisions = List<Map<String, dynamic>>.from(rows as List);
-      _dsFilter = null; // reset DS to ALL when district changes
-      _gsDivisions = [];
-      _gsFilter = null;
+      if (!_dsFilterLocked) {
+        _dsFilter = null; // reset DS to ALL when district changes
+        _gsDivisions = [];
+        _gsFilter = null;
+      }
     });
   }
 
@@ -200,7 +268,11 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
 
   Future<void> _loadDivisionAdmins() async {
     final districtId = _districtFilter;
-    if (districtId == null) {
+    // Always load when a district is selected for district/super admins.
+    final shouldShow = (_isSuperAdmin || _isDistrictAdmin) &&
+        !_isDivisionOnly &&
+        districtId != null;
+    if (!shouldShow) {
       if (mounted) {
         setState(() {
           _divisionAdmins = [];
@@ -211,21 +283,76 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     }
     setState(() => _loadingDivisionAdmins = true);
     try {
-      final rows = await SupabaseBootstrap.client.rpc(
-        'list_division_admins_for_district',
-        params: {
-          'p_district_id': districtId,
-          'p_ds_division_id': _dsFilter,
-        },
+      final idParams = <String, dynamic>{
+        'p_user_types': ['division_admin'],
+        'p_district_id': districtId,
+      };
+      if (_dsFilter != null) {
+        idParams['p_ds_division_id'] = _dsFilter;
+      }
+      final rawIds = await SupabaseBootstrap.client.rpc(
+        'directory_user_ids',
+        params: idParams,
       );
+      final ids = (rawIds as List?)
+              ?.map((e) => '$e')
+              .where((e) => e.isNotEmpty)
+              .toList() ??
+          const <String>[];
+      if (ids.isEmpty) {
+        if (!mounted) return;
+        setState(() => _divisionAdmins = []);
+        return;
+      }
+
+      final rows = await SupabaseBootstrap.client
+          .from('profiles')
+          .select('id,full_name,phone,ds_division_id')
+          .inFilter('id', ids)
+          .order('full_name');
+
+      final dsNameById = <int, String>{
+        for (final d in _dsDivisions)
+          if (d['id'] is int)
+            d['id'] as int: (d['name'] as String?) ?? '',
+      };
+      final missingDs = (rows as List)
+          .map((r) => (r as Map)['ds_division_id'])
+          .whereType<int>()
+          .where((id) => !dsNameById.containsKey(id))
+          .toSet();
+      if (missingDs.isNotEmpty) {
+        final dsRows = await SupabaseBootstrap.client
+            .from('ds_divisions')
+            .select('id,name')
+            .eq('district_id', districtId);
+        for (final d in dsRows as List) {
+          final map = d as Map;
+          final id = map['id'];
+          if (id is int) {
+            dsNameById[id] = (map['name'] as String?) ?? '';
+          }
+        }
+      }
+
+      final mapped = <Map<String, dynamic>>[];
+      for (final row in rows) {
+        final p = Map<String, dynamic>.from(row as Map);
+        final dsId = p['ds_division_id'] as int?;
+        mapped.add({
+          'user_id': p['id'],
+          'full_name': p['full_name'],
+          'phone': p['phone'],
+          'ds_division_id': dsId,
+          'ds_division_name': dsId == null ? null : dsNameById[dsId],
+        });
+      }
       if (!mounted) return;
-      setState(() {
-        _divisionAdmins = List<Map<String, dynamic>>.from(rows as List? ?? []);
-      });
+      setState(() => _divisionAdmins = mapped);
     } catch (e) {
       if (mounted) {
         setState(() => _divisionAdmins = []);
-        AppErrorMapper.log(e);
+        AppErrorMapper.showSnackBar(context, e);
       }
     } finally {
       if (mounted) setState(() => _loadingDivisionAdmins = false);
@@ -252,6 +379,46 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     final from = _page * _pageSize;
     final to = from + _pageSize - 1;
 
+    final types = _userTypes.isEmpty
+        ? <String>['member']
+        : _userTypes
+            .where(
+              (t) =>
+                  t == 'member' ||
+                  t == 'division_admin' ||
+                  (t == 'district_admin' && _canFilterDistrictAdmins),
+            )
+            .toList();
+    if (types.isEmpty) types.add('member');
+
+    final idParams = <String, dynamic>{
+      'p_user_types': types,
+    };
+    if (_districtFilter != null) {
+      idParams['p_district_id'] = _districtFilter;
+    }
+    if (_dsFilter != null) {
+      idParams['p_ds_division_id'] = _dsFilter;
+    }
+
+    final rawIds = await SupabaseBootstrap.client.rpc(
+      'directory_user_ids',
+      params: idParams,
+    );
+    final ids = (rawIds as List?)
+            ?.map((e) => '$e')
+            .where((e) => e.isNotEmpty)
+            .toList() ??
+        const <String>[];
+
+    if (ids.isEmpty) {
+      setState(() {
+        _rows = [];
+        _total = 0;
+      });
+      return;
+    }
+
     PostgrestFilterBuilder query = SupabaseBootstrap.client
         .from('profiles')
         .select(
@@ -261,16 +428,11 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
           'speaks_sinhala,speaks_tamil,speaks_english,other_qualification,'
           'occupation,'
           'member_qualifications(qualification_id, qualifications(code,name_en,level_order))',
-        );
+        )
+        .inFilter('id', ids);
 
     if (_status != 'all') {
       query = query.eq('status', _status);
-    }
-    if (_districtFilter != null) {
-      query = query.eq('district_id', _districtFilter!);
-    }
-    if (_dsFilter != null) {
-      query = query.eq('ds_division_id', _dsFilter!);
     }
     if (_gsFilter != null) {
       query = query.eq('gn_division_id', _gsFilter!);
@@ -288,7 +450,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     if (q.isNotEmpty) {
       final pattern = '%$q%';
       query = query.or(
-        'full_name.ilike.$pattern,email.ilike.$pattern,nic.ilike.$pattern',
+        'full_name.ilike.$pattern,email.ilike.$pattern,nic.ilike.$pattern,phone.ilike.$pattern',
       );
     }
 
@@ -527,6 +689,28 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     var from = 0;
     const page = 1000;
     final q = _sanitizedSearch;
+
+    final types = _userTypes.isEmpty
+        ? <String>['member']
+        : _userTypes
+            .where(
+              (t) =>
+                  t == 'member' ||
+                  t == 'division_admin' ||
+                  (t == 'district_admin' && _canFilterDistrictAdmins),
+            )
+            .toList();
+    if (types.isEmpty) types.add('member');
+    final idParams = <String, dynamic>{'p_user_types': types};
+    if (_districtFilter != null) idParams['p_district_id'] = _districtFilter;
+    if (_dsFilter != null) idParams['p_ds_division_id'] = _dsFilter;
+    final rawIds = await SupabaseBootstrap.client.rpc(
+      'directory_user_ids',
+      params: idParams,
+    );
+    final ids = (rawIds as List?)?.map((e) => '$e').toList() ?? const <String>[];
+    if (ids.isEmpty) return [];
+
     while (true) {
       PostgrestFilterBuilder query =
           SupabaseBootstrap.client.from('profiles').select(
@@ -536,12 +720,8 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                 'requested_youth_club_name,youth_club_registration_no,'
                 'speaks_sinhala,speaks_tamil,speaks_english,'
                 'member_qualifications(qualification_id, qualifications(code,name_en,level_order))',
-              );
+              ).inFilter('id', ids);
       if (_status != 'all') query = query.eq('status', _status);
-      if (_districtFilter != null) {
-        query = query.eq('district_id', _districtFilter!);
-      }
-      if (_dsFilter != null) query = query.eq('ds_division_id', _dsFilter!);
       if (_gsFilter != null) query = query.eq('gn_division_id', _gsFilter!);
       if (_filterSinhala == true) query = query.eq('speaks_sinhala', true);
       if (_filterTamil == true) query = query.eq('speaks_tamil', true);
@@ -549,7 +729,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
       if (q.isNotEmpty) {
         final pattern = '%$q%';
         query = query.or(
-          'full_name.ilike.$pattern,email.ilike.$pattern,nic.ilike.$pattern',
+          'full_name.ilike.$pattern,email.ilike.$pattern,nic.ilike.$pattern,phone.ilike.$pattern',
         );
       }
       final chunk = await query
@@ -647,8 +827,10 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
 
   String _memberSubtitle(Map<String, dynamic> p, AppLocalizations l10n) {
     final nic = (p['nic'] as String?)?.trim();
+    final phone = (p['phone'] as String?)?.trim();
     final line1 = <String>[
       if ((p['email'] as String?)?.isNotEmpty == true) p['email'] as String,
+      if (phone != null && phone.isNotEmpty) phone,
     ].join(' · ');
     final line2 = <String>[
       if (nic != null && nic.isNotEmpty) nic,
@@ -675,6 +857,20 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     return [line1, line2, line3].where((l) => l.isNotEmpty).join('\n');
   }
 
+  Future<void> _callPhone(String? raw) async {
+    final phone = raw?.trim() ?? '';
+    if (phone.isEmpty) return;
+    final digits = phone.replaceAll(RegExp(r'[^\d+]'), '');
+    if (digits.isEmpty) return;
+    final ok = await AppPermissions.openLink('tel:$digits');
+    if (!mounted) return;
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not start call')),
+      );
+    }
+  }
+
   int get _languageFilterCount => [
         _filterSinhala,
         _filterTamil,
@@ -688,7 +884,99 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     if (_gsFilter != null) n++;
     if (_status != 'all') n++;
     n += _languageFilterCount;
+    if (!_userTypes.contains('member') ||
+        _userTypes.length != 1 ||
+        _userTypes.contains('district_admin') ||
+        _userTypes.contains('division_admin')) {
+      // Count as active unless default members-only.
+      if (!(_userTypes.length == 1 && _userTypes.contains('member'))) {
+        n++;
+      }
+    }
     return n;
+  }
+
+  String _userTypesLabel(AppLocalizations l10n) {
+    if (_userTypes.isEmpty ||
+        (_userTypes.length == 1 && _userTypes.contains('member'))) {
+      return l10n.userTypeMembers;
+    }
+    final labels = <String>[
+      if (_userTypes.contains('member')) l10n.userTypeMembers,
+      if (_userTypes.contains('district_admin') && _canFilterDistrictAdmins)
+        l10n.userTypeDistrictAdmins,
+      if (_userTypes.contains('division_admin')) l10n.userTypeDivisionAdmins,
+    ];
+    if (labels.isEmpty) return l10n.userTypeMembers;
+    return labels.join(', ');
+  }
+
+  Widget _userTypesFilterMenu(AppLocalizations l10n) {
+    Future<void> toggle(String type) async {
+      setState(() {
+        if (_userTypes.contains(type)) {
+          if (_userTypes.length > 1) {
+            _userTypes.remove(type);
+          }
+        } else {
+          if (type == 'district_admin' && !_canFilterDistrictAdmins) return;
+          _userTypes.add(type);
+        }
+        if (_userTypes.isEmpty) _userTypes.add('member');
+      });
+      await _load(resetPage: true);
+      if (_showDivisionAdminsStrip) {
+        await _loadDivisionAdmins();
+      } else if (mounted) {
+        setState(() => _divisionAdmins = []);
+      }
+    }
+
+    return PopupMenuButton<String>(
+      tooltip: l10n.userTypes,
+      padding: EdgeInsets.zero,
+      offset: const Offset(0, 36),
+      onSelected: (v) => toggle(v),
+      itemBuilder: (_) => [
+        CheckedPopupMenuItem<String>(
+          value: 'member',
+          checked: _userTypes.contains('member'),
+          child: Text(l10n.userTypeMembers),
+        ),
+        if (_canFilterDistrictAdmins)
+          CheckedPopupMenuItem<String>(
+            value: 'district_admin',
+            checked: _userTypes.contains('district_admin'),
+            child: Text(l10n.userTypeDistrictAdmins),
+          ),
+        CheckedPopupMenuItem<String>(
+          value: 'division_admin',
+          checked: _userTypes.contains('division_admin'),
+          child: Text(l10n.userTypeDivisionAdmins),
+        ),
+      ],
+      child: Container(
+        height: 32,
+        padding: const EdgeInsets.only(left: 8, right: 4),
+        decoration: BoxDecoration(
+          color: SyuColors.inkSoft,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                '${l10n.userTypes}: ${_userTypesLabel(l10n)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, size: 18, color: SyuColors.mist),
+          ],
+        ),
+      ),
+    );
   }
 
   String _languageFilterLabel(AppLocalizations l10n) {
@@ -996,6 +1284,8 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                 ),
               ),
               if (_listMode == 'all') ...[
+                const SizedBox(height: 6),
+                _userTypesFilterMenu(l10n),
                 const SizedBox(height: 2),
                 Align(
                   alignment: Alignment.centerLeft,
@@ -1073,8 +1363,10 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                             child: _compactSelect(
                               label: 'DS',
                               valueText: _dsLabel(_dsFilter, l10n),
-                              enabled: _districtFilter != null,
+                              enabled:
+                                  _districtFilter != null && !_dsFilterLocked,
                               onSelected: (v) async {
+                                if (_dsFilterLocked) return;
                                 final id = v == -1 ? null : v as int?;
                                 setState(() => _dsFilter = id);
                                 await _loadGs(id);
@@ -1167,10 +1459,11 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (_districtFilter != null)
+              if (_showDivisionAdminsStrip)
                 _DivisionAdminsHeader(
                   loading: _loadingDivisionAdmins,
                   admins: _divisionAdmins,
+                  onCall: _callPhone,
                 ),
               Expanded(
                 child: _loading
@@ -1213,6 +1506,8 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                   final p = _rows[i];
                                   final id = p['id'] as String;
                                   final saved = _savedIds.contains(id);
+                                  final phone =
+                                      (p['phone'] as String?)?.trim() ?? '';
                                   return ListTile(
                                     dense: true,
                                     visualDensity: const VisualDensity(
@@ -1241,47 +1536,82 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                         height: 1.3,
                                       ),
                                     ),
-                                    trailing: PopupMenuButton<String>(
-                                      padding: EdgeInsets.zero,
-                                      icon: Icon(
-                                        Icons.more_vert,
-                                        size: 18,
-                                        color: saved
-                                            ? SyuColors.crimson
-                                            : SyuColors.mist,
-                                      ),
-                                      onSelected: (s) async {
-                                        if (s == 'message') {
-                                          await _messageMember(p);
-                                          return;
-                                        }
-                                        if (s == 'save' || s == 'unsave') {
-                                          await _toggleSave(p);
-                                          return;
-                                        }
-                                        await _setStatus(id, s);
-                                      },
-                                      itemBuilder: (_) => [
-                                        PopupMenuItem(
-                                          value: 'message',
-                                          child: Text(l10n.messageAction),
-                                        ),
-                                        PopupMenuItem(
-                                          value: saved ? 'unsave' : 'save',
-                                          child: Text(
-                                            saved
-                                                ? 'Remove from saved'
-                                                : 'Save for quick access',
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (phone.isNotEmpty)
+                                          IconButton(
+                                            tooltip: 'Call $phone',
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            padding: EdgeInsets.zero,
+                                            constraints: const BoxConstraints(
+                                              minWidth: 32,
+                                              minHeight: 32,
+                                            ),
+                                            icon: const SyuIcon(
+                                              SyuIcons.phone,
+                                              size: 18,
+                                              color: SyuColors.crimson,
+                                            ),
+                                            onPressed: () => _callPhone(phone),
                                           ),
-                                        ),
-                                        PopupMenuItem(
-                                          value: 'active',
-                                          child: Text(l10n.statusActive),
-                                        ),
-                                        PopupMenuItem(
-                                          value: 'suspended',
-                                          child:
-                                              Text(l10n.statusSuspended),
+                                        PopupMenuButton<String>(
+                                          padding: EdgeInsets.zero,
+                                          icon: Icon(
+                                            Icons.more_vert,
+                                            size: 18,
+                                            color: saved
+                                                ? SyuColors.crimson
+                                                : SyuColors.mist,
+                                          ),
+                                          onSelected: (s) async {
+                                            if (s == 'message') {
+                                              await _messageMember(p);
+                                              return;
+                                            }
+                                            if (s == 'save' ||
+                                                s == 'unsave') {
+                                              await _toggleSave(p);
+                                              return;
+                                            }
+                                            if (s == 'call') {
+                                              await _callPhone(phone);
+                                              return;
+                                            }
+                                            await _setStatus(id, s);
+                                          },
+                                          itemBuilder: (_) => [
+                                            if (phone.isNotEmpty)
+                                              PopupMenuItem(
+                                                value: 'call',
+                                                child: Text('Call $phone'),
+                                              ),
+                                            PopupMenuItem(
+                                              value: 'message',
+                                              child:
+                                                  Text(l10n.messageAction),
+                                            ),
+                                            PopupMenuItem(
+                                              value:
+                                                  saved ? 'unsave' : 'save',
+                                              child: Text(
+                                                saved
+                                                    ? 'Remove from saved'
+                                                    : 'Save for quick access',
+                                              ),
+                                            ),
+                                            PopupMenuItem(
+                                              value: 'active',
+                                              child:
+                                                  Text(l10n.statusActive),
+                                            ),
+                                            PopupMenuItem(
+                                              value: 'suspended',
+                                              child: Text(
+                                                  l10n.statusSuspended),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
@@ -1317,19 +1647,35 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
 
 }
 
-class _DivisionAdminsHeader extends StatelessWidget {
+class _DivisionAdminsHeader extends StatefulWidget {
   const _DivisionAdminsHeader({
     required this.loading,
     required this.admins,
+    required this.onCall,
   });
 
   final bool loading;
   final List<Map<String, dynamic>> admins;
+  final Future<void> Function(String? phone) onCall;
+
+  @override
+  State<_DivisionAdminsHeader> createState() => _DivisionAdminsHeaderState();
+}
+
+class _DivisionAdminsHeaderState extends State<_DivisionAdminsHeader> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
+    final admins = widget.admins;
+    final visible = (!widget.loading && admins.length > 1 && !_expanded)
+        ? admins.take(1).toList()
+        : admins;
+    final hiddenCount =
+        admins.length > 1 && !_expanded ? admins.length - 1 : 0;
+
     return Material(
       color: SyuColors.inkSoft,
       child: Padding(
@@ -1344,15 +1690,8 @@ class _DivisionAdminsHeader extends StatelessWidget {
                 fontSize: 13,
               ),
             ),
-            Text(
-              l10n.divisionAdminsHint,
-              style: textTheme.bodySmall?.copyWith(
-                color: SyuColors.mist,
-                fontSize: 11,
-              ),
-            ),
             const SizedBox(height: 6),
-            if (loading)
+            if (widget.loading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Center(
@@ -1374,59 +1713,99 @@ class _DivisionAdminsHeader extends StatelessWidget {
                   fontSize: 12,
                 ),
               )
-            else
-              ...admins.map((a) {
-                final name =
-                    (a['full_name'] as String?)?.trim().isNotEmpty == true
-                        ? a['full_name'] as String
-                        : 'Unnamed';
-                final phone = (a['phone'] as String?)?.trim() ?? '';
-                final ds = (a['ds_division_name'] as String?)?.trim() ?? '';
-                final subtitle = [
-                  if (ds.isNotEmpty) ds,
-                  if (phone.isNotEmpty) phone else 'No phone',
-                ].join(' · ');
-                return ListTile(
-                  dense: true,
-                  visualDensity: const VisualDensity(
-                    horizontal: 0,
-                    vertical: -3,
-                  ),
-                  contentPadding: EdgeInsets.zero,
-                  minVerticalPadding: 2,
-                  title: Text(
-                    name,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
+            else ...[
+              ...visible.map(_adminTile),
+              if (admins.length > 1)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: SyuColors.crimson,
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: const VisualDensity(
+                        horizontal: -3,
+                        vertical: -3,
+                      ),
+                    ),
+                    onPressed: () => setState(() => _expanded = !_expanded),
+                    icon: Icon(
+                      _expanded
+                          ? Icons.expand_less_rounded
+                          : Icons.expand_more_rounded,
+                      size: 18,
+                    ),
+                    label: Text(
+                      _expanded
+                          ? 'Show less'
+                          : 'Show $hiddenCount more',
+                      style: textTheme.labelMedium?.copyWith(fontSize: 12),
                     ),
                   ),
-                  subtitle: Text(
-                    subtitle,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: SyuColors.mist,
-                      fontSize: 11,
-                    ),
-                  ),
-                  trailing: phone.isEmpty
-                      ? null
-                      : IconButton(
-                          tooltip: phone,
-                          visualDensity: VisualDensity.compact,
-                          icon: const SyuIcon(
-                            SyuIcons.phone,
-                            size: 18,
-                            color: SyuColors.crimson,
-                          ),
-                          onPressed: () =>
-                              AppPermissions.openLink('tel:$phone'),
-                        ),
-                );
-              }),
+                ),
+            ],
             const Divider(height: 12, color: SyuColors.border),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _adminTile(Map<String, dynamic> a) {
+    final textTheme = Theme.of(context).textTheme;
+    final name = (a['full_name'] as String?)?.trim().isNotEmpty == true
+        ? a['full_name'] as String
+        : 'Unnamed';
+    final phone = (a['phone'] as String?)?.trim() ?? '';
+    final ds = (a['ds_division_name'] as String?)?.trim() ?? '';
+    final titleLine = ds.isEmpty ? name : '$name | $ds';
+    return ListTile(
+      dense: true,
+      visualDensity: const VisualDensity(horizontal: 0, vertical: -3),
+      contentPadding: EdgeInsets.zero,
+      minVerticalPadding: 2,
+      onTap: phone.isEmpty ? null : () => widget.onCall(phone),
+      title: Text(
+        titleLine,
+        style: textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+        ),
+      ),
+      subtitle: phone.isNotEmpty
+          ? GestureDetector(
+              onTap: () => widget.onCall(phone),
+              child: Text(
+                phone,
+                style: textTheme.bodySmall?.copyWith(
+                  color: SyuColors.crimson,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.underline,
+                  decorationColor: SyuColors.crimson,
+                ),
+              ),
+            )
+          : Text(
+              'No phone',
+              style: textTheme.bodySmall?.copyWith(
+                color: SyuColors.mist,
+                fontSize: 11,
+              ),
+            ),
+      trailing: phone.isEmpty
+          ? null
+          : IconButton(
+              tooltip: 'Call $phone',
+              visualDensity: VisualDensity.compact,
+              icon: const SyuIcon(
+                SyuIcons.phone,
+                size: 18,
+                color: SyuColors.crimson,
+              ),
+              onPressed: () => widget.onCall(phone),
+            ),
     );
   }
 }

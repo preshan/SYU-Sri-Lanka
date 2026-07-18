@@ -242,5 +242,9 @@
   "divisionAdminContactBody": "Division admins must share a name and phone so district admins can reach you.",
   "addContactDetails": "Add contact details",
   "nameRequired": "Name is required",
-  "phoneRequired": "Phone number is required"
+  "phoneRequired": "Phone number is required",
+  "userTypes": "User Types",
+  "userTypeMembers": "Members",
+  "userTypeDistrictAdmins": "District admins",
+  "userTypeDivisionAdmins": "Division admins"
 }

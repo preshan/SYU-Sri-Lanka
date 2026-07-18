@@ -239,5 +239,9 @@
   "divisionAdminContactBody": "மாவட்ட நிர்வாகிகள் தொடர்புகொள்ள, பிரிவு நிர்வாகிகள் பெயர் மற்றும் தொலைபேசி எண்ணை வழங்க வேண்டும்.",
   "addContactDetails": "தொடர்பு விவரங்களைச் சேர்க்கவும்",
   "nameRequired": "பெயர் தேவை",
-  "phoneRequired": "தொலைபேசி எண் தேவை"
+  "phoneRequired": "தொலைபேசி எண் தேவை",
+  "userTypes": "பயனர் வகைகள்",
+  "userTypeMembers": "உறுப்பினர்கள்",
+  "userTypeDistrictAdmins": "மாவட்ட நிர்வாகிகள்",
+  "userTypeDivisionAdmins": "பிரிவு நிர்வாகிகள்"
 }

@@ -1221,6 +1221,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Phone number is required'**
   String get phoneRequired;
+
+  /// No description provided for @userTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'User Types'**
+  String get userTypes;
+
+  /// No description provided for @userTypeMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get userTypeMembers;
+
+  /// No description provided for @userTypeDistrictAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'District admins'**
+  String get userTypeDistrictAdmins;
+
+  /// No description provided for @userTypeDivisionAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'Division admins'**
+  String get userTypeDivisionAdmins;
 }
 
 class _AppLocalizationsDelegate

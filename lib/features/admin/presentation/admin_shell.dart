@@ -20,6 +20,7 @@ class AdminShell extends ConsumerStatefulWidget {
     this.initialTab = 0,
     this.initialMemberId,
     this.initialMemberName,
+    this.initialMembersListMode,
     this.onLeave,
   });
 
@@ -27,6 +28,8 @@ class AdminShell extends ConsumerStatefulWidget {
   final int initialTab;
   final String? initialMemberId;
   final String? initialMemberName;
+  /// `all` | `saved` — initial Members segmented control.
+  final String? initialMembersListMode;
 
   /// Called when the user leaves admin tools (back / Dashboard).
   /// Prefer this over a route pop so admin never stacks as a sibling page.
@@ -74,7 +77,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
 
   Future<void> _check() async {
     try {
-      final ok = await SupabaseBootstrap.client.rpc('is_org_admin');
+      final ok = await SupabaseBootstrap.client.rpc('is_staff_admin');
       setState(() => _allowed = ok == true);
     } catch (e) {
       AppErrorMapper.log(e);
@@ -112,7 +115,9 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   Widget get _panel {
     return switch (_tab) {
       0 => const _ApprovalQueue(),
-      1 => const AdminMembersPanel(),
+      1 => AdminMembersPanel(
+          initialListMode: widget.initialMembersListMode,
+        ),
       2 => const AdminClubsPanel(),
       3 => const AdminAnnouncementsPanel(),
       4 => const AdminEventsPanel(),
@@ -124,7 +129,9 @@ class _AdminShellState extends ConsumerState<AdminShell> {
       6 => const AdminBroadcastPanel(),
       7 => const _AdminReports(),
       8 => const AdminAuditPanel(),
-      _ => const AdminMembersPanel(),
+      _ => AdminMembersPanel(
+          initialListMode: widget.initialMembersListMode,
+        ),
     };
   }
 
@@ -151,7 +158,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Sign in with a district or super admin account.',
+                    'Sign in with a district, division, or super admin account.',
                     style: Theme.of(context).textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),

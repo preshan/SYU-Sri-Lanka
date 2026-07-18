@@ -41,6 +41,15 @@ abstract final class AppPermissions {
   static Future<bool> openLink(String url) async {
     final uri = Uri.tryParse(url.trim());
     if (uri == null) return false;
+    final scheme = uri.scheme.toLowerCase();
+    // Web often reports canLaunchUrl(false) for tel:/mailto: — still try.
+    if (scheme == 'tel' || scheme == 'mailto' || scheme == 'sms') {
+      try {
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        return false;
+      }
+    }
     if (!await canLaunchUrl(uri)) return false;
     return launchUrl(uri, mode: LaunchMode.externalApplication);
   }

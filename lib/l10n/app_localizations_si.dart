@@ -610,4 +610,16 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get phoneRequired => 'දුරකථන අංකය අවශ්‍යයි';
+
+  @override
+  String get userTypes => 'පරිශීලක වර්ග';
+
+  @override
+  String get userTypeMembers => 'සාමාජිකයන්';
+
+  @override
+  String get userTypeDistrictAdmins => 'දිස්ත්‍රික් පරිපාලකයන්';
+
+  @override
+  String get userTypeDivisionAdmins => 'අංශ පරිපාලකයන්';
 }
