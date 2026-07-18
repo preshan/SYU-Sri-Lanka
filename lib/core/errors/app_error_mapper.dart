@@ -27,6 +27,16 @@ class AppErrorMapper {
       return 'Authentication failed. Please try again.';
     }
 
+    if (error is PostgrestException) {
+      final code = error.code ?? '';
+      if (code == '42501' || (error.message.toLowerCase().contains('row-level security'))) {
+        return 'You do not have permission to do that.';
+      }
+      if (kDebugMode && error.message.isNotEmpty) {
+        return error.message;
+      }
+    }
+
     final text = error.toString().toLowerCase();
     if (text.contains('socket') ||
         text.contains('network') ||

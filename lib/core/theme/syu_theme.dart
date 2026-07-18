@@ -108,6 +108,16 @@ class SyuTheme {
         labelStyle: const TextStyle(color: SyuColors.mist),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        prefixIconConstraints: const BoxConstraints(
+          minWidth: 40,
+          minHeight: 40,
+          maxHeight: 48,
+        ),
+        suffixIconConstraints: const BoxConstraints(
+          minWidth: 40,
+          minHeight: 40,
+          maxHeight: 48,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: SyuColors.border),
@@ -129,7 +139,9 @@ class SyuTheme {
         style: FilledButton.styleFrom(
           backgroundColor: SyuColors.crimson,
           foregroundColor: SyuColors.paper,
-          minimumSize: const Size.fromHeight(52),
+          // Prefer height-only mins via Size(0, h) — Size.fromHeight sets
+          // width=infinity and crashes FilledButtons inside Rows.
+          minimumSize: const Size(0, 52),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(
@@ -142,7 +154,7 @@ class SyuTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: SyuColors.ink,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size(0, 52),
           side: const BorderSide(color: SyuColors.border),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),

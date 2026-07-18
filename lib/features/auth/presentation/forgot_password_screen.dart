@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
+import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -56,7 +57,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
+            icon: const SyuIcon(SyuIcons.back),
             onPressed: () => context.go('/login'),
           ),
         ),
@@ -79,7 +80,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Icon(Icons.mark_email_read_outlined,
+        const SyuIcon(SyuIcons.mailOpen,
             size: 56, color: SyuColors.crimsonSoft),
         const SizedBox(height: 16),
         Text('Check your email',
@@ -121,7 +122,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             keyboardType: TextInputType.emailAddress,
             decoration: const InputDecoration(
               labelText: 'Email',
-              prefixIcon: Icon(Icons.mail_outline_rounded),
+              prefixIcon: SyuFieldIcon(SyuIcons.mail),
             ),
             validator: (v) {
               if (v == null || v.trim().isEmpty) return 'Email is required';

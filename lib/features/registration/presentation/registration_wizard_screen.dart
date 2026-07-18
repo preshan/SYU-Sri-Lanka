@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
+import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/core/validation/nic_and_age.dart';
+import 'package:syu_sri_lanka/features/home/presentation/home_shell.dart';
 import 'package:syu_sri_lanka/features/location/presentation/cascading_location_picker.dart';
 
 class RegistrationWizardScreen extends ConsumerStatefulWidget {
@@ -27,6 +29,9 @@ class _RegistrationWizardScreenState
   LocationSelection _location = const LocationSelection();
   String? _gender;
   final Set<String> _qualificationCodes = {};
+  bool _speaksSinhala = false;
+  bool _speaksTamil = false;
+  bool _speaksEnglish = false;
   /// none | listed | existing
   String _clubMode = 'none';
   String? _clubId;
@@ -173,10 +178,14 @@ class _RegistrationWizardScreenState
               selected.map((q) => q['id'] as String).toList(),
           'p_requested_youth_club_name':
               _clubMode == 'existing' ? _clubName.text.trim() : null,
+          'p_speaks_sinhala': _speaksSinhala,
+          'p_speaks_tamil': _speaksTamil,
+          'p_speaks_english': _speaksEnglish,
         },
       );
 
       if (!mounted) return;
+      ref.read(profileStatusTickProvider.notifier).state++;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Registration complete. Your membership is active.'),
@@ -198,7 +207,7 @@ class _RegistrationWizardScreenState
       appBar: AppBar(
         title: Text('Registration · ${titles[_step]}'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: const SyuIcon(SyuIcons.back),
           onPressed: _back,
         ),
       ),
@@ -267,7 +276,7 @@ class _RegistrationWizardScreenState
             keyboardType: TextInputType.phone,
             decoration: const InputDecoration(
               labelText: 'Phone (+94…)',
-              prefixIcon: Icon(Icons.phone_outlined),
+              prefixIcon: SyuFieldIcon(SyuIcons.phone),
             ),
             validator: (v) {
               if (v == null || v.trim().length < 9) {
@@ -307,7 +316,7 @@ class _RegistrationWizardScreenState
                   ? 'Date of birth'
                   : 'DOB: ${_dob!.toIso8601String().split('T').first} (age ${AgeRules.ageOn(_dob!)})',
             ),
-            trailing: const Icon(Icons.calendar_month_outlined),
+            trailing: const SyuIcon(SyuIcons.calendar),
             onTap: _pickDob,
           ),
         ],
@@ -466,6 +475,35 @@ class _RegistrationWizardScreenState
               },
             );
           }),
+          const SizedBox(height: 20),
+          Text(
+            'Language skills',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Select languages you can speak.',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 8),
+          CheckboxListTile(
+            value: _speaksSinhala,
+            activeColor: SyuColors.crimson,
+            title: const Text('Sinhala'),
+            onChanged: (v) => setState(() => _speaksSinhala = v == true),
+          ),
+          CheckboxListTile(
+            value: _speaksTamil,
+            activeColor: SyuColors.crimson,
+            title: const Text('Tamil'),
+            onChanged: (v) => setState(() => _speaksTamil = v == true),
+          ),
+          CheckboxListTile(
+            value: _speaksEnglish,
+            activeColor: SyuColors.crimson,
+            title: const Text('English'),
+            onChanged: (v) => setState(() => _speaksEnglish = v == true),
+          ),
         ],
       ),
     );
@@ -516,6 +554,20 @@ class _RegistrationWizardScreenState
                     .where((q) => _qualificationCodes.contains(q['code']))
                     .map(_qualificationLabel)
                     .join(', '),
+          ),
+          _row(
+            'Languages',
+            [
+              if (_speaksSinhala) 'Sinhala',
+              if (_speaksTamil) 'Tamil',
+              if (_speaksEnglish) 'English',
+            ].isEmpty
+                ? 'None'
+                : [
+                    if (_speaksSinhala) 'Sinhala',
+                    if (_speaksTamil) 'Tamil',
+                    if (_speaksEnglish) 'English',
+                  ].join(', '),
           ),
           const SizedBox(height: 16),
           Text(

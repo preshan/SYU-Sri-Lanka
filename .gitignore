@@ -59,3 +59,11 @@ key.properties
 
 releases/
 *.apk
+
+# Local Supabase CLI cache
+supabase/.temp/
+
+# Local project seed scripts/logs (not for the repo)
+.github-project-seed.py
+.github-project-seed.log
+.github-project-seed.state.json

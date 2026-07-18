@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
+import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_chrome.dart';
 
 class AdminClubsPanel extends StatefulWidget {
   const AdminClubsPanel({super.key});
@@ -95,19 +97,17 @@ class _AdminClubsPanelState extends State<AdminClubsPanel> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: Row(
-            children: [
-              Text('Youth clubs', style: Theme.of(context).textTheme.titleLarge),
-              const Spacer(),
-              FilledButton.icon(
-                onPressed: _create,
-                icon: const Icon(Icons.add),
-                label: const Text('Add'),
-              ),
-            ],
-          ),
+        AdminPanelChrome.toolbar(
+          context: context,
+          hint: 'Toggle active clubs',
+          actions: [
+            FilledButton.icon(
+              style: AdminPanelChrome.compactFilled,
+              onPressed: _create,
+              icon: const SyuIcon(SyuIcons.add, size: 16, color: SyuColors.paper),
+              label: const Text('Add'),
+            ),
+          ],
         ),
         Expanded(
           child: _loading
@@ -116,23 +116,46 @@ class _AdminClubsPanelState extends State<AdminClubsPanel> {
                 )
               : RefreshIndicator(
                   onRefresh: _load,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _rows.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (context, i) {
-                      final c = _rows[i];
-                      final active = c['is_active'] == true;
-                      return Card(
-                        child: SwitchListTile(
-                          title: Text(c['name'] as String? ?? ''),
-                          subtitle: Text(c['code'] as String? ?? ''),
-                          value: active,
-                          onChanged: (v) => _toggle(c['id'] as String, v),
+                  child: _rows.isEmpty
+                      ? ListView(
+                          children: [
+                            const SizedBox(height: 40),
+                            Center(
+                              child: Text(
+                                'No clubs yet',
+                                style: AdminPanelChrome.hintStyle(context),
+                              ),
+                            ),
+                          ],
+                        )
+                      : ListView.separated(
+                          padding: AdminPanelChrome.listPadding,
+                          itemCount: _rows.length,
+                          separatorBuilder: (_, _) =>
+                              AdminPanelChrome.denseDivider(),
+                          itemBuilder: (context, i) {
+                            final c = _rows[i];
+                            final active = c['is_active'] == true;
+                            return SwitchListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              visualDensity: const VisualDensity(
+                                horizontal: 0,
+                                vertical: -2,
+                              ),
+                              title: Text(
+                                c['name'] as String? ?? '',
+                                style: AdminPanelChrome.rowTitleStyle(context),
+                              ),
+                              subtitle: Text(
+                                c['code'] as String? ?? '',
+                                style: AdminPanelChrome.rowMetaStyle(context),
+                              ),
+                              value: active,
+                              onChanged: (v) => _toggle(c['id'] as String, v),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
                 ),
         ),
       ],

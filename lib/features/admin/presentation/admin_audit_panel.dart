@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_chrome.dart';
 
 class AdminAuditPanel extends StatefulWidget {
   const AdminAuditPanel({super.key});
@@ -44,24 +45,33 @@ class _AdminAuditPanelState extends State<AdminAuditPanel> {
       );
     }
     if (_rows.isEmpty) {
-      return const Center(child: Text('No audit events yet'));
+      return Center(
+        child: Text(
+          'No audit events yet',
+          style: AdminPanelChrome.hintStyle(context),
+        ),
+      );
     }
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+        padding: AdminPanelChrome.listPadding,
         itemCount: _rows.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 8),
+        separatorBuilder: (_, _) => AdminPanelChrome.denseDivider(),
         itemBuilder: (context, i) {
           final a = _rows[i];
           final when = (a['created_at'] as String?)?.split('T').first ?? '';
-          return Card(
-            child: ListTile(
-              title: Text(a['action'] as String? ?? ''),
-              subtitle: Text(
-                '${a['entity_type']} · $when\n${a['metadata']}',
-              ),
-              isThreeLine: true,
+          return ListTile(
+            dense: true,
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -2),
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              a['action'] as String? ?? '',
+              style: AdminPanelChrome.rowTitleStyle(context),
+            ),
+            subtitle: Text(
+              '${a['entity_type']} · $when',
+              style: AdminPanelChrome.rowMetaStyle(context),
             ),
           );
         },

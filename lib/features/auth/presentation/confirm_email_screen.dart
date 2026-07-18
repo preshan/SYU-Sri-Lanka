@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
+import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
 
 class ConfirmEmailScreen extends ConsumerStatefulWidget {
@@ -54,8 +55,8 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
                   children: [
                     const SyuBrandMark(height: 56, showWordmark: false),
                     const SizedBox(height: 28),
-                    Icon(
-                      Icons.mark_email_unread_outlined,
+                    const SyuIcon(
+                      SyuIcons.mailUnread,
                       size: 56,
                       color: SyuColors.crimsonSoft,
                     ),

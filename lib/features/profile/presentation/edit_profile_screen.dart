@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
+import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
+import 'package:syu_sri_lanka/features/home/presentation/home_shell.dart';
 import 'package:syu_sri_lanka/features/profile/domain/profile_completeness.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -21,12 +21,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _fullName = TextEditingController();
   final _preferred = TextEditingController();
   final _phone = TextEditingController();
-  String? _avatarPath;
-  String? _avatarUrl;
   bool _loading = true;
   bool _saving = false;
-  bool _uploading = false;
   ProfileCompleteness? _completeness;
+
+  List<Map<String, dynamic>> _qualifications = [];
+  final Set<String> _qualificationIds = {};
+  bool _speaksSinhala = false;
+  bool _speaksTamil = false;
+  bool _speaksEnglish = false;
 
   @override
   void initState() {
@@ -46,24 +49,42 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     try {
       final uid = SupabaseBootstrap.client.auth.currentUser?.id;
       if (uid == null) return;
-      final row = await SupabaseBootstrap.client
-          .from('profiles')
-          .select(
-            'full_name,preferred_name,phone,avatar_path,nic,date_of_birth,district_id,status',
-          )
-          .eq('id', uid)
-          .maybeSingle();
+
+      final results = await Future.wait([
+        SupabaseBootstrap.client.from('profiles').select(
+              'full_name,preferred_name,phone,nic,date_of_birth,district_id,status,'
+              'speaks_sinhala,speaks_tamil,speaks_english',
+            ).eq('id', uid).maybeSingle(),
+        SupabaseBootstrap.client
+            .from('qualifications')
+            .select('id,code,name_en,level_order')
+            .eq('is_active', true)
+            .order('level_order'),
+        SupabaseBootstrap.client
+            .from('member_qualifications')
+            .select('qualification_id')
+            .eq('profile_id', uid),
+      ]);
+
       if (!mounted) return;
+
+      final row = results[0] as Map<String, dynamic>?;
+      final quals = List<Map<String, dynamic>>.from(results[1] as List);
+      final mine = List<Map<String, dynamic>>.from(results[2] as List);
+
       _fullName.text = row?['full_name'] as String? ?? '';
       _preferred.text = row?['preferred_name'] as String? ?? '';
       _phone.text = row?['phone'] as String? ?? '';
-      _avatarPath = row?['avatar_path'] as String?;
       _completeness = ProfileCompleteness.fromProfile(row);
-      if (_avatarPath != null && _avatarPath!.isNotEmpty) {
-        _avatarUrl = SupabaseBootstrap.client.storage
-            .from('avatars')
-            .getPublicUrl(_avatarPath!);
-      }
+      _qualifications = quals;
+      _qualificationIds
+        ..clear()
+        ..addAll(
+          mine.map((m) => m['qualification_id'] as String),
+        );
+      _speaksSinhala = row?['speaks_sinhala'] == true;
+      _speaksTamil = row?['speaks_tamil'] == true;
+      _speaksEnglish = row?['speaks_english'] == true;
     } catch (e) {
       if (mounted) AppErrorMapper.showSnackBar(context, e);
     } finally {
@@ -71,42 +92,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
-  Future<void> _pickAvatar() async {
-    final picker = ImagePicker();
-    final file = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 85,
-    );
-    if (file == null) return;
-    setState(() => _uploading = true);
-    try {
-      final uid = SupabaseBootstrap.client.auth.currentUser!.id;
-      final bytes = await file.readAsBytes();
-      final path = '$uid/avatar.jpg';
-      await SupabaseBootstrap.client.storage.from('avatars').uploadBinary(
-            path,
-            bytes,
-            fileOptions: const FileOptions(
-              upsert: true,
-              contentType: 'image/jpeg',
-            ),
-          );
-      await SupabaseBootstrap.client
-          .from('profiles')
-          .update({'avatar_path': path}).eq('id', uid);
-      setState(() {
-        _avatarPath = path;
-        _avatarUrl = SupabaseBootstrap.client.storage
-            .from('avatars')
-            .getPublicUrl(path);
-      });
-    } catch (e) {
-      if (mounted) AppErrorMapper.showSnackBar(context, e);
-    } finally {
-      if (mounted) setState(() => _uploading = false);
-    }
+  String _qualificationLabel(Map<String, dynamic> q) {
+    final code = (q['code'] as String?)?.toLowerCase();
+    if (code == 'ol') return 'O/L';
+    if (code == 'al') return 'A/L';
+    return q['name_en'] as String? ?? code ?? '';
   }
 
   Future<void> _save() async {
@@ -120,8 +110,31 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             ? null
             : _preferred.text.trim(),
         'phone': _phone.text.trim(),
+        'speaks_sinhala': _speaksSinhala,
+        'speaks_tamil': _speaksTamil,
+        'speaks_english': _speaksEnglish,
       }).eq('id', uid);
+
+      await SupabaseBootstrap.client
+          .from('member_qualifications')
+          .delete()
+          .eq('profile_id', uid);
+
+      if (_qualificationIds.isNotEmpty) {
+        await SupabaseBootstrap.client.from('member_qualifications').insert(
+              _qualificationIds
+                  .map(
+                    (qid) => {
+                      'profile_id': uid,
+                      'qualification_id': qid,
+                    },
+                  )
+                  .toList(),
+            );
+      }
+
       if (!mounted) return;
+      ref.read(profileStatusTickProvider.notifier).state++;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated')),
       );
@@ -141,8 +154,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         appBar: AppBar(
           title: const Text('Edit profile'),
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_rounded),
-            onPressed: () => context.pop(),
+            icon: const SyuIcon(SyuIcons.back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
           ),
         ),
         body: _loading
@@ -154,38 +173,16 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                    Center(
-                      child: Stack(
-                        children: [
-                          CircleAvatar(
-                            radius: 48,
-                            backgroundColor: SyuColors.inkElevated,
-                            backgroundImage: _avatarUrl == null
-                                ? null
-                                : NetworkImage(_avatarUrl!),
-                            child: _avatarUrl == null
-                                ? const Icon(Icons.person,
-                                    size: 40, color: SyuColors.mist)
-                                : null,
-                          ),
-                          Positioned(
-                            right: 0,
-                            bottom: 0,
-                            child: IconButton.filled(
-                              onPressed: _uploading ? null : _pickAvatar,
-                              icon: _uploading
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: SyuColors.paper,
-                                      ),
-                                    )
-                                  : const Icon(Icons.camera_alt_outlined),
-                            ),
-                          ),
-                        ],
+                    const Center(
+                      child: CircleAvatar(
+                        radius: 48,
+                        backgroundColor: SyuColors.inkSoft,
+                        child: SyuIcon(
+                          SyuIcons.user,
+                          size: 36,
+                          color: SyuColors.mist,
+                          strokeWidth: 1.25,
+                        ),
                       ),
                     ),
                     if (_completeness != null) ...[
@@ -232,6 +229,71 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         }
                         return null;
                       },
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      'Qualifications',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Select all that apply.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    ..._qualifications.map((q) {
+                      final id = q['id'] as String;
+                      final selected = _qualificationIds.contains(id);
+                      return CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: selected,
+                        activeColor: SyuColors.crimson,
+                        title: Text(_qualificationLabel(q)),
+                        onChanged: (v) {
+                          setState(() {
+                            if (v == true) {
+                              _qualificationIds.add(id);
+                            } else {
+                              _qualificationIds.remove(id);
+                            }
+                          });
+                        },
+                      );
+                    }),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Language skills',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Select languages you can speak.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _speaksSinhala,
+                      activeColor: SyuColors.crimson,
+                      title: const Text('Sinhala'),
+                      onChanged: (v) =>
+                          setState(() => _speaksSinhala = v == true),
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _speaksTamil,
+                      activeColor: SyuColors.crimson,
+                      title: const Text('Tamil'),
+                      onChanged: (v) =>
+                          setState(() => _speaksTamil = v == true),
+                    ),
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: _speaksEnglish,
+                      activeColor: SyuColors.crimson,
+                      title: const Text('English'),
+                      onChanged: (v) =>
+                          setState(() => _speaksEnglish = v == true),
                     ),
                     const SizedBox(height: 24),
                     FilledButton(

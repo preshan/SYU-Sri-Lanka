@@ -1,8 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_shell.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_tabs.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/confirm_email_screen.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/forgot_password_screen.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/login_screen.dart';
@@ -72,6 +73,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: '/home', builder: (_, _) => const HomeShell()),
       GoRoute(
+        path: '/admin',
+        pageBuilder: (_, state) {
+          final tab = state.uri.queryParameters['tab'];
+          final index = adminTabIndexFromName(tab) ?? 1;
+          // Zero-duration page avoids web back leaving a tap-blocking barrier.
+          return NoTransitionPage<void>(
+            key: ValueKey(
+              'admin-$index-${state.uri.queryParameters['member'] ?? ''}',
+            ),
+            child: AdminShell(
+              key: ValueKey(
+                'admin-shell-$index-${state.uri.queryParameters['member'] ?? ''}',
+              ),
+              initialTab: index,
+              initialMemberId: state.uri.queryParameters['member'],
+              initialMemberName: state.uri.queryParameters['name'],
+            ),
+          );
+        },
+      ),
+      GoRoute(
         path: '/registration',
         builder: (_, _) => const RegistrationWizardScreen(),
       ),
@@ -81,15 +103,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/settings',
-        builder: (_, _) => const SettingsScreen(),
+        pageBuilder: (context, state) => NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const SettingsScreen(),
+        ),
       ),
       GoRoute(
         path: '/notifications',
         builder: (_, _) => const NotificationCenterScreen(),
-      ),
-      GoRoute(
-        path: '/admin',
-        builder: (_, _) => const AdminShell(),
       ),
     ],
   );

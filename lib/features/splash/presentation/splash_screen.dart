@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:syu_sri_lanka/core/permissions/app_permissions.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 
 /// White splash: logo → Welcome → SYU Sri Lanka, then route by session.
@@ -86,6 +88,12 @@ class _SplashScreenState extends State<SplashScreen>
 
     await Future<void>.delayed(const Duration(milliseconds: 900));
     if (!mounted) return;
+
+    // Prompt for notification permission on first runs (Android 13+ / iOS only).
+    if (!kIsWeb) {
+      await AppPermissions.ensureNotifications();
+      if (!mounted) return;
+    }
 
     final session = Supabase.instance.client.auth.currentSession;
     context.go(session == null ? '/login' : '/home');

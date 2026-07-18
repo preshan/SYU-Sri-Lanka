@@ -68,5 +68,34 @@
 		</array>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<!-- Open https/http/mailto/tel from the app (url_launcher) -->
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>https</string>
+			<string>http</string>
+			<string>mailto</string>
+			<string>tel</string>
+			<string>sms</string>
+		</array>
+		<!-- Deep link / auth callback scheme -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>lk.syu.syu_sri_lanka</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>syu</string>
+				</array>
+			</dict>
+		</array>
+		<!-- Prep for push when FCM is wired -->
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>remote-notification</string>
+			<string>fetch</string>
+		</array>
 	</dict>
 </plist>

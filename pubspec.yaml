@@ -1,7 +1,7 @@
 name: syu_sri_lanka
 description: SYU Sri Lanka — youth membership, announcements, events, and messaging.
 publish_to: "none"
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: ^3.12.2
@@ -19,7 +19,9 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   flutter_dotenv: ^5.2.1
   intl: ^0.20.2
-  image_picker: ^1.2.3
+  hugeicons: ^1.1.7
+  permission_handler: ^12.0.3
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -40,9 +42,15 @@ flutter_launcher_icons:
   android: true
   ios: true
   image_path: assets/brand/syu_icon_1024.png
-  adaptive_icon_background: "#0A0A0A"
+  adaptive_icon_background: "#000000"
   adaptive_icon_foreground: assets/brand/syu_icon_1024.png
+  remove_alpha_ios: true
   min_sdk_android: 26
+  web:
+    generate: true
+    image_path: assets/brand/syu_icon_1024.png
+    background_color: "#000000"
+    theme_color: "#E10600"
 
 flutter_native_splash:
   color: "#FFFFFF"

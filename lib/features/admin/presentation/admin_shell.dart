@@ -5,26 +5,65 @@ import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
+import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_audit_panel.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_broadcast_panels.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_chat_panel.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_clubs_panel.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_members_panel.dart';
 
 class AdminShell extends ConsumerStatefulWidget {
-  const AdminShell({super.key});
+  const AdminShell({
+    super.key,
+    this.initialTab = 0,
+    this.initialMemberId,
+    this.initialMemberName,
+    this.onLeave,
+  });
+
+  /// Approvals=0, Members=1, Clubs=2, News=3, Events=4, Chat=5, Broadcast=6, Reports=7, Audit=8
+  final int initialTab;
+  final String? initialMemberId;
+  final String? initialMemberName;
+
+  /// Called when the user leaves admin tools (back / Dashboard).
+  /// Prefer this over a route pop so admin never stacks as a sibling page.
+  final VoidCallback? onLeave;
 
   @override
   ConsumerState<AdminShell> createState() => _AdminShellState();
 }
 
 class _AdminShellState extends ConsumerState<AdminShell> {
+  static const _titles = [
+    'Approvals',
+    'Members',
+    'Clubs',
+    'News',
+    'Events',
+    'Chat',
+    'Broadcast',
+    'Reports',
+    'Audit',
+  ];
+
   bool _checking = true;
   bool _allowed = false;
-  int _tab = 0;
+  late int _tab;
 
   @override
   void initState() {
     super.initState();
+    _tab = widget.initialTab.clamp(0, _titles.length - 1);
     _check();
+  }
+
+  @override
+  void didUpdateWidget(covariant AdminShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialTab != widget.initialTab) {
+      _tab = widget.initialTab.clamp(0, _titles.length - 1);
+    }
   }
 
   Future<void> _check() async {
@@ -37,6 +76,33 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     } finally {
       if (mounted) setState(() => _checking = false);
     }
+  }
+
+  void _leave() {
+    // Always go home — do not capture a pageBuilder context in onLeave.
+    if (widget.onLeave != null) {
+      widget.onLeave!();
+      return;
+    }
+    context.go('/home');
+  }
+
+  Widget get _panel {
+    return switch (_tab) {
+      0 => const _ApprovalQueue(),
+      1 => const AdminMembersPanel(),
+      2 => const AdminClubsPanel(),
+      3 => const AdminAnnouncementsPanel(),
+      4 => const AdminEventsPanel(),
+      5 => AdminChatPanel(
+        initialMemberId: widget.initialMemberId,
+        initialMemberName: widget.initialMemberName,
+      ),
+      6 => const AdminBroadcastPanel(),
+      7 => const _AdminReports(),
+      8 => const AdminAuditPanel(),
+      _ => const AdminMembersPanel(),
+    };
   }
 
   @override
@@ -68,7 +134,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                   ),
                   const SizedBox(height: 20),
                   FilledButton(
-                    onPressed: () => context.go('/home'),
+                    onPressed: _leave,
                     child: const Text('Back to app'),
                   ),
                 ],
@@ -81,68 +147,31 @@ class _AdminShellState extends ConsumerState<AdminShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SYU Admin'),
+        toolbarHeight: 48,
+        titleSpacing: 0,
+        leading: IconButton(
+          icon: const SyuIcon(SyuIcons.back),
+          tooltip: 'Admin dashboard',
+          onPressed: _leave,
+        ),
+        title: Text(
+          _titles[_tab],
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
         actions: [
           TextButton(
-            onPressed: () => context.go('/home'),
-            child: const Text('Member app'),
-          ),
-        ],
-      ),
-      body: Row(
-        children: [
-          NavigationRail(
-            selectedIndex: _tab,
-            onDestinationSelected: (i) => setState(() => _tab = i),
-            labelType: NavigationRailLabelType.all,
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.how_to_reg_outlined),
-                label: Text('Approvals'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.people_outline),
-                label: Text('Members'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.groups_outlined),
-                label: Text('Clubs'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.campaign_outlined),
-                label: Text('News'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.event_outlined),
-                label: Text('Events'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.bar_chart_outlined),
-                label: Text('Reports'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.history),
-                label: Text('Audit'),
-              ),
-            ],
-          ),
-          const VerticalDivider(width: 1),
-          Expanded(
-            child: IndexedStack(
-              index: _tab,
-              children: const [
-                _ApprovalQueue(),
-                AdminMembersPanel(),
-                AdminClubsPanel(),
-                _AdminAnnouncements(),
-                _AdminEvents(),
-                _AdminReports(),
-                AdminAuditPanel(),
-              ],
+            style: TextButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
             ),
+            onPressed: _leave,
+            child: const Text('Dashboard'),
           ),
         ],
       ),
+      body: _panel,
     );
   }
 }
@@ -158,7 +187,7 @@ class _ApprovalQueue extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.verified_outlined,
+            const SyuIcon(SyuIcons.verified,
                 size: 48, color: SyuColors.crimsonSoft),
             const SizedBox(height: 16),
             Text(
@@ -168,184 +197,13 @@ class _ApprovalQueue extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              'New members become active on submit. Use the Members tab to filter by district / DS and manage accounts.',
+              'New members become active on submit. Use Members from the dashboard to manage accounts.',
               style: Theme.of(context).textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _AdminAnnouncements extends StatefulWidget {
-  const _AdminAnnouncements();
-
-  @override
-  State<_AdminAnnouncements> createState() => _AdminAnnouncementsState();
-}
-
-class _AdminAnnouncementsState extends State<_AdminAnnouncements> {
-  final _title = TextEditingController();
-  final _body = TextEditingController();
-  bool _saving = false;
-
-  @override
-  void dispose() {
-    _title.dispose();
-    _body.dispose();
-    super.dispose();
-  }
-
-  Future<void> _publish() async {
-    if (_title.text.trim().isEmpty || _body.text.trim().isEmpty) return;
-    setState(() => _saving = true);
-    try {
-      await SupabaseBootstrap.client.from('announcements').insert({
-        'title': _title.text.trim(),
-        'body': _body.text.trim(),
-        'audience': 'all',
-        'is_published': true,
-        'published_at': DateTime.now().toUtc().toIso8601String(),
-        'created_by': SupabaseBootstrap.client.auth.currentUser?.id,
-      });
-      _title.clear();
-      _body.clear();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Announcement published')),
-        );
-      }
-    } catch (e) {
-      if (mounted) AppErrorMapper.showSnackBar(context, e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        Text('Publish announcement',
-            style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _title,
-          decoration: const InputDecoration(labelText: 'Title'),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _body,
-          decoration: const InputDecoration(labelText: 'Body'),
-          minLines: 4,
-          maxLines: 8,
-        ),
-        const SizedBox(height: 16),
-        FilledButton(
-          onPressed: _saving ? null : _publish,
-          child: const Text('Publish'),
-        ),
-      ],
-    );
-  }
-}
-
-class _AdminEvents extends StatefulWidget {
-  const _AdminEvents();
-
-  @override
-  State<_AdminEvents> createState() => _AdminEventsState();
-}
-
-class _AdminEventsState extends State<_AdminEvents> {
-  final _title = TextEditingController();
-  final _desc = TextEditingController();
-  final _location = TextEditingController();
-  DateTime _starts = DateTime.now().add(const Duration(days: 7));
-  bool _saving = false;
-
-  @override
-  void dispose() {
-    _title.dispose();
-    _desc.dispose();
-    _location.dispose();
-    super.dispose();
-  }
-
-  Future<void> _create() async {
-    if (_title.text.trim().isEmpty) return;
-    setState(() => _saving = true);
-    try {
-      await SupabaseBootstrap.client.from('events').insert({
-        'title': _title.text.trim(),
-        'description': _desc.text.trim(),
-        'location_text': _location.text.trim(),
-        'starts_at': _starts.toUtc().toIso8601String(),
-        'is_published': true,
-        'created_by': SupabaseBootstrap.client.auth.currentUser?.id,
-      });
-      _title.clear();
-      _desc.clear();
-      _location.clear();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Event published')),
-        );
-      }
-    } catch (e) {
-      if (mounted) AppErrorMapper.showSnackBar(context, e);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        Text('Create event', style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _title,
-          decoration: const InputDecoration(labelText: 'Title'),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _desc,
-          decoration: const InputDecoration(labelText: 'Description'),
-          minLines: 3,
-          maxLines: 6,
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: _location,
-          decoration: const InputDecoration(labelText: 'Location'),
-        ),
-        const SizedBox(height: 12),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text('Starts: ${_starts.toIso8601String().split('T').first}'),
-          trailing: const Icon(Icons.calendar_month_outlined),
-          onTap: () async {
-            final d = await showDatePicker(
-              context: context,
-              initialDate: _starts,
-              firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(const Duration(days: 365)),
-            );
-            if (d != null) setState(() => _starts = d);
-          },
-        ),
-        const SizedBox(height: 16),
-        FilledButton(
-          onPressed: _saving ? null : _create,
-          child: const Text('Publish event'),
-        ),
-      ],
     );
   }
 }
@@ -397,23 +255,41 @@ class _AdminReportsState extends State<_AdminReports> {
       );
     }
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
       children: [
-        Text('Membership', style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 12),
+        Text(
+          'Membership',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(height: 4),
         ..._members.map(
           (r) => ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
+            contentPadding: EdgeInsets.zero,
             title: Text('${r['status']}'),
             trailing: Text('${r['member_count']}'),
           ),
         ),
-        const SizedBox(height: 24),
-        Text('Events', style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 12),
+        Text(
+          'Events',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(height: 4),
         ..._events.map(
           (r) => ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
+            contentPadding: EdgeInsets.zero,
             title: Text('${r['title']}'),
-            subtitle: Text('RSVPs: ${r['rsvp_count']} · Going: ${r['going_count']}'),
+            subtitle: Text(
+              'RSVPs: ${r['rsvp_count']} · Going: ${r['going_count']}',
+            ),
           ),
         ),
       ],

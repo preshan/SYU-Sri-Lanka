@@ -20,7 +20,6 @@ class ProfileCompleteness {
       'NIC': (row['nic'] as String?)?.trim().isNotEmpty == true,
       'Date of birth': row['date_of_birth'] != null,
       'District': row['district_id'] != null,
-      'Photo': (row['avatar_path'] as String?)?.trim().isNotEmpty == true,
     };
     final missing = checks.entries
         .where((e) => !e.value)

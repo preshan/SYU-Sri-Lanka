@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
+import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -119,7 +120,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         autofillHints: const [AutofillHints.email],
                         decoration: const InputDecoration(
                           labelText: 'Email',
-                          prefixIcon: Icon(Icons.mail_outline_rounded),
+                          prefixIcon: SyuFieldIcon(SyuIcons.mail),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
@@ -136,14 +137,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         autofillHints: const [AutofillHints.password],
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: const Icon(Icons.lock_outline_rounded),
+                          prefixIcon: const SyuFieldIcon(SyuIcons.lock),
                           suffixIcon: IconButton(
                             onPressed: () =>
                                 setState(() => _obscure = !_obscure),
-                            icon: Icon(
-                              _obscure
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
+                            icon: SyuIcon(
+                              _obscure ? SyuIcons.view : SyuIcons.viewOff,
+                              size: 18,
+                              strokeWidth: 1.25,
+                              color: SyuColors.mist,
                             ),
                           ),
                         ),
