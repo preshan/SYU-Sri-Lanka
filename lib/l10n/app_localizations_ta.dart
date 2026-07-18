@@ -183,6 +183,49 @@ class AppLocalizationsTa extends AppLocalizations {
       'நிகழ்வுகளைப் பார்க்க \'நிகழ்வுகள்\' பகுதிக்குச் செல்லவும்.';
 
   @override
+  String get joinWhatsappGroup => 'WhatsApp குழுவில் சேரவும்';
+
+  @override
+  String get joinWhatsappGroupSubtitle =>
+      'உங்கள் பிரதேச செயலாளர் பிரிவு இளைஞர் குழுவுடன் இணையுங்கள்.';
+
+  @override
+  String get followFbPage => 'FB பக்கத்தைப் பின்தொடரவும்';
+
+  @override
+  String get followFbPageSubtitle =>
+      'எங்கள் அதிகாரப்பூர்வ Facebook பக்கத்தில் புதுப்பிப்புகளைப் பாருங்கள்.';
+
+  @override
+  String get whatsappGroupLink => 'WhatsApp குழு இணைப்பு';
+
+  @override
+  String get whatsappGroupLinkSubtitle =>
+      'உங்கள் பிர.செ பிரிவு உறுப்பினர்களுக்கான அழைப்பு இணைப்பை அமைக்கவும்.';
+
+  @override
+  String get whatsappGroupLinkHint => 'https://chat.whatsapp.com/…';
+
+  @override
+  String get saveWhatsappLink => 'இணைப்பைச் சேமிக்கவும்';
+
+  @override
+  String get clearWhatsappLink => 'இணைப்பை அகற்றவும்';
+
+  @override
+  String get whatsappLinkSaved => 'WhatsApp குழு இணைப்பு சேமிக்கப்பட்டது.';
+
+  @override
+  String get whatsappLinkCleared => 'WhatsApp குழு இணைப்பு அகற்றப்பட்டது.';
+
+  @override
+  String get whatsappLinkInvalid =>
+      'செல்லுபடியாகும் http(s) WhatsApp அழைப்பு இணைப்பை உள்ளிடவும்.';
+
+  @override
+  String get couldNotOpenLink => 'இணைப்பைத் திறக்க முடியவில்லை';
+
+  @override
   String get adminDashboardSubtitle =>
       'உறுப்பினர்களை நிர்வகித்தல், செய்திகள் மற்றும் நிகழ்வுகளைப் பகிர்தல் மற்றும் மாவட்ட ரீதியான இளைஞர்களைச் சென்றடைதல்.';
 

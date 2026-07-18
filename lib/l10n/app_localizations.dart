@@ -436,6 +436,84 @@ abstract class AppLocalizations {
   /// **'Browse and RSVP in the Events tab.'**
   String get eventsSubtitle;
 
+  /// No description provided for @joinWhatsappGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Join WhatsApp Group'**
+  String get joinWhatsappGroup;
+
+  /// No description provided for @joinWhatsappGroupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with your DS division youth group.'**
+  String get joinWhatsappGroupSubtitle;
+
+  /// No description provided for @followFbPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow FB Page'**
+  String get followFbPage;
+
+  /// No description provided for @followFbPageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'See updates on our official Facebook page.'**
+  String get followFbPageSubtitle;
+
+  /// No description provided for @whatsappGroupLink.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp group link'**
+  String get whatsappGroupLink;
+
+  /// No description provided for @whatsappGroupLinkSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the invite link for your DS members.'**
+  String get whatsappGroupLinkSubtitle;
+
+  /// No description provided for @whatsappGroupLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://chat.whatsapp.com/…'**
+  String get whatsappGroupLinkHint;
+
+  /// No description provided for @saveWhatsappLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Save link'**
+  String get saveWhatsappLink;
+
+  /// No description provided for @clearWhatsappLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove link'**
+  String get clearWhatsappLink;
+
+  /// No description provided for @whatsappLinkSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp group link saved.'**
+  String get whatsappLinkSaved;
+
+  /// No description provided for @whatsappLinkCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'WhatsApp group link removed.'**
+  String get whatsappLinkCleared;
+
+  /// No description provided for @whatsappLinkInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid http(s) WhatsApp invite link.'**
+  String get whatsappLinkInvalid;
+
+  /// No description provided for @couldNotOpenLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open link'**
+  String get couldNotOpenLink;
+
   /// No description provided for @adminDashboardSubtitle.
   ///
   /// In en, this message translates to:

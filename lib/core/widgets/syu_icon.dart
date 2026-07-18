@@ -107,6 +107,11 @@ abstract final class SyuIcons {
   static const phone = HugeIcons.strokeRoundedCall;
   static const add = HugeIcons.strokeRoundedAdd01;
   static const building = HugeIcons.strokeRoundedBuilding03;
+  static const whatsapp = HugeIcons.strokeRoundedWhatsapp;
+  static const facebook = HugeIcons.strokeRoundedFacebook01;
+
+  static const Color whatsappGreen = Color(0xFF75D900);
+  static const Color facebookBlue = Color(0xFF2450FB);
 
   /// Default accent color for branded icon chips.
   static const Color accent = SyuColors.crimsonSoft;

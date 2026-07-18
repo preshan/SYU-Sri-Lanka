@@ -181,6 +181,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventsSubtitle => 'Browse and RSVP in the Events tab.';
 
   @override
+  String get joinWhatsappGroup => 'Join WhatsApp Group';
+
+  @override
+  String get joinWhatsappGroupSubtitle =>
+      'Connect with your DS division youth group.';
+
+  @override
+  String get followFbPage => 'Follow FB Page';
+
+  @override
+  String get followFbPageSubtitle =>
+      'See updates on our official Facebook page.';
+
+  @override
+  String get whatsappGroupLink => 'WhatsApp group link';
+
+  @override
+  String get whatsappGroupLinkSubtitle =>
+      'Set the invite link for your DS members.';
+
+  @override
+  String get whatsappGroupLinkHint => 'https://chat.whatsapp.com/…';
+
+  @override
+  String get saveWhatsappLink => 'Save link';
+
+  @override
+  String get clearWhatsappLink => 'Remove link';
+
+  @override
+  String get whatsappLinkSaved => 'WhatsApp group link saved.';
+
+  @override
+  String get whatsappLinkCleared => 'WhatsApp group link removed.';
+
+  @override
+  String get whatsappLinkInvalid =>
+      'Enter a valid http(s) WhatsApp invite link.';
+
+  @override
+  String get couldNotOpenLink => 'Could not open link';
+
+  @override
   String get adminDashboardSubtitle =>
       'Manage members, publish news and events, and reach youth across districts.';
 

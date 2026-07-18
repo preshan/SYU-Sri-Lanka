@@ -1,8 +1,8 @@
 /// App identity — keep in sync with `pubspec.yaml` `version:`.
 abstract final class AppInfo {
   static const name = 'SYU Sri Lanka';
-  static const version = '0.8.0';
-  static const buildNumber = '9';
+  static const version = '0.9.0';
+  static const buildNumber = '10';
   static const versionLabel = '$version+$buildNumber';
 
   static const developerName = 'PreshanPradeepa Kariyawasam';

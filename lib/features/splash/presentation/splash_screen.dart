@@ -7,7 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syu_sri_lanka/core/permissions/app_permissions.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 
-/// White splash: logo → Welcome → SYU Sri Lanka, then route by session.
+/// White splash: logo → type "Socialist Youth Union" → Welcome!, then route.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -17,16 +17,18 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
+  static const _orgName = 'Socialist Youth Union';
+  static const _welcomeText = 'Welcome!';
+
   late final AnimationController _logoCtrl;
   late final AnimationController _welcomeCtrl;
-  late final AnimationController _brandCtrl;
 
   late final Animation<double> _logoFade;
   late final Animation<double> _logoScale;
   late final Animation<double> _welcomeFade;
   late final Animation<Offset> _welcomeSlide;
-  late final Animation<double> _brandFade;
-  late final Animation<Offset> _brandSlide;
+
+  String _typedOrg = '';
 
   @override
   void initState() {
@@ -46,11 +48,7 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _welcomeCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 750),
-    );
-    _brandCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 380),
     );
 
     _logoFade = CurvedAnimation(parent: _logoCtrl, curve: Curves.easeOut);
@@ -60,15 +58,9 @@ class _SplashScreenState extends State<SplashScreen>
 
     _welcomeFade = CurvedAnimation(parent: _welcomeCtrl, curve: Curves.easeOut);
     _welcomeSlide = Tween<Offset>(
-      begin: const Offset(0, 0.18),
+      begin: const Offset(0, 0.12),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _welcomeCtrl, curve: Curves.easeOutCubic));
-
-    _brandFade = CurvedAnimation(parent: _brandCtrl, curve: Curves.easeOut);
-    _brandSlide = Tween<Offset>(
-      begin: const Offset(0, 0.14),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _brandCtrl, curve: Curves.easeOutCubic));
 
     _runSequence();
   }
@@ -78,13 +70,19 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted) return;
     await _logoCtrl.forward();
 
-    await Future<void>.delayed(const Duration(milliseconds: 220));
-    if (!mounted) return;
-    await _welcomeCtrl.forward();
-
     await Future<void>.delayed(const Duration(milliseconds: 180));
     if (!mounted) return;
-    await _brandCtrl.forward();
+
+    // Fast typewriter for org name (~32ms / char).
+    for (var i = 1; i <= _orgName.length; i++) {
+      if (!mounted) return;
+      setState(() => _typedOrg = _orgName.substring(0, i));
+      await Future<void>.delayed(const Duration(milliseconds: 32));
+    }
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    if (!mounted) return;
+    await _welcomeCtrl.forward();
 
     await Future<void>.delayed(const Duration(milliseconds: 900));
     if (!mounted) return;
@@ -122,31 +120,24 @@ class _SplashScreenState extends State<SplashScreen>
   void dispose() {
     _logoCtrl.dispose();
     _welcomeCtrl.dispose();
-    _brandCtrl.dispose();
     super.dispose();
   }
 
+  /// Brush-script look close to "Awesome" (commercial); Satisfy is free via Google Fonts.
+  TextStyle get _scriptStyle => GoogleFonts.satisfy(
+        fontSize: 36,
+        height: 1.15,
+        letterSpacing: 0.4,
+      );
+
   @override
   Widget build(BuildContext context) {
-    final welcomeStyle = GoogleFonts.bebasNeue(
-      fontSize: 56,
-      height: 1.05,
-      letterSpacing: 1.4,
-      color: SyuColors.ink,
-    );
-    final brandStyle = GoogleFonts.outfit(
-      fontSize: 22,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.6,
-      color: SyuColors.crimson,
-    );
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 28),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -164,27 +155,28 @@ class _SplashScreenState extends State<SplashScreen>
                     ),
                   ),
                 ),
-                const SizedBox(height: 36),
+                const SizedBox(height: 40),
+                // Reserve height so typing doesn't jump layout.
+                SizedBox(
+                  height: 52,
+                  child: Text(
+                    _typedOrg,
+                    textAlign: TextAlign.center,
+                    style: _scriptStyle.copyWith(color: SyuColors.crimson),
+                  ),
+                ),
+                const SizedBox(height: 6),
                 FadeTransition(
                   opacity: _welcomeFade,
                   child: SlideTransition(
                     position: _welcomeSlide,
                     child: Text(
-                      'Welcome',
+                      _welcomeText,
                       textAlign: TextAlign.center,
-                      style: welcomeStyle,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                FadeTransition(
-                  opacity: _brandFade,
-                  child: SlideTransition(
-                    position: _brandSlide,
-                    child: Text(
-                      'SYU Sri Lanka',
-                      textAlign: TextAlign.center,
-                      style: brandStyle,
+                      style: _scriptStyle.copyWith(
+                        fontSize: 40,
+                        color: SyuColors.ink,
+                      ),
                     ),
                   ),
                 ),

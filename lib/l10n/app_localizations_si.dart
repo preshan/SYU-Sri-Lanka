@@ -182,6 +182,48 @@ class AppLocalizationsSi extends AppLocalizations {
       'සිදුවීම් සඳහා ලියාපදිංචි වීමට \'සිදුවීම්\' ටැබය විවෘත කරන්න.';
 
   @override
+  String get joinWhatsappGroup => 'WhatsApp සමූහයට එකතු වන්න';
+
+  @override
+  String get joinWhatsappGroupSubtitle =>
+      'ඔබේ ප්‍රාදේශීය ලේකම් කොට්ඨාස තරුණ සමූහයට සම්බන්ධ වන්න.';
+
+  @override
+  String get followFbPage => 'FB පිටුව අනුගමනය කරන්න';
+
+  @override
+  String get followFbPageSubtitle => 'නිල Facebook පිටුවෙන් යාවත්කාලීන බලන්න.';
+
+  @override
+  String get whatsappGroupLink => 'WhatsApp සමූහ සබැඳිය';
+
+  @override
+  String get whatsappGroupLinkSubtitle =>
+      'ඔබේ ප්‍රා.ලේ. කොට්ඨාස සාමාජිකයන් සඳහා ආරාධනා සබැඳිය සකසන්න.';
+
+  @override
+  String get whatsappGroupLinkHint => 'https://chat.whatsapp.com/…';
+
+  @override
+  String get saveWhatsappLink => 'සබැඳිය සුරකින්න';
+
+  @override
+  String get clearWhatsappLink => 'සබැඳිය ඉවත් කරන්න';
+
+  @override
+  String get whatsappLinkSaved => 'WhatsApp සමූහ සබැඳිය සුරකින ලදී.';
+
+  @override
+  String get whatsappLinkCleared => 'WhatsApp සමූහ සබැඳිය ඉවත් කරන ලදී.';
+
+  @override
+  String get whatsappLinkInvalid =>
+      'වලංගු http(s) WhatsApp ආරාධනා සබැඳියක් ඇතුළත් කරන්න.';
+
+  @override
+  String get couldNotOpenLink => 'සබැඳිය විවෘත කළ නොහැක';
+
+  @override
   String get adminDashboardSubtitle =>
       'සාමාජිකයින් කළමනාකරණය, පුවත් සහ සිදුවීම් ප්‍රකාශනය, සහ දිස්ත්‍රික්ක පුරා තරුණ ප්‍රජාව වෙත ලඟා වීම.';
 

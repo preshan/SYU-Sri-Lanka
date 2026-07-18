@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/app_info.dart';
+import 'package:syu_sri_lanka/core/config/app_config.dart';
 import 'package:syu_sri_lanka/core/permissions/app_permissions.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
@@ -186,6 +187,8 @@ class _HomeTab extends ConsumerStatefulWidget {
 class _HomeTabState extends ConsumerState<_HomeTab> {
   bool _registrationIncomplete = true;
   bool _isAdmin = false;
+  bool _isSuperAdmin = false;
+  bool _isDivisionAdmin = false;
   bool _divisionContactIncomplete = false;
   bool _loading = true;
 
@@ -231,6 +234,8 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
             status == 'pending_registration' ||
             status == 'pending_approval';
         _isAdmin = orgAdmin;
+        _isSuperAdmin = superAdmin;
+        _isDivisionAdmin = divisionAdmin;
         _divisionContactIncomplete =
             divisionAdmin && (name.isEmpty || phone.isEmpty);
       });
@@ -239,6 +244,8 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
         setState(() {
           _registrationIncomplete = true;
           _isAdmin = false;
+          _isSuperAdmin = false;
+          _isDivisionAdmin = false;
           _divisionContactIncomplete = false;
         });
       }
@@ -253,13 +260,24 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
       _loadStatus();
     });
     return SyuGradientBackground(
+      colors: _isSuperAdmin
+          ? const [
+              Color(0xFFFFFFFF),
+              Color(0xFFFFE8E6),
+              Color(0xFFFFF0EE),
+            ]
+          : null,
       child: SafeArea(
         child: _loading
             ? const Center(
                 child: CircularProgressIndicator(color: SyuColors.crimson),
               )
             : _isAdmin
-                ? _AdminHomeDashboard(email: widget.email)
+                ? _AdminHomeDashboard(
+                    email: widget.email,
+                    isSuperAdmin: _isSuperAdmin,
+                    isDivisionAdmin: _isDivisionAdmin,
+                  )
                 : _MemberHomeBody(
                     email: widget.email,
                     registrationIncomplete: _registrationIncomplete,
@@ -287,6 +305,38 @@ class _MemberHomeBody extends StatefulWidget {
 
 class _MemberHomeBodyState extends State<_MemberHomeBody> {
   bool _bannerDismissed = false;
+  String? _whatsappUrl;
+  String? _facebookUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCommunityLinks();
+  }
+
+  Future<void> _loadCommunityLinks() async {
+    try {
+      final wa = await SupabaseBootstrap.client.rpc(
+        'member_division_whatsapp_url',
+      );
+      final fb = await AppConfig.facebookPageUrl();
+      if (!mounted) return;
+      setState(() {
+        _whatsappUrl = wa is String && wa.trim().isNotEmpty ? wa.trim() : null;
+        _facebookUrl = fb;
+      });
+    } catch (_) {
+      // Soft-fail: community tiles stay hidden until links are available.
+    }
+  }
+
+  Future<void> _openExternal(String url) async {
+    final ok = await AppPermissions.openLink(url);
+    if (!mounted || ok) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).couldNotOpenLink)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -359,6 +409,33 @@ class _MemberHomeBodyState extends State<_MemberHomeBody> {
           title: l10n.upcomingEvents,
           subtitle: l10n.eventsSubtitle,
         ),
+        if (_whatsappUrl != null || _facebookUrl != null) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              if (_whatsappUrl != null)
+                Expanded(
+                  child: _CommunityLinkTile(
+                    icon: SyuIcons.whatsapp,
+                    iconColor: SyuIcons.whatsappGreen,
+                    title: l10n.joinWhatsappGroup,
+                    onTap: () => _openExternal(_whatsappUrl!),
+                  ),
+                ),
+              if (_whatsappUrl != null && _facebookUrl != null)
+                const SizedBox(width: 12),
+              if (_facebookUrl != null)
+                Expanded(
+                  child: _CommunityLinkTile(
+                    icon: SyuIcons.facebook,
+                    iconColor: SyuIcons.facebookBlue,
+                    title: l10n.followFbPage,
+                    onTap: () => _openExternal(_facebookUrl!),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -504,10 +581,60 @@ class _RegistrationIncompleteBanner extends StatelessWidget {
   }
 }
 
-class _AdminHomeDashboard extends StatelessWidget {
-  const _AdminHomeDashboard({required this.email});
+class _AdminHomeDashboard extends StatefulWidget {
+  const _AdminHomeDashboard({
+    required this.email,
+    required this.isSuperAdmin,
+    required this.isDivisionAdmin,
+  });
 
   final String email;
+  final bool isSuperAdmin;
+  final bool isDivisionAdmin;
+
+  @override
+  State<_AdminHomeDashboard> createState() => _AdminHomeDashboardState();
+}
+
+class _AdminHomeDashboardState extends State<_AdminHomeDashboard> {
+  bool _hasWhatsappLink = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isDivisionAdmin) {
+      _loadWhatsappLink();
+    }
+  }
+
+  Future<void> _loadWhatsappLink() async {
+    try {
+      final url =
+          await SupabaseBootstrap.client.rpc('my_division_whatsapp_url');
+      if (!mounted) return;
+      setState(() {
+        _hasWhatsappLink = url is String && url.trim().isNotEmpty;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _hasWhatsappLink = false);
+    }
+  }
+
+  Future<void> _openWhatsappLinkForm() async {
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (_) => const _WhatsappGroupLinkDialog(),
+    );
+    if (saved == true && mounted) {
+      await _loadWhatsappLink();
+    }
+  }
+
+  Color? get _emailColor {
+    if (widget.isSuperAdmin) return SyuColors.crimson;
+    if (widget.isDivisionAdmin) return const Color(0xFFD97706); // amber
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -515,7 +642,7 @@ class _AdminHomeDashboard extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       children: [
-        _HomeHeader(email: email),
+        _HomeHeader(email: widget.email, emailColor: _emailColor),
         const SizedBox(height: 20),
         Text(
           l10n.adminDashboard,
@@ -586,6 +713,24 @@ class _AdminHomeDashboard extends StatelessWidget {
             ),
           ],
         ),
+        if (widget.isDivisionAdmin) ...[
+          const SizedBox(height: 16),
+          Text(l10n.whatsappGroupLink, style: _adminSectionTitle(context)),
+          const SizedBox(height: 8),
+          _AdminTileGrid(
+            tiles: [
+              _AdminSquareTile(
+                icon: SyuIcons.whatsapp,
+                title: l10n.whatsappGroupLink,
+                subtitle: _hasWhatsappLink
+                    ? l10n.whatsappGroupLinkSubtitle
+                    : l10n.whatsappGroupLinkHint,
+                iconColor: SyuIcons.whatsappGreen,
+                onTap: _openWhatsappLinkForm,
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: 16),
         Text(l10n.otherTools, style: _adminSectionTitle(context)),
         const SizedBox(height: 8),
@@ -610,6 +755,146 @@ class _AdminHomeDashboard extends StatelessWidget {
               adminTab: 'audit',
             ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+class _WhatsappGroupLinkDialog extends StatefulWidget {
+  const _WhatsappGroupLinkDialog();
+
+  @override
+  State<_WhatsappGroupLinkDialog> createState() =>
+      _WhatsappGroupLinkDialogState();
+}
+
+class _WhatsappGroupLinkDialogState extends State<_WhatsappGroupLinkDialog> {
+  final _controller = TextEditingController();
+  bool _loading = true;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final url =
+          await SupabaseBootstrap.client.rpc('my_division_whatsapp_url');
+      if (!mounted) return;
+      if (url is String && url.trim().isNotEmpty) {
+        _controller.text = url.trim();
+      }
+    } catch (_) {
+      // Empty field if load fails.
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  bool _looksLikeHttpUrl(String value) {
+    final uri = Uri.tryParse(value.trim());
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
+  }
+
+  Future<void> _save({required bool clear}) async {
+    final l10n = AppLocalizations.of(context);
+    final value = clear ? '' : _controller.text.trim();
+    if (!clear && !_looksLikeHttpUrl(value)) {
+      setState(() => _error = l10n.whatsappLinkInvalid);
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await SupabaseBootstrap.client.rpc(
+        'set_my_division_whatsapp_url',
+        params: {'p_url': value},
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            clear ? l10n.whatsappLinkCleared : l10n.whatsappLinkSaved,
+          ),
+        ),
+      );
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _saving = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.whatsappGroupLink),
+      content: _loading
+          ? const SizedBox(
+              height: 72,
+              child: Center(
+                child: CircularProgressIndicator(color: SyuColors.crimson),
+              ),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.whatsappGroupLinkSubtitle,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: SyuColors.mist,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _controller,
+                  enabled: !_saving,
+                  keyboardType: TextInputType.url,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    hintText: l10n.whatsappGroupLinkHint,
+                    prefixIcon: const SyuFieldIcon(
+                      SyuIcons.whatsapp,
+                      color: SyuIcons.whatsappGreen,
+                    ),
+                    errorText: _error,
+                  ),
+                ),
+              ],
+            ),
+      actions: [
+        if (!_loading)
+          TextButton(
+            onPressed: _saving ? null : () => _save(clear: true),
+            child: Text(l10n.clearWhatsappLink),
+          ),
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.of(context).pop(false),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton(
+          onPressed: (_loading || _saving) ? null : () => _save(clear: false),
+          child: Text(l10n.saveWhatsappLink),
         ),
       ],
     );
@@ -719,7 +1004,8 @@ class _AdminSquareTile extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: SyuColors.crimson.withValues(alpha: 0.12),
+                        color: (iconColor ?? SyuColors.crimson)
+                            .withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(9),
                       ),
                       child: Center(
@@ -766,9 +1052,13 @@ class _AdminSquareTile extends StatelessWidget {
 }
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.email});
+  const _HomeHeader({
+    required this.email,
+    this.emailColor,
+  });
 
   final String email;
+  final Color? emailColor;
 
   @override
   Widget build(BuildContext context) {
@@ -791,7 +1081,11 @@ class _HomeHeader extends StatelessWidget {
               ),
               Text(
                 email,
-                style: Theme.of(context).textTheme.bodyMedium,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: emailColor,
+                      fontWeight:
+                          emailColor != null ? FontWeight.w600 : null,
+                    ),
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -809,16 +1103,21 @@ class _ActionTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.onTapRoute,
+    this.onTap,
+    this.iconColor,
   });
 
   final List<List<dynamic>> icon;
   final String title;
   final String subtitle;
   final String? onTapRoute;
+  final VoidCallback? onTap;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
-    final tappable = onTapRoute != null;
+    final tappable = onTapRoute != null || onTap != null;
+    final accent = iconColor ?? SyuIcons.accent;
     final child = Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -832,11 +1131,11 @@ class _ActionTile extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: SyuColors.crimson.withValues(alpha: 0.14),
+              color: accent.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
-              child: SyuIcon(icon, color: SyuIcons.accent, size: 24),
+              child: SyuIcon(icon, color: accent, size: 24),
             ),
           ),
           const SizedBox(width: 14),
@@ -861,8 +1160,68 @@ class _ActionTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: () => context.push(onTapRoute!),
+        onTap: onTap ?? () => context.push(onTapRoute!),
         child: child,
+      ),
+    );
+  }
+}
+
+/// Compact half-width tile for WhatsApp / Facebook on one row.
+class _CommunityLinkTile extends StatelessWidget {
+  const _CommunityLinkTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.onTap,
+  });
+
+  final List<List<dynamic>> icon;
+  final Color iconColor;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+          decoration: BoxDecoration(
+            color: SyuColors.inkElevated.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: SyuColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: SyuIcon(icon, color: iconColor, size: 22),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      height: 1.2,
+                    ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

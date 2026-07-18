@@ -46,23 +46,32 @@ class SyuBrandMark extends StatelessWidget {
 }
 
 class SyuGradientBackground extends StatelessWidget {
-  const SyuGradientBackground({super.key, required this.child});
+  const SyuGradientBackground({
+    super.key,
+    required this.child,
+    this.colors,
+  });
 
   final Widget child;
 
+  /// Optional page wash. Defaults to the soft white → blush → grey brand gradient.
+  final List<Color>? colors;
+
   @override
   Widget build(BuildContext context) {
+    final gradientColors = colors ??
+        const [
+          Color(0xFFFFFFFF),
+          Color(0xFFFFF8F7),
+          Color(0xFFF7F7F7),
+        ];
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFFFFFFF),
-            Color(0xFFFFF8F7),
-            Color(0xFFF7F7F7),
-          ],
-          stops: [0, 0.55, 1],
+          colors: gradientColors,
+          stops: const [0, 0.55, 1],
         ),
       ),
       child: child,
