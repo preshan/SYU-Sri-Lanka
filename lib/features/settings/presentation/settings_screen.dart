@@ -31,7 +31,7 @@ class SettingsScreen extends StatelessWidget {
               subtitle: const Text('In-app notification center'),
               onTap: () => context.push('/notifications'),
             ),
-            const Divider(color: Color(0xFF2A2A2A)),
+            const Divider(color: SyuColors.border),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.lock_reset_rounded,
@@ -40,7 +40,7 @@ class SettingsScreen extends StatelessWidget {
               subtitle: const Text('Send a reset link to your email'),
               onTap: () => context.push('/forgot-password'),
             ),
-            const Divider(color: Color(0xFF2A2A2A)),
+            const Divider(color: SyuColors.border),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.info_outline,

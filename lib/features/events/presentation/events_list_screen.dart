@@ -107,7 +107,7 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
                       decoration: BoxDecoration(
                         color: SyuColors.inkElevated.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: const Color(0xFF2A2A2A)),
+                        border: Border.all(color: SyuColors.border),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

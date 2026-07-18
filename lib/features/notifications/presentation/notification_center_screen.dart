@@ -107,7 +107,7 @@ class _NotificationCenterScreenState
                             border: Border.all(
                               color: unread
                                   ? SyuColors.crimson.withValues(alpha: 0.5)
-                                  : const Color(0xFF2A2A2A),
+                                  : SyuColors.border,
                             ),
                           ),
                           child: Column(

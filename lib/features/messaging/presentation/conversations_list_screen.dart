@@ -114,7 +114,7 @@ class _ConversationsListScreenState
                                 SyuColors.inkElevated.withValues(alpha: 0.9),
                             borderRadius: BorderRadius.circular(18),
                             border:
-                                Border.all(color: const Color(0xFF2A2A2A)),
+                                Border.all(color: SyuColors.border),
                           ),
                           child: Row(
                             children: [
@@ -270,14 +270,14 @@ class _ChatThreadState extends State<_ChatThread> {
                             ),
                             decoration: BoxDecoration(
                               color: mine
-                                  ? SyuColors.crimson.withValues(alpha: 0.85)
-                                  : SyuColors.inkElevated,
+                                  ? SyuColors.crimson.withValues(alpha: 0.9)
+                                  : SyuColors.inkSoft,
                               borderRadius: BorderRadius.circular(14),
                             ),
                             child: Text(
                               m['body'] as String? ?? '',
                               style: TextStyle(
-                                color: mine ? SyuColors.paper : SyuColors.mist,
+                              color: mine ? SyuColors.paper : SyuColors.ink,
                               ),
                             ),
                           ),

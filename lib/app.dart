@@ -15,9 +15,9 @@ class SyuApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'SYU Sri Lanka',
       debugShowCheckedModeBanner: false,
-      theme: SyuTheme.dark(),
-      darkTheme: SyuTheme.dark(),
-      themeMode: ThemeMode.dark,
+      theme: SyuTheme.light(),
+      darkTheme: SyuTheme.light(),
+      themeMode: ThemeMode.light,
       locale: const Locale('en'),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [

@@ -177,7 +177,7 @@ class _ActionTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: SyuColors.inkElevated.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF2A2A2A)),
+        border: Border.all(color: SyuColors.border),
       ),
       child: Row(
         children: [
@@ -297,7 +297,7 @@ class _ProfileTabState extends ConsumerState<_ProfileTab> {
                   decoration: BoxDecoration(
                     color: SyuColors.inkElevated.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFF2A2A2A)),
+                    border: Border.all(color: SyuColors.border),
                   ),
                   child: Text(
                     _statusLabel,

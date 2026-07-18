@@ -86,9 +86,10 @@ class _RegistrationWizardScreenState
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
+            colorScheme: const ColorScheme.light(
               primary: SyuColors.crimson,
-              surface: SyuColors.inkElevated,
+              surface: SyuColors.paper,
+              onSurface: SyuColors.ink,
             ),
           ),
           child: child!,

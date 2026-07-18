@@ -107,7 +107,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: Text(
                             _banner!,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: SyuColors.paper,
+                                  color: SyuColors.ink,
                                 ),
                           ),
                         ),
