@@ -394,6 +394,30 @@ abstract class AppLocalizations {
   /// **'Finish your member profile to activate membership.'**
   String get completeRegistrationSubtitle;
 
+  /// No description provided for @completeRegistrationBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish your registration'**
+  String get completeRegistrationBannerTitle;
+
+  /// No description provided for @completeRegistrationBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile is incomplete. Complete registration to unlock full membership features.'**
+  String get completeRegistrationBannerBody;
+
+  /// No description provided for @completeRegistrationBannerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete now'**
+  String get completeRegistrationBannerAction;
+
+  /// No description provided for @dismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss'**
+  String get dismiss;
+
   /// No description provided for @updateDetailsSubtitle.
   ///
   /// In en, this message translates to:
@@ -514,6 +538,114 @@ abstract class AppLocalizations {
   /// **'Preferred name'**
   String get preferredName;
 
+  /// No description provided for @occupation.
+  ///
+  /// In en, this message translates to:
+  /// **'Occupation / job'**
+  String get occupation;
+
+  /// No description provided for @occupationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional — e.g. student, teacher, technician'**
+  String get occupationHint;
+
+  /// No description provided for @occupationTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 120 characters or fewer'**
+  String get occupationTooLong;
+
+  /// No description provided for @youthClub.
+  ///
+  /// In en, this message translates to:
+  /// **'Youth club'**
+  String get youthClub;
+
+  /// No description provided for @alreadyYouthClubMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you already a member of a youth club?'**
+  String get alreadyYouthClubMember;
+
+  /// No description provided for @youthClubMemberNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get youthClubMemberNo;
+
+  /// No description provided for @youthClubMemberYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get youthClubMemberYes;
+
+  /// No description provided for @youthClubName.
+  ///
+  /// In en, this message translates to:
+  /// **'Club name'**
+  String get youthClubName;
+
+  /// No description provided for @youthClubNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your youth club name'**
+  String get youthClubNameHint;
+
+  /// No description provided for @youthClubNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your club name'**
+  String get youthClubNameRequired;
+
+  /// No description provided for @youthClubRegistrationNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Membership / registration number'**
+  String get youthClubRegistrationNo;
+
+  /// No description provided for @youthClubRegistrationNoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters and numbers (e.g. YC-2024-01)'**
+  String get youthClubRegistrationNoHint;
+
+  /// No description provided for @youthClubRegistrationNoRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your registration number'**
+  String get youthClubRegistrationNoRequired;
+
+  /// No description provided for @youthClubRegistrationNoInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Use letters and numbers only (max 40)'**
+  String get youthClubRegistrationNoInvalid;
+
+  /// No description provided for @selectClubFromList.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional — select a club from the list'**
+  String get selectClubFromList;
+
+  /// No description provided for @chooseAClub.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a club'**
+  String get chooseAClub;
+
+  /// No description provided for @locationBasedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where are you based?'**
+  String get locationBasedTitle;
+
+  /// No description provided for @locationBasedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Used for youth club suggestions and regional updates.'**
+  String get locationBasedSubtitle;
+
   /// No description provided for @phoneHint.
   ///
   /// In en, this message translates to:
@@ -537,6 +669,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select all that apply.'**
   String get selectAllThatApply;
+
+  /// No description provided for @otherQualification.
+  ///
+  /// In en, this message translates to:
+  /// **'Other qualification'**
+  String get otherQualification;
+
+  /// No description provided for @otherQualificationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'NVQ / vocational qualification'**
+  String get otherQualificationHint;
+
+  /// No description provided for @otherQualificationTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 250 characters or fewer'**
+  String get otherQualificationTooLong;
 
   /// No description provided for @selectLanguagesYouSpeak.
   ///
@@ -813,6 +963,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Admin actions'**
   String get adminActions;
+
+  /// No description provided for @mailSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Mail'**
+  String get mailSettings;
+
+  /// No description provided for @mailSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gmail SMTP for signup codes'**
+  String get mailSettingsSubtitle;
+
+  /// No description provided for @mailSettingsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Store the Gmail address and App Password here. Saving applies them to Auth email delivery without redeploying the app. The password is never shown again after save.'**
+  String get mailSettingsIntro;
+
+  /// No description provided for @mailSettingsGmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Gmail address'**
+  String get mailSettingsGmail;
+
+  /// No description provided for @mailSettingsAppPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'App Password'**
+  String get mailSettingsAppPassword;
+
+  /// No description provided for @mailSettingsPasswordHintSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank to keep current password'**
+  String get mailSettingsPasswordHintSet;
+
+  /// No description provided for @mailSettingsPasswordHintNew.
+  ///
+  /// In en, this message translates to:
+  /// **'16-character Google App Password'**
+  String get mailSettingsPasswordHintNew;
+
+  /// No description provided for @mailSettingsFromEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'From email'**
+  String get mailSettingsFromEmail;
+
+  /// No description provided for @mailSettingsFromEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Usually the same as Gmail'**
+  String get mailSettingsFromEmailHint;
+
+  /// No description provided for @mailSettingsFromName.
+  ///
+  /// In en, this message translates to:
+  /// **'From name'**
+  String get mailSettingsFromName;
+
+  /// No description provided for @mailSettingsSaveAndApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Save and apply'**
+  String get mailSettingsSaveAndApply;
+
+  /// No description provided for @mailSettingsSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Mail settings saved and applied to Auth'**
+  String get mailSettingsSaved;
+
+  /// No description provided for @mailSettingsEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the Gmail address'**
+  String get mailSettingsEmailRequired;
+
+  /// No description provided for @mailSettingsPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the App Password'**
+  String get mailSettingsPasswordRequired;
 
   /// No description provided for @dashboard.
   ///

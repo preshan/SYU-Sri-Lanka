@@ -11,6 +11,7 @@ import 'package:syu_sri_lanka/features/admin/presentation/admin_audit_panel.dart
 import 'package:syu_sri_lanka/features/admin/presentation/admin_broadcast_panels.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_chat_panel.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_clubs_panel.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_mail_settings_panel.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_members_panel.dart';
 import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
@@ -23,7 +24,7 @@ class AdminShell extends ConsumerStatefulWidget {
     this.onLeave,
   });
 
-  /// Approvals=0, Members=1, Clubs=2, News=3, Events=4, Chat=5, Broadcast=6, Reports=7, Audit=8
+  /// Approvals=0 … Audit=8, Mail=9
   final int initialTab;
   final String? initialMemberId;
   final String? initialMemberName;
@@ -43,7 +44,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   bool _allowed = false;
   late int _tab;
 
-  static const _tabCount = 9;
+  static const _tabCount = 10;
 
   List<String> _titles(AppLocalizations l10n) => [
         l10n.approvals,
@@ -55,6 +56,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
         l10n.broadcast,
         l10n.reports,
         l10n.audit,
+        l10n.mailSettings,
       ];
 
   @override
@@ -124,6 +126,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
       6 => const AdminBroadcastPanel(),
       7 => const _AdminReports(),
       8 => const AdminAuditPanel(),
+      9 => const AdminMailSettingsPanel(),
       _ => const AdminMembersPanel(),
     };
   }

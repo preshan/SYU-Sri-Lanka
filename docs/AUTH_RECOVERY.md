@@ -5,40 +5,45 @@
 Signup confirmation uses a **6-digit code** from the email, entered in the app
 (`ConfirmEmailScreen` → `AuthRepository.verifySignupOtp` → Supabase `verifyOTP`).
 
-### Email delivery (Resend SMTP)
+### Email delivery (Gmail SMTP via DB)
 
-Auth mail is sent via **Resend** as Supabase custom SMTP (not the default Supabase mailer).
+Auth mail is sent through **Supabase custom SMTP**. Credentials live in Postgres
+so super-admins can rotate them **without redeploying** the Flutter app.
 
-| Setting | Value |
-|---------|--------|
-| Host | `smtp.resend.com` |
-| Port | `465` |
-| User | `resend` |
-| Pass | Resend API key (`re_…`) — stored in `.env.local.management` only |
-| From | `onboarding@resend.dev` (Resend test domain) |
+| Store | Value |
+|-------|--------|
+| Table | `public.app_mail_settings` (singleton `id = 1`) |
+| Gmail | column `smtp_user` |
+| App Password | column `smtp_pass` (**never returned to clients**) |
+| From | `from_email` / `from_name` |
+
+**Where to save in the app:** Admin dashboard → **Other tools** → **Mail** →
+enter Gmail + App Password → **Save and apply**.
+
+That writes the DB row and invokes Edge Function `sync-auth-smtp`, which PATCHes
+Supabase Auth SMTP (`smtp.gmail.com:465`).
+
+RPCs (super_admin only):
+
+- `get_mail_settings()` — host/user/from + `password_set` (no secret)
+- `upsert_mail_settings(...)` — empty password keeps the existing secret
+
+Edge Function secrets (Dashboard → Edge Functions → Secrets, not Flutter):
+
+- Auto-injected: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- Custom: `MANAGEMENT_ACCESS_TOKEN` (Supabase management / personal access token)
 
 **Confirm signup** subject: `{{ .Token }} is your SYU verification code`  
-(e.g. `032645 is your SYU verification code`)  
 Body includes `{{ .Token }}` (6 digits). No magic link.
 
-> **Resend test domain:** `onboarding@resend.dev` can only deliver to the email
-> address of the Resend account owner until you verify your own domain.
-
-Secrets live in `.env.local.management` (`RESEND_API_KEY`, service role, etc.) — never
-in Flutter assets or git.
-
-To re-apply SMTP + template via Management API (after rotating the key):
-
-```bash
-# set RESEND_API_KEY in .env.local.management, then PATCH
-# /v1/projects/$REF/config/auth with smtp_* + mailer_templates_confirmation_content
-```
+> Create a Google [App Password](https://myaccount.google.com/apppasswords)
+> (2FA required). Do not use your normal Gmail password.
 
 ### Flutter wiring
 
 | Call | Behaviour |
 |------|-----------|
-| `signUp` | Supabase emails the OTP via Resend. App opens `/confirm-email`. |
+| `signUp` | Supabase emails the OTP via configured SMTP. App opens `/confirm-email`. |
 | `resend` (`OtpType.signup`) | Sends a new code. |
 | `verifyOTP` (`OtpType.signup`) | User enters 6 digits → session → `/home`. |
 
@@ -59,9 +64,9 @@ OTP length: **6**. OTP expiry: **7 days** (`mailer_otp_exp` = 604800).
 
 ### Manual test
 
-1. Delete any previous test Auth user if needed.
-2. Register in the app with the Resend account email (while using `onboarding@resend.dev`).
-3. Open the mail → copy the **6-digit code**.
+1. As super_admin, open **Mail** and save Gmail + App Password (Save and apply).
+2. Delete any previous test Auth user if needed.
+3. Register in the app → open the mail → copy the **6-digit code**.
 4. Enter it on the confirm screen → Home.
 
 ### Password recovery

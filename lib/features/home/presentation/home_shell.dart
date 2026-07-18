@@ -249,7 +249,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
   }
 }
 
-class _MemberHomeBody extends StatelessWidget {
+class _MemberHomeBody extends StatefulWidget {
   const _MemberHomeBody({
     required this.email,
     required this.registrationIncomplete,
@@ -259,12 +259,27 @@ class _MemberHomeBody extends StatelessWidget {
   final bool registrationIncomplete;
 
   @override
+  State<_MemberHomeBody> createState() => _MemberHomeBodyState();
+}
+
+class _MemberHomeBodyState extends State<_MemberHomeBody> {
+  bool _bannerDismissed = false;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final showBanner = widget.registrationIncomplete && !_bannerDismissed;
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       children: [
-        _HomeHeader(email: email),
+        _HomeHeader(email: widget.email),
+        if (showBanner) ...[
+          const SizedBox(height: 16),
+          _RegistrationIncompleteBanner(
+            onDismiss: () => setState(() => _bannerDismissed = true),
+            onComplete: () => context.push('/registration'),
+          ),
+        ],
         const SizedBox(height: 28),
         Text(
           l10n.riseTogether,
@@ -282,7 +297,7 @@ class _MemberHomeBody extends StatelessWidget {
               ),
         ),
         const SizedBox(height: 28),
-        if (registrationIncomplete)
+        if (widget.registrationIncomplete)
           _ActionTile(
             icon: SyuIcons.userCheck,
             title: l10n.completeRegistration,
@@ -309,6 +324,81 @@ class _MemberHomeBody extends StatelessWidget {
           subtitle: l10n.eventsSubtitle,
         ),
       ],
+    );
+  }
+}
+
+class _RegistrationIncompleteBanner extends StatelessWidget {
+  const _RegistrationIncompleteBanner({
+    required this.onDismiss,
+    required this.onComplete,
+  });
+
+  final VoidCallback onDismiss;
+  final VoidCallback onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Material(
+      color: SyuColors.crimson.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: SyuIcon(
+                SyuIcons.userCheck,
+                color: SyuColors.crimson,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.completeRegistrationBannerTitle,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: SyuColors.ink,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.completeRegistrationBannerBody,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: SyuColors.mist,
+                          height: 1.35,
+                        ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: SyuColors.crimson,
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: onComplete,
+                    child: Text(l10n.completeRegistrationBannerAction),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: l10n.dismiss,
+              visualDensity: VisualDensity.compact,
+              onPressed: onDismiss,
+              icon: const Icon(Icons.close_rounded, size: 20),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -416,6 +506,12 @@ class _AdminHomeDashboard extends StatelessWidget {
               title: l10n.audit,
               subtitle: l10n.adminActions,
               adminTab: 'audit',
+            ),
+            _AdminSquareTile(
+              icon: SyuIcons.mailOpen,
+              title: l10n.mailSettings,
+              subtitle: l10n.mailSettingsSubtitle,
+              adminTab: 'mail',
             ),
           ],
         ),

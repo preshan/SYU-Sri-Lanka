@@ -158,6 +158,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Finish your member profile to activate membership.';
 
   @override
+  String get completeRegistrationBannerTitle => 'Finish your registration';
+
+  @override
+  String get completeRegistrationBannerBody =>
+      'Your profile is incomplete. Complete registration to unlock full membership features.';
+
+  @override
+  String get completeRegistrationBannerAction => 'Complete now';
+
+  @override
+  String get dismiss => 'Dismiss';
+
+  @override
   String get updateDetailsSubtitle =>
       'Keep your profile, contacts, and club info current.';
 
@@ -223,6 +236,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preferredName => 'Preferred name';
 
   @override
+  String get occupation => 'Occupation / job';
+
+  @override
+  String get occupationHint => 'Optional — e.g. student, teacher, technician';
+
+  @override
+  String get occupationTooLong => 'Use 120 characters or fewer';
+
+  @override
+  String get youthClub => 'Youth club';
+
+  @override
+  String get alreadyYouthClubMember =>
+      'Are you already a member of a youth club?';
+
+  @override
+  String get youthClubMemberNo => 'No';
+
+  @override
+  String get youthClubMemberYes => 'Yes';
+
+  @override
+  String get youthClubName => 'Club name';
+
+  @override
+  String get youthClubNameHint => 'Enter your youth club name';
+
+  @override
+  String get youthClubNameRequired => 'Enter your club name';
+
+  @override
+  String get youthClubRegistrationNo => 'Membership / registration number';
+
+  @override
+  String get youthClubRegistrationNoHint =>
+      'Letters and numbers (e.g. YC-2024-01)';
+
+  @override
+  String get youthClubRegistrationNoRequired =>
+      'Enter your registration number';
+
+  @override
+  String get youthClubRegistrationNoInvalid =>
+      'Use letters and numbers only (max 40)';
+
+  @override
+  String get selectClubFromList => 'Optional — select a club from the list';
+
+  @override
+  String get chooseAClub => 'Choose a club';
+
+  @override
+  String get locationBasedTitle => 'Where are you based?';
+
+  @override
+  String get locationBasedSubtitle =>
+      'Used for youth club suggestions and regional updates.';
+
+  @override
   String get phoneHint => 'Phone (+94…)';
 
   @override
@@ -237,6 +309,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selectAllThatApply => 'Select all that apply.';
+
+  @override
+  String get otherQualification => 'Other qualification';
+
+  @override
+  String get otherQualificationHint => 'NVQ / vocational qualification';
+
+  @override
+  String get otherQualificationTooLong => 'Use 250 characters or fewer';
 
   @override
   String get selectLanguagesYouSpeak => 'Select languages you can speak.';
@@ -387,6 +468,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminActions => 'Admin actions';
+
+  @override
+  String get mailSettings => 'Mail';
+
+  @override
+  String get mailSettingsSubtitle => 'Gmail SMTP for signup codes';
+
+  @override
+  String get mailSettingsIntro =>
+      'Store the Gmail address and App Password here. Saving applies them to Auth email delivery without redeploying the app. The password is never shown again after save.';
+
+  @override
+  String get mailSettingsGmail => 'Gmail address';
+
+  @override
+  String get mailSettingsAppPassword => 'App Password';
+
+  @override
+  String get mailSettingsPasswordHintSet =>
+      'Leave blank to keep current password';
+
+  @override
+  String get mailSettingsPasswordHintNew => '16-character Google App Password';
+
+  @override
+  String get mailSettingsFromEmail => 'From email';
+
+  @override
+  String get mailSettingsFromEmailHint => 'Usually the same as Gmail';
+
+  @override
+  String get mailSettingsFromName => 'From name';
+
+  @override
+  String get mailSettingsSaveAndApply => 'Save and apply';
+
+  @override
+  String get mailSettingsSaved => 'Mail settings saved and applied to Auth';
+
+  @override
+  String get mailSettingsEmailRequired => 'Enter the Gmail address';
+
+  @override
+  String get mailSettingsPasswordRequired => 'Enter the App Password';
 
   @override
   String get dashboard => 'Dashboard';

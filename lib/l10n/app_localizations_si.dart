@@ -158,6 +158,19 @@ class AppLocalizationsSi extends AppLocalizations {
       'සාමාජිකත්වය සක්‍රීය කිරීමට ඔබගේ තොරතුරු සම්පූර්ණ කරන්න.';
 
   @override
+  String get completeRegistrationBannerTitle => 'ලියාපදිංචිය අවසන් කරන්න';
+
+  @override
+  String get completeRegistrationBannerBody =>
+      'ඔබගේ පැතිකඩ අසම්පූර්ණයි. සම්පූර්ණ සාමාජික පහසුකම් ලබා ගැනීමට ලියාපදිංචිය සම්පූර්ණ කරන්න.';
+
+  @override
+  String get completeRegistrationBannerAction => 'දැන් සම්පූර්ණ කරන්න';
+
+  @override
+  String get dismiss => 'ඉවතලන්න';
+
+  @override
   String get updateDetailsSubtitle =>
       'ඔබගේ පැතිකඩ සහ තොරතුරු යාවත්කාලීනව තබා ගන්න.';
 
@@ -224,6 +237,63 @@ class AppLocalizationsSi extends AppLocalizations {
   String get preferredName => 'කැමති නම';
 
   @override
+  String get occupation => 'රැකියාව / වෘත්තිය';
+
+  @override
+  String get occupationHint => 'විකල්ප — උදා. ශිෂ්‍ය, ගුරු, කාර්මික';
+
+  @override
+  String get occupationTooLong => 'අක්ෂර 120ක් හෝ ඊට අඩුවෙන් භාවිතා කරන්න';
+
+  @override
+  String get youthClub => 'තරුණ සමාජය';
+
+  @override
+  String get alreadyYouthClubMember => 'ඔබ දැනටමත් තරුණ සමාජයක සාමාජිකයෙක්ද?';
+
+  @override
+  String get youthClubMemberNo => 'නැත';
+
+  @override
+  String get youthClubMemberYes => 'ඔව්';
+
+  @override
+  String get youthClubName => 'සමාජයේ නම';
+
+  @override
+  String get youthClubNameHint => 'ඔබේ තරුණ සමාජයේ නම ඇතුළත් කරන්න';
+
+  @override
+  String get youthClubNameRequired => 'සමාජයේ නම ඇතුළත් කරන්න';
+
+  @override
+  String get youthClubRegistrationNo => 'සාමාජික / ලියාපදිංචි අංකය';
+
+  @override
+  String get youthClubRegistrationNoHint =>
+      'අකුරු සහ ඉලක්කම් (උදා. YC-2024-01)';
+
+  @override
+  String get youthClubRegistrationNoRequired => 'ලියාපදිංචි අංකය ඇතුළත් කරන්න';
+
+  @override
+  String get youthClubRegistrationNoInvalid =>
+      'අකුරු සහ ඉලක්කම් පමණක් භාවිතා කරන්න (උපරිම 40)';
+
+  @override
+  String get selectClubFromList => 'විකල්ප — ලැයිස්තුවෙන් සමාජයක් තෝරන්න';
+
+  @override
+  String get chooseAClub => 'සමාජයක් තෝරන්න';
+
+  @override
+  String get locationBasedTitle => 'ඔබ පදනම් වී සිටින්නේ කොහේද?';
+
+  @override
+  String get locationBasedSubtitle =>
+      'තරුණ සමාජ යෝජනා සහ ප්‍රාදේශීය යාවත්කාලීන සඳහා භාවිතා වේ.';
+
+  @override
   String get phoneHint => 'දුරකථන අංකය (+94…)';
 
   @override
@@ -238,6 +308,16 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get selectAllThatApply => 'අදාළ සියල්ල තෝරන්න.';
+
+  @override
+  String get otherQualification => 'වෙනත් සුදුසුකම්';
+
+  @override
+  String get otherQualificationHint => 'NVQ / වෘත්තීය සුදුසුකම්';
+
+  @override
+  String get otherQualificationTooLong =>
+      'අක්ෂර 250ක් හෝ ඊට අඩුවෙන් භාවිතා කරන්න';
 
   @override
   String get selectLanguagesYouSpeak => 'ඔබට කතා කළ හැකි භාෂා තෝරන්න.';
@@ -389,6 +469,50 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get adminActions => 'පරිපාලක ක්‍රියා';
+
+  @override
+  String get mailSettings => 'තැපැල්';
+
+  @override
+  String get mailSettingsSubtitle => 'ලියාපදිංචි කේත සඳහා Gmail SMTP';
+
+  @override
+  String get mailSettingsIntro =>
+      'Gmail ලිපිනය සහ App Password මෙහි සුරකින්න. සුරැකීමෙන් යෙදුම නැවත deploy නොකර Auth ඊමේල් යැවීම යාවත්කාලීන වේ. සුරැකීමෙන් පසු මුරපදය නැවත නොපෙන්වයි.';
+
+  @override
+  String get mailSettingsGmail => 'Gmail ලිපිනය';
+
+  @override
+  String get mailSettingsAppPassword => 'App Password';
+
+  @override
+  String get mailSettingsPasswordHintSet =>
+      'වත්මන් මුරපදය තබා ගැනීමට හිස්ව තබන්න';
+
+  @override
+  String get mailSettingsPasswordHintNew => 'අක්ෂර 16ක Google App Password';
+
+  @override
+  String get mailSettingsFromEmail => 'යවන්නාගේ ඊමේල්';
+
+  @override
+  String get mailSettingsFromEmailHint => 'සාමාන්‍යයෙන් Gmail ලිපිනයම';
+
+  @override
+  String get mailSettingsFromName => 'යවන්නාගේ නම';
+
+  @override
+  String get mailSettingsSaveAndApply => 'සුරකින්න සහ යොදන්න';
+
+  @override
+  String get mailSettingsSaved => 'තැපැල් සැකසුම් සුරැකී Auth වෙත යොදන ලදී';
+
+  @override
+  String get mailSettingsEmailRequired => 'Gmail ලිපිනය ඇතුළත් කරන්න';
+
+  @override
+  String get mailSettingsPasswordRequired => 'App Password ඇතුළත් කරන්න';
 
   @override
   String get dashboard => 'පුවරුව';

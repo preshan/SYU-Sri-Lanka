@@ -199,7 +199,9 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
         .select(
           'id,full_name,email,nic,phone,status,created_at,date_of_birth,gender,'
           'district_id,ds_division_id,gn_division_id,requested_youth_club_name,'
-          'speaks_sinhala,speaks_tamil,speaks_english,'
+          'youth_club_registration_no,'
+          'speaks_sinhala,speaks_tamil,speaks_english,other_qualification,'
+          'occupation,'
           'member_qualifications(qualification_id, qualifications(code,name_en,level_order))',
         );
 
@@ -363,11 +365,15 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
           'status',
           'gender',
           'date_of_birth',
+          'occupation',
           'district_id',
           'ds_division_id',
           'gn_division_id',
           'qualifications',
+          'other_qualification',
           'languages',
+          'youth_club_name',
+          'youth_club_registration_no',
         ],
         rows: rows
             .map(
@@ -379,11 +385,15 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                 u['status'],
                 u['gender'],
                 u['date_of_birth'],
+                u['occupation'],
                 u['district_id'],
                 u['ds_division_id'],
                 u['gn_division_id'],
                 SyuCsv.qualificationsJoined(u),
+                u['other_qualification'],
                 SyuCsv.languagesJoined(u),
+                u['requested_youth_club_name'],
+                u['youth_club_registration_no'],
               ],
             )
             .toList(),
@@ -463,7 +473,9 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
       PostgrestFilterBuilder query =
           SupabaseBootstrap.client.from('profiles').select(
                 'id,full_name,email,nic,phone,status,gender,date_of_birth,'
+                'occupation,other_qualification,'
                 'district_id,ds_division_id,gn_division_id,'
+                'requested_youth_club_name,youth_club_registration_no,'
                 'speaks_sinhala,speaks_tamil,speaks_english,'
                 'member_qualifications(qualification_id, qualifications(code,name_en,level_order))',
               );
@@ -584,6 +596,8 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
       if (nic != null && nic.isNotEmpty) nic,
       if (_genderLabel(p).isNotEmpty) _genderLabel(p),
       if (_ageLabel(p) != null) _ageLabel(p)!,
+      if ((p['occupation'] as String?)?.trim().isNotEmpty == true)
+        (p['occupation'] as String).trim(),
     ].join(' · ');
     final status = p['status'] as String? ?? '';
     final line3 = <String>[
@@ -591,9 +605,14 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
       _districtName(p['district_id'] as int?),
       if (_highestQualificationLabel(p).isNotEmpty)
         _highestQualificationLabel(p),
+      if ((p['other_qualification'] as String?)?.trim().isNotEmpty == true)
+        (p['other_qualification'] as String).trim(),
       if (_languageLabel(p).isNotEmpty) _languageLabel(p),
       if ((p['requested_youth_club_name'] as String?)?.isNotEmpty == true)
         p['requested_youth_club_name'] as String,
+      if ((p['youth_club_registration_no'] as String?)?.trim().isNotEmpty ==
+          true)
+        (p['youth_club_registration_no'] as String).trim(),
     ].where((s) => s.isNotEmpty && s != '-').join(' · ');
     return [line1, line2, line3].where((l) => l.isNotEmpty).join('\n');
   }

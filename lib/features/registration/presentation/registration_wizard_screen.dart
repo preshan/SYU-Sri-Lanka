@@ -27,6 +27,7 @@ class _RegistrationWizardScreenState
   final _fullName = TextEditingController();
   final _phone = TextEditingController();
   final _nic = TextEditingController();
+  final _occupation = TextEditingController();
   DateTime? _dob;
   LocationSelection _location = const LocationSelection();
   String? _gender;
@@ -34,10 +35,12 @@ class _RegistrationWizardScreenState
   bool _speaksSinhala = false;
   bool _speaksTamil = false;
   bool _speaksEnglish = false;
-  /// none | listed | existing
+  /// none | listed | yes (already a member)
   String _clubMode = 'none';
   String? _clubId;
   final _clubName = TextEditingController();
+  final _clubRegistrationNo = TextEditingController();
+  final _otherQualification = TextEditingController();
   List<Map<String, dynamic>> _qualifications = [];
   List<Map<String, dynamic>> _clubs = [];
   bool _loadingMeta = true;
@@ -79,7 +82,10 @@ class _RegistrationWizardScreenState
     _fullName.dispose();
     _phone.dispose();
     _nic.dispose();
+    _occupation.dispose();
     _clubName.dispose();
+    _clubRegistrationNo.dispose();
+    _otherQualification.dispose();
     super.dispose();
   }
 
@@ -124,13 +130,27 @@ class _RegistrationWizardScreenState
       );
       return;
     }
-    if (_step == 1 &&
-        _clubMode == 'existing' &&
-        _clubName.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter your club name')),
-      );
-      return;
+    if (_step == 1 && _clubMode == 'yes') {
+      final l10n = AppLocalizations.of(context);
+      if (_clubName.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.youthClubNameRequired)),
+        );
+        return;
+      }
+      final reg = _clubRegistrationNo.text.trim();
+      if (reg.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.youthClubRegistrationNoRequired)),
+        );
+        return;
+      }
+      if (!_isValidClubRegistrationNo(reg)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.youthClubRegistrationNoInvalid)),
+        );
+        return;
+      }
     }
     if (_step < 3) {
       setState(() => _step++);
@@ -197,10 +217,18 @@ class _RegistrationWizardScreenState
           'p_qualification_ids':
               selected.map((q) => q['id'] as String).toList(),
           'p_requested_youth_club_name':
-              _clubMode == 'existing' ? _clubName.text.trim() : null,
+              _clubMode == 'yes' ? _clubName.text.trim() : null,
+          'p_youth_club_registration_no':
+              _clubMode == 'yes' ? _clubRegistrationNo.text.trim() : null,
           'p_speaks_sinhala': _speaksSinhala,
           'p_speaks_tamil': _speaksTamil,
           'p_speaks_english': _speaksEnglish,
+          'p_other_qualification': _otherQualification.text.trim().isEmpty
+              ? null
+              : _otherQualification.text.trim(),
+          'p_occupation': _occupation.text.trim().isEmpty
+              ? null
+              : _occupation.text.trim(),
         },
       );
 
@@ -303,6 +331,21 @@ class _RegistrationWizardScreenState
           ),
           const SizedBox(height: 12),
           TextFormField(
+            controller: _occupation,
+            textCapitalization: TextCapitalization.sentences,
+            maxLength: 120,
+            decoration: InputDecoration(
+              labelText: l10n.occupation,
+              hintText: l10n.occupationHint,
+            ),
+            validator: (v) {
+              final t = v?.trim() ?? '';
+              if (t.length > 120) return l10n.occupationTooLong;
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
             controller: _phone,
             keyboardType: TextInputType.phone,
             decoration: InputDecoration(
@@ -356,18 +399,19 @@ class _RegistrationWizardScreenState
   }
 
   Widget _locationStep() {
+    final l10n = AppLocalizations.of(context);
     return Form(
       key: _formKeys[1],
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'Where are you based?',
+            l10n.locationBasedTitle,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
-            'Used for youth club suggestions and regional updates.',
+            l10n.locationBasedSubtitle,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
@@ -375,60 +419,95 @@ class _RegistrationWizardScreenState
             onChanged: (sel) {
               setState(() {
                 _location = sel;
-                // Filter clubs by district when possible
               });
             },
           ),
           const SizedBox(height: 16),
           Text(
-            'Youth club',
+            l10n.youthClub,
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
+          Text(
+            l10n.alreadyYouthClubMember,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
           RadioListTile<String>(
             value: 'none',
             // ignore: deprecated_member_use
             groupValue: _clubMode,
-            title: const Text('Not in a club yet'),
+            title: Text(l10n.youthClubMemberNo),
             // ignore: deprecated_member_use
             onChanged: (v) => setState(() {
               _clubMode = v!;
               _clubId = null;
               _clubName.clear();
+              _clubRegistrationNo.clear();
             }),
           ),
           RadioListTile<String>(
-            value: 'listed',
+            value: 'yes',
             // ignore: deprecated_member_use
             groupValue: _clubMode,
-            title: const Text('Select from the list'),
-            // ignore: deprecated_member_use
-            onChanged: (v) => setState(() {
-              _clubMode = v!;
-              _clubName.clear();
-            }),
-          ),
-          RadioListTile<String>(
-            value: 'existing',
-            // ignore: deprecated_member_use
-            groupValue: _clubMode,
-            title: const Text('Already registered with a club'),
+            title: Text(l10n.youthClubMemberYes),
             // ignore: deprecated_member_use
             onChanged: (v) => setState(() {
               _clubMode = v!;
               _clubId = null;
             }),
           ),
-          if (_clubMode == 'listed') ...[
+          if (_clubMode == 'yes') ...[
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _clubName,
+              textCapitalization: TextCapitalization.words,
+              decoration: InputDecoration(
+                labelText: l10n.youthClubName,
+                hintText: l10n.youthClubNameHint,
+              ),
+              validator: (v) {
+                if (_clubMode != 'yes') return null;
+                if (v == null || v.trim().isEmpty) {
+                  return l10n.youthClubNameRequired;
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _clubRegistrationNo,
+              textCapitalization: TextCapitalization.characters,
+              maxLength: 40,
+              decoration: InputDecoration(
+                labelText: l10n.youthClubRegistrationNo,
+                hintText: l10n.youthClubRegistrationNoHint,
+              ),
+              validator: (v) {
+                if (_clubMode != 'yes') return null;
+                final t = v?.trim() ?? '';
+                if (t.isEmpty) return l10n.youthClubRegistrationNoRequired;
+                if (!_isValidClubRegistrationNo(t)) {
+                  return l10n.youthClubRegistrationNoInvalid;
+                }
+                return null;
+              },
+            ),
+          ],
+          if (_clubMode == 'none') ...[
+            const SizedBox(height: 8),
+            Text(
+              l10n.selectClubFromList,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               // ignore: deprecated_member_use
               value: _clubId ?? '',
-              decoration: const InputDecoration(labelText: 'Youth club'),
+              decoration: InputDecoration(labelText: l10n.youthClub),
               items: [
-                const DropdownMenuItem(
+                DropdownMenuItem(
                   value: '',
-                  child: Text('Choose a club'),
+                  child: Text(l10n.chooseAClub),
                 ),
                 ..._clubs
                     .where(
@@ -444,32 +523,54 @@ class _RegistrationWizardScreenState
                       ),
                     ),
               ],
-              onChanged: (v) => setState(
-                () => _clubId = (v == null || v.isEmpty) ? null : v,
-              ),
+              onChanged: (v) => setState(() {
+                _clubId = (v == null || v.isEmpty) ? null : v;
+                if (_clubId != null) {
+                  _clubMode = 'listed';
+                }
+              }),
             ),
           ],
-          if (_clubMode == 'existing') ...[
+          if (_clubMode == 'listed') ...[
             const SizedBox(height: 8),
-            TextFormField(
-              controller: _clubName,
-              textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
-                labelText: 'Club name',
-                hintText: 'Enter your youth club name',
-              ),
-              validator: (v) {
-                if (_clubMode != 'existing') return null;
-                if (v == null || v.trim().isEmpty) {
-                  return 'Enter your club name';
+            DropdownButtonFormField<String>(
+              // ignore: deprecated_member_use
+              value: _clubId ?? '',
+              decoration: InputDecoration(labelText: l10n.youthClub),
+              items: [
+                DropdownMenuItem(
+                  value: '',
+                  child: Text(l10n.chooseAClub),
+                ),
+                ..._clubs
+                    .where(
+                      (c) =>
+                          _location.districtId == null ||
+                          c['district_id'] == null ||
+                          c['district_id'] == _location.districtId,
+                    )
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c['id'] as String,
+                        child: Text(c['name'] as String),
+                      ),
+                    ),
+              ],
+              onChanged: (v) => setState(() {
+                _clubId = (v == null || v.isEmpty) ? null : v;
+                if (_clubId == null) {
+                  _clubMode = 'none';
                 }
-                return null;
-              },
+              }),
             ),
           ],
         ],
       ),
     );
+  }
+
+  static bool _isValidClubRegistrationNo(String value) {
+    return RegExp(r'^[A-Za-z0-9][A-Za-z0-9\-/ ]{0,39}$').hasMatch(value);
   }
 
   Widget _qualificationsStep() {
@@ -507,6 +608,24 @@ class _RegistrationWizardScreenState
               },
             );
           }),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _otherQualification,
+            maxLength: 250,
+            maxLines: 3,
+            minLines: 2,
+            textInputAction: TextInputAction.newline,
+            decoration: InputDecoration(
+              labelText: l10n.otherQualification,
+              hintText: l10n.otherQualificationHint,
+              alignLabelWithHint: true,
+            ),
+            validator: (v) {
+              final t = v?.trim() ?? '';
+              if (t.length > 250) return l10n.otherQualificationTooLong;
+              return null;
+            },
+          ),
           const SizedBox(height: 20),
           Text(
             l10n.languageSkills,
@@ -550,6 +669,7 @@ class _RegistrationWizardScreenState
   }
 
   Widget _reviewStep() {
+    final l10n = AppLocalizations.of(context);
     return Form(
       key: _formKeys[3],
       child: ListView(
@@ -558,6 +678,8 @@ class _RegistrationWizardScreenState
           Text('Review & submit', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
           _row('Name', _fullName.text),
+          if (_occupation.text.trim().isNotEmpty)
+            _row(l10n.occupation, _occupation.text.trim()),
           _row('Phone', _phone.text),
           _row('NIC', _nic.text.toUpperCase()),
           _row(
@@ -566,20 +688,24 @@ class _RegistrationWizardScreenState
           ),
           _row('District ID', '${_location.districtId ?? '-'}'),
           _row(
-            'Club',
+            l10n.youthClub,
             switch (_clubMode) {
               'listed' => () {
                 final matches =
                     _clubs.where((c) => c['id'] == _clubId).toList();
-                if (matches.isEmpty) return 'Selected';
-                return matches.first['name'] as String? ?? 'Selected';
+                if (matches.isEmpty) return l10n.chooseAClub;
+                return matches.first['name'] as String? ?? l10n.chooseAClub;
               }(),
-              'existing' => _clubName.text.trim(),
-              _ => 'Not assigned',
+              'yes' => [
+                  _clubName.text.trim(),
+                  if (_clubRegistrationNo.text.trim().isNotEmpty)
+                    _clubRegistrationNo.text.trim(),
+                ].join(' · '),
+              _ => l10n.youthClubMemberNo,
             },
           ),
           _row(
-            'Qualifications',
+            l10n.qualifications,
             _qualificationCodes.isEmpty
                 ? 'None'
                 : _qualifications
@@ -587,18 +713,23 @@ class _RegistrationWizardScreenState
                     .map(_qualificationLabel)
                     .join(', '),
           ),
+          if (_otherQualification.text.trim().isNotEmpty)
+            _row(
+              l10n.otherQualification,
+              _otherQualification.text.trim(),
+            ),
           _row(
-            'Languages',
+            l10n.languageSkills,
             [
-              if (_speaksSinhala) 'Sinhala',
-              if (_speaksTamil) 'Tamil',
-              if (_speaksEnglish) 'English',
+              if (_speaksSinhala) l10n.langSinhala,
+              if (_speaksTamil) l10n.langTamil,
+              if (_speaksEnglish) l10n.langEnglish,
             ].isEmpty
                 ? 'None'
                 : [
-                    if (_speaksSinhala) 'Sinhala',
-                    if (_speaksTamil) 'Tamil',
-                    if (_speaksEnglish) 'English',
+                    if (_speaksSinhala) l10n.langSinhala,
+                    if (_speaksTamil) l10n.langTamil,
+                    if (_speaksEnglish) l10n.langEnglish,
                   ].join(', '),
           ),
           const SizedBox(height: 16),

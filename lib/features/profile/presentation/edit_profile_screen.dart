@@ -23,12 +23,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _fullName = TextEditingController();
   final _preferred = TextEditingController();
   final _phone = TextEditingController();
+  final _occupation = TextEditingController();
   bool _loading = true;
   bool _saving = false;
   ProfileCompleteness? _completeness;
 
   List<Map<String, dynamic>> _qualifications = [];
   final Set<String> _qualificationIds = {};
+  final _otherQualification = TextEditingController();
   bool _speaksSinhala = false;
   bool _speaksTamil = false;
   bool _speaksEnglish = false;
@@ -44,6 +46,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _fullName.dispose();
     _preferred.dispose();
     _phone.dispose();
+    _occupation.dispose();
+    _otherQualification.dispose();
     super.dispose();
   }
 
@@ -55,7 +59,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       final results = await Future.wait([
         SupabaseBootstrap.client.from('profiles').select(
               'full_name,preferred_name,phone,nic,date_of_birth,district_id,status,'
-              'speaks_sinhala,speaks_tamil,speaks_english',
+              'speaks_sinhala,speaks_tamil,speaks_english,other_qualification,'
+              'occupation',
             ).eq('id', uid).maybeSingle(),
         SupabaseBootstrap.client
             .from('qualifications')
@@ -77,6 +82,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       _fullName.text = row?['full_name'] as String? ?? '';
       _preferred.text = row?['preferred_name'] as String? ?? '';
       _phone.text = row?['phone'] as String? ?? '';
+      _occupation.text = row?['occupation'] as String? ?? '';
       _completeness = ProfileCompleteness.fromProfile(row);
       _qualifications = quals;
       _qualificationIds
@@ -87,6 +93,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       _speaksSinhala = row?['speaks_sinhala'] == true;
       _speaksTamil = row?['speaks_tamil'] == true;
       _speaksEnglish = row?['speaks_english'] == true;
+      _otherQualification.text =
+          row?['other_qualification'] as String? ?? '';
     } catch (e) {
       if (mounted) AppErrorMapper.showSnackBar(context, e);
     } finally {
@@ -112,9 +120,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             ? null
             : _preferred.text.trim(),
         'phone': _phone.text.trim(),
+        'occupation': _occupation.text.trim().isEmpty
+            ? null
+            : _occupation.text.trim(),
         'speaks_sinhala': _speaksSinhala,
         'speaks_tamil': _speaksTamil,
         'speaks_english': _speaksEnglish,
+        'other_qualification': _otherQualification.text.trim().isEmpty
+            ? null
+            : _otherQualification.text.trim(),
       }).eq('id', uid);
 
       await SupabaseBootstrap.client
@@ -229,6 +243,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
+                        controller: _occupation,
+                        textCapitalization: TextCapitalization.sentences,
+                        maxLength: 120,
+                        decoration: InputDecoration(
+                          labelText: l10n.occupation,
+                          hintText: l10n.occupationHint,
+                        ),
+                        validator: (v) {
+                          final t = v?.trim() ?? '';
+                          if (t.length > 120) return l10n.occupationTooLong;
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
                         controller: _phone,
                         keyboardType: TextInputType.phone,
                         decoration: InputDecoration(labelText: l10n.phone),
@@ -269,6 +298,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           },
                         );
                       }),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _otherQualification,
+                        maxLength: 250,
+                        maxLines: 3,
+                        minLines: 2,
+                        textInputAction: TextInputAction.newline,
+                        decoration: InputDecoration(
+                          labelText: l10n.otherQualification,
+                          hintText: l10n.otherQualificationHint,
+                          alignLabelWithHint: true,
+                        ),
+                        validator: (v) {
+                          final t = v?.trim() ?? '';
+                          if (t.length > 250) {
+                            return l10n.otherQualificationTooLong;
+                          }
+                          return null;
+                        },
+                      ),
                       const SizedBox(height: 20),
                       Text(
                         l10n.languageSkills,

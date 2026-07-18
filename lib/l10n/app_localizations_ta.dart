@@ -158,6 +158,19 @@ class AppLocalizationsTa extends AppLocalizations {
       'உறுப்பினர் விபரங்களைச் சரிபார்த்து பதிவை முடிக்கவும்.';
 
   @override
+  String get completeRegistrationBannerTitle => 'பதிவை முடிக்கவும்';
+
+  @override
+  String get completeRegistrationBannerBody =>
+      'உங்கள் சுயவிவரம் முழுமையடையவில்லை. முழு உறுப்பினர் அம்சங்களைப் பெற பதிவை முடிக்கவும்.';
+
+  @override
+  String get completeRegistrationBannerAction => 'இப்போது முடிக்கவும்';
+
+  @override
+  String get dismiss => 'நிராகரி';
+
+  @override
   String get updateDetailsSubtitle =>
       'உங்கள் விபரங்கள் மற்றும் தொடர்புகளை இற்றைப்படுத்தவும்.';
 
@@ -226,6 +239,65 @@ class AppLocalizationsTa extends AppLocalizations {
   String get preferredName => 'விருப்பப் பெயர்';
 
   @override
+  String get occupation => 'தொழில் / வேலை';
+
+  @override
+  String get occupationHint =>
+      'விருப்பத்தேர்வு — எ.கா. மாணவர், ஆசிரியர், தொழில்நுட்பவியலாளர்';
+
+  @override
+  String get occupationTooLong => '120 எழுத்துகளுக்குள் எழுதவும்';
+
+  @override
+  String get youthClub => 'இளைஞர் கழகம்';
+
+  @override
+  String get alreadyYouthClubMember => 'நீங்கள் ஏற்கனவே இளைஞர் கழக உறுப்பினரா?';
+
+  @override
+  String get youthClubMemberNo => 'இல்லை';
+
+  @override
+  String get youthClubMemberYes => 'ஆம்';
+
+  @override
+  String get youthClubName => 'கழகப் பெயர்';
+
+  @override
+  String get youthClubNameHint => 'உங்கள் இளைஞர் கழகப் பெயரை உள்ளிடவும்';
+
+  @override
+  String get youthClubNameRequired => 'கழகப் பெயரை உள்ளிடவும்';
+
+  @override
+  String get youthClubRegistrationNo => 'உறுப்பினர் / பதிவு எண்';
+
+  @override
+  String get youthClubRegistrationNoHint =>
+      'எழுத்துகளும் எண்களும் (எ.கா. YC-2024-01)';
+
+  @override
+  String get youthClubRegistrationNoRequired => 'பதிவு எண்ணை உள்ளிடவும்';
+
+  @override
+  String get youthClubRegistrationNoInvalid =>
+      'எழுத்துகளும் எண்களும் மட்டும் (அதிகபட்சம் 40)';
+
+  @override
+  String get selectClubFromList =>
+      'விருப்பத்தேர்வு — பட்டியலில் இருந்து கழகத்தைத் தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get chooseAClub => 'கழகத்தைத் தேர்ந்தெடுக்கவும்';
+
+  @override
+  String get locationBasedTitle => 'நீங்கள் எங்கு அமைந்துள்ளீர்கள்?';
+
+  @override
+  String get locationBasedSubtitle =>
+      'இளைஞர் கழக பரிந்துரைகள் மற்றும் பிராந்திய புதுப்பிப்புகளுக்குப் பயன்படும்.';
+
+  @override
   String get phoneHint => 'தொலைபேசி எண் (+94…)';
 
   @override
@@ -240,6 +312,15 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get selectAllThatApply => 'பொருந்தும் அனைத்தையும் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get otherQualification => 'பிற தகுதி';
+
+  @override
+  String get otherQualificationHint => 'NVQ / தொழிற்கல்வி தகுதி';
+
+  @override
+  String get otherQualificationTooLong => '250 எழுத்துகளுக்குள் எழுதவும்';
 
   @override
   String get selectLanguagesYouSpeak =>
@@ -392,6 +473,51 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get adminActions => 'நிர்வாக செயல்கள்';
+
+  @override
+  String get mailSettings => 'அஞ்சல்';
+
+  @override
+  String get mailSettingsSubtitle => 'பதிவு குறியீடுகளுக்கான Gmail SMTP';
+
+  @override
+  String get mailSettingsIntro =>
+      'Gmail முகவரி மற்றும் App Password-ஐ இங்கே சேமிக்கவும். சேமித்தவுடன் ஆப்ஸை மீண்டும் deploy செய்யாமல் Auth அஞ்சல் அனுப்பல் புதுப்பிக்கப்படும். சேமித்த பிறகு கடவுச்சொல் மீண்டும் காட்டப்படாது.';
+
+  @override
+  String get mailSettingsGmail => 'Gmail முகவரி';
+
+  @override
+  String get mailSettingsAppPassword => 'App Password';
+
+  @override
+  String get mailSettingsPasswordHintSet =>
+      'தற்போதைய கடவுச்சொல்லை வைத்திருக்க காலியாக விடவும்';
+
+  @override
+  String get mailSettingsPasswordHintNew => '16 எழுத்து Google App Password';
+
+  @override
+  String get mailSettingsFromEmail => 'அனுப்புநர் மின்னஞ்சல்';
+
+  @override
+  String get mailSettingsFromEmailHint => 'வழக்கமாக Gmail முகவரியே';
+
+  @override
+  String get mailSettingsFromName => 'அனுப்புநர் பெயர்';
+
+  @override
+  String get mailSettingsSaveAndApply => 'சேமித்து பயன்படுத்து';
+
+  @override
+  String get mailSettingsSaved =>
+      'அஞ்சல் அமைப்புகள் சேமிக்கப்பட்டு Auth-இல் பயன்படுத்தப்பட்டன';
+
+  @override
+  String get mailSettingsEmailRequired => 'Gmail முகவரியை உள்ளிடவும்';
+
+  @override
+  String get mailSettingsPasswordRequired => 'App Password-ஐ உள்ளிடவும்';
 
   @override
   String get dashboard => 'முகப்புப் பலகை';
