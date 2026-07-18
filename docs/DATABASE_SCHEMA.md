@@ -14,16 +14,15 @@ Registration and profiles reuse these integer IDs (no UUID remapping).
 
 | Table | Purpose |
 |-------|---------|
-| `roles` | `member`, `club_admin`, `district_admin`, `super_admin` |
+| `roles` | `member`, `district_admin`, `super_admin` |
 | `user_roles` | Assignments with optional `scope_type` / `scope_id` |
 | `profiles` | 1:1 with `auth.users`; membership fields + status |
 
 ### Profile status
 
-- `pending_registration` — account created, wizard not submitted
-- `pending_approval` — registration submitted
-- `active` — approved member
-- `suspended` — blocked
+- `active` — default on signup; messageable. Incomplete registration is detected from missing profile fields (name, phone, NIC, DOB, district), not from status.
+- `pending_registration` / `pending_approval` — legacy; backfilled to `active` (migration `20260718002100`)
+- `suspended` — blocked / not messageable as an active member
 
 ## Registration masters
 

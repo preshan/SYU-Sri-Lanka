@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
+import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class NotificationCenterScreen extends ConsumerStatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -64,11 +66,14 @@ class _NotificationCenterScreenState
 
   @override
   Widget build(BuildContext context) {
-    return SyuGradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(title: const Text('Notifications')),
-        body: RefreshIndicator(
+    final l10n = AppLocalizations.of(context);
+    return SyuBackScope(
+      fallbackLocation: '/home',
+      child: SyuGradientBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(title: Text(l10n.notifications)),
+          body: RefreshIndicator(
           color: SyuColors.crimson,
           onRefresh: _load,
           child: ListView(
@@ -132,6 +137,7 @@ class _NotificationCenterScreenState
             ],
           ),
         ),
+      ),
       ),
     );
   }

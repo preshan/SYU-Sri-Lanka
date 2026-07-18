@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
+import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/features/home/presentation/home_shell.dart';
 import 'package:syu_sri_lanka/features/profile/domain/profile_completeness.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -134,9 +136,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       }
 
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
       ref.read(profileStatusTickProvider.notifier).state++;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated')),
+        SnackBar(content: Text(l10n.profileUpdated)),
       );
       context.pop();
     } catch (e) {
@@ -148,170 +151,177 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SyuGradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          title: const Text('Edit profile'),
-          leading: IconButton(
-            icon: const SyuIcon(SyuIcons.back),
-            onPressed: () {
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/home');
-              }
-            },
+    final l10n = AppLocalizations.of(context);
+    return SyuBackScope(
+      fallbackLocation: '/home',
+      child: SyuGradientBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            title: Text(l10n.editProfile),
+            leading: IconButton(
+              icon: const SyuIcon(SyuIcons.back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/home');
+                }
+              },
+            ),
           ),
-        ),
-        body: _loading
-            ? const Center(
-                child: CircularProgressIndicator(color: SyuColors.crimson),
-              )
-            : Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.all(20),
-                  children: [
-                    const Center(
-                      child: CircleAvatar(
-                        radius: 48,
-                        backgroundColor: SyuColors.inkSoft,
-                        child: SyuIcon(
-                          SyuIcons.user,
-                          size: 36,
-                          color: SyuColors.mist,
-                          strokeWidth: 1.25,
+          body: _loading
+              ? const Center(
+                  child: CircularProgressIndicator(color: SyuColors.crimson),
+                )
+              : Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: const EdgeInsets.all(20),
+                    children: [
+                      const Center(
+                        child: CircleAvatar(
+                          radius: 48,
+                          backgroundColor: SyuColors.inkSoft,
+                          child: SyuIcon(
+                            SyuIcons.user,
+                            size: 36,
+                            color: SyuColors.mist,
+                            strokeWidth: 1.25,
+                          ),
                         ),
                       ),
-                    ),
-                    if (_completeness != null) ...[
-                      const SizedBox(height: 16),
+                      if (_completeness != null) ...[
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.completenessPercent(_completeness!.percent),
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 6),
+                        LinearProgressIndicator(
+                          value: _completeness!.percent / 100,
+                          color: SyuColors.crimson,
+                          backgroundColor: SyuColors.inkSoft,
+                        ),
+                        if (_completeness!.missingKeys.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            l10n.missingPrefix(
+                              _completeness!.localizedMissing(l10n),
+                            ),
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ],
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _fullName,
+                        decoration: InputDecoration(labelText: l10n.fullName),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? l10n.fieldRequired
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _preferred,
+                        decoration:
+                            InputDecoration(labelText: l10n.preferredName),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _phone,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(labelText: l10n.phone),
+                        validator: (v) {
+                          if (v == null || v.trim().length < 9) {
+                            return l10n.validPhone;
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 28),
                       Text(
-                        'Completeness ${_completeness!.percent}%',
-                        style: Theme.of(context).textTheme.titleMedium,
+                        l10n.qualifications,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 6),
-                      LinearProgressIndicator(
-                        value: _completeness!.percent / 100,
-                        color: SyuColors.crimson,
-                        backgroundColor: SyuColors.inkSoft,
+                      Text(
+                        l10n.selectAllThatApply,
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
-                      if (_completeness!.missing.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          'Missing: ${_completeness!.missing.join(', ')}',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ],
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _fullName,
-                      decoration: const InputDecoration(labelText: 'Full name'),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _preferred,
-                      decoration:
-                          const InputDecoration(labelText: 'Preferred name'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _phone,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(labelText: 'Phone'),
-                      validator: (v) {
-                        if (v == null || v.trim().length < 9) {
-                          return 'Enter a valid phone';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 28),
-                    Text(
-                      'Qualifications',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Select all that apply.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    ..._qualifications.map((q) {
-                      final id = q['id'] as String;
-                      final selected = _qualificationIds.contains(id);
-                      return CheckboxListTile(
+                      const SizedBox(height: 8),
+                      ..._qualifications.map((q) {
+                        final id = q['id'] as String;
+                        final selected = _qualificationIds.contains(id);
+                        return CheckboxListTile(
+                          contentPadding: EdgeInsets.zero,
+                          value: selected,
+                          activeColor: SyuColors.crimson,
+                          title: Text(_qualificationLabel(q)),
+                          onChanged: (v) {
+                            setState(() {
+                              if (v == true) {
+                                _qualificationIds.add(id);
+                              } else {
+                                _qualificationIds.remove(id);
+                              }
+                            });
+                          },
+                        );
+                      }),
+                      const SizedBox(height: 20),
+                      Text(
+                        l10n.languageSkills,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        l10n.selectLanguagesYouSpeak,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      CheckboxListTile(
                         contentPadding: EdgeInsets.zero,
-                        value: selected,
+                        value: _speaksSinhala,
                         activeColor: SyuColors.crimson,
-                        title: Text(_qualificationLabel(q)),
-                        onChanged: (v) {
-                          setState(() {
-                            if (v == true) {
-                              _qualificationIds.add(id);
-                            } else {
-                              _qualificationIds.remove(id);
-                            }
-                          });
-                        },
-                      );
-                    }),
-                    const SizedBox(height: 20),
-                    Text(
-                      'Language skills',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Select languages you can speak.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _speaksSinhala,
-                      activeColor: SyuColors.crimson,
-                      title: const Text('Sinhala'),
-                      onChanged: (v) =>
-                          setState(() => _speaksSinhala = v == true),
-                    ),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _speaksTamil,
-                      activeColor: SyuColors.crimson,
-                      title: const Text('Tamil'),
-                      onChanged: (v) =>
-                          setState(() => _speaksTamil = v == true),
-                    ),
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      value: _speaksEnglish,
-                      activeColor: SyuColors.crimson,
-                      title: const Text('English'),
-                      onChanged: (v) =>
-                          setState(() => _speaksEnglish = v == true),
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: _saving ? null : _save,
-                      child: _saving
-                          ? const SizedBox(
-                              height: 22,
-                              width: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.4,
-                                color: SyuColors.paper,
-                              ),
-                            )
-                          : const Text('Save changes'),
-                    ),
-                  ],
+                        title: Text(l10n.langSinhala),
+                        onChanged: (v) =>
+                            setState(() => _speaksSinhala = v == true),
+                      ),
+                      CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: _speaksTamil,
+                        activeColor: SyuColors.crimson,
+                        title: Text(l10n.langTamil),
+                        onChanged: (v) =>
+                            setState(() => _speaksTamil = v == true),
+                      ),
+                      CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: _speaksEnglish,
+                        activeColor: SyuColors.crimson,
+                        title: Text(l10n.langEnglish),
+                        onChanged: (v) =>
+                            setState(() => _speaksEnglish = v == true),
+                      ),
+                      const SizedBox(height: 24),
+                      FilledButton(
+                        onPressed: _saving ? null : _save,
+                        child: _saving
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.4,
+                                  color: SyuColors.paper,
+                                ),
+                              )
+                            : Text(l10n.saveChanges),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }

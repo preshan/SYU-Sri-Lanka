@@ -13,6 +13,9 @@ class SupabaseBootstrap {
     final auth = FlutterAuthClientOptions(
       authFlowType: AuthFlowType.pkce,
       autoRefreshToken: true,
+      // Opens email links (syu://auth/callback) and exchanges code/tokens
+      // for a session via app_links — no external hosting required.
+      detectSessionInUri: true,
     );
 
     final publishable = Env.supabasePublishableKey;

@@ -1,30 +1,70 @@
-# Auth redirects & password recovery
+# Auth redirects & email verification
 
-## Email confirmation
+## Email confirmation — 6-digit PIN (OTP)
 
-- Supabase Auth: **Confirm email** enabled (`mailer_autoconfirm = false`).
-- After sign-up, the app routes to `/confirm-email` with resend support.
+Signup confirmation uses a **6-digit code** from the email, entered in the app
+(`ConfirmEmailScreen` → `AuthRepository.verifySignupOtp` → Supabase `verifyOTP`).
 
-## Password recovery
+### Email delivery (Resend SMTP)
 
-### App routes
+Auth mail is sent via **Resend** as Supabase custom SMTP (not the default Supabase mailer).
 
-| Route | Purpose |
-|-------|---------|
-| `/forgot-password` | Request reset email |
-| `/login` | Return after send |
+| Setting | Value |
+|---------|--------|
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| User | `resend` |
+| Pass | Resend API key (`re_…`) — stored in `.env.local.management` only |
+| From | `onboarding@resend.dev` (Resend test domain) |
 
-### Supabase Dashboard checklist
+**Confirm signup** subject: `{{ .Token }} is your SYU verification code`  
+(e.g. `032645 is your SYU verification code`)  
+Body includes `{{ .Token }}` (6 digits). No magic link.
 
-1. **Authentication → URL Configuration**
-   - Site URL: production web/admin URL when available; for mobile testing use a deep link or HTTPS landing page.
-   - Redirect URLs include:
-     - `io.supabase.syu://login-callback/` (optional mobile deep link)
-     - `https://<your-domain>/auth/reset` (when admin web exists)
-2. **Authentication → Email Templates → Reset Password**
-   - Confirm template uses `{{ .ConfirmationURL }}`.
-3. Until deep links are wired, users open the email link in a browser and set the password via Supabase-hosted or admin-web flow.
+> **Resend test domain:** `onboarding@resend.dev` can only deliver to the email
+> address of the Resend account owner until you verify your own domain.
 
-### Flutter
+Secrets live in `.env.local.management` (`RESEND_API_KEY`, service role, etc.) — never
+in Flutter assets or git.
 
-`AuthRepository.resetPassword(email)` calls `resetPasswordForEmail` without a custom `redirectTo` until the deep-link scheme is registered in Android/iOS manifests.
+To re-apply SMTP + template via Management API (after rotating the key):
+
+```bash
+# set RESEND_API_KEY in .env.local.management, then PATCH
+# /v1/projects/$REF/config/auth with smtp_* + mailer_templates_confirmation_content
+```
+
+### Flutter wiring
+
+| Call | Behaviour |
+|------|-----------|
+| `signUp` | Supabase emails the OTP via Resend. App opens `/confirm-email`. |
+| `resend` (`OtpType.signup`) | Sends a new code. |
+| `verifyOTP` (`OtpType.signup`) | User enters 6 digits → session → `/home`. |
+
+Password recovery deep link:
+
+```text
+syu://auth/callback
+```
+
+### URL configuration
+
+| Field | Value |
+|-------|--------|
+| **Site URL** | `syu://auth/callback` |
+| **Additional Redirect URLs** | `syu://auth/callback`, `http://localhost:5280` |
+
+OTP length: **6**. OTP expiry: **7 days** (`mailer_otp_exp` = 604800).
+
+### Manual test
+
+1. Delete any previous test Auth user if needed.
+2. Register in the app with the Resend account email (while using `onboarding@resend.dev`).
+3. Open the mail → copy the **6-digit code**.
+4. Enter it on the confirm screen → Home.
+
+### Password recovery
+
+Still uses a link template until customized the same way (`{{ .ConfirmationURL }}`
+or a recovery PIN). Deep link: `syu://auth/callback`.

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
+import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key, this.initialEmail});
@@ -52,22 +54,32 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SyuGradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const SyuIcon(SyuIcons.back),
-            onPressed: () => context.go('/login'),
+    return SyuBackScope(
+      fallbackLocation: '/login',
+      child: SyuGradientBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const SyuIcon(SyuIcons.back),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/login');
+                }
+              },
+            ),
           ),
-        ),
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: _sent ? _success() : _form(),
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: _sent ? _success() : _form(),
+                ),
               ),
             ),
           ),
@@ -77,31 +89,35 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   Widget _success() {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SyuIcon(SyuIcons.mailOpen,
             size: 56, color: SyuColors.crimsonSoft),
         const SizedBox(height: 16),
-        Text('Check your email',
-            style: Theme.of(context).textTheme.headlineMedium,
-            textAlign: TextAlign.center),
+        Text(
+          l10n.checkYourEmail,
+          style: Theme.of(context).textTheme.headlineMedium,
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 10),
         Text(
-          'If an account exists for ${_email.text.trim()}, we sent a password reset link.',
+          l10n.resetLinkSent(_email.text.trim()),
           style: Theme.of(context).textTheme.bodyMedium,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 24),
         FilledButton(
           onPressed: () => context.go('/login'),
-          child: const Text('Back to sign in'),
+          child: Text(l10n.backToSignIn),
         ),
       ],
     );
   }
 
   Widget _form() {
+    final l10n = AppLocalizations.of(context);
     return Form(
       key: _formKey,
       child: Column(
@@ -109,24 +125,26 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         children: [
           const SyuBrandMark(height: 48, showWordmark: false),
           const SizedBox(height: 24),
-          Text('Reset password',
-              style: Theme.of(context).textTheme.headlineMedium),
+          Text(
+            l10n.resetPassword,
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
           const SizedBox(height: 8),
           Text(
-            'Enter your account email and we will send a reset link.',
+            l10n.resetPasswordPrompt,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),
           TextFormField(
             controller: _email,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              prefixIcon: SyuFieldIcon(SyuIcons.mail),
+            decoration: InputDecoration(
+              labelText: l10n.email,
+              prefixIcon: const SyuFieldIcon(SyuIcons.mail),
             ),
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Email is required';
-              if (!v.contains('@')) return 'Enter a valid email';
+              if (v == null || v.trim().isEmpty) return l10n.emailRequired;
+              if (!v.contains('@')) return l10n.validEmail;
               return null;
             },
           ),
@@ -142,7 +160,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       color: SyuColors.paper,
                     ),
                   )
-                : const Text('Send reset link'),
+                : Text(l10n.sendResetLink),
           ),
         ],
       ),

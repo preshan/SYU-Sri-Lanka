@@ -6,6 +6,7 @@ import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_chrome.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class EventsListScreen extends ConsumerStatefulWidget {
   const EventsListScreen({super.key});
@@ -144,6 +145,7 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SyuGradientBackground(
       child: SafeArea(
         child: Column(
@@ -154,7 +156,7 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      _total == 0 ? 'Events' : '$_total events',
+                      _total == 0 ? l10n.events : '$_total ${l10n.events}',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: SyuColors.mist,
                             fontWeight: FontWeight.w600,
@@ -198,7 +200,7 @@ class _EventsListScreenState extends ConsumerState<EventsListScreen> {
                                   const SizedBox(height: 40),
                                   Center(
                                     child: Text(
-                                      'No published events yet.',
+                                      l10n.noEventsYet,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium

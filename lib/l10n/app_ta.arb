@@ -2,7 +2,209 @@
   "@@locale": "ta",
   "appTitle": "SYU இலங்கை",
   "riseTogether": "ஒன்றாக எழுவோம்.",
-  "signIn": "உள்நுழை",
-  "signOut": "வெளியேறு",
-  "completeRegistration": "பதிவை முடிக்கவும்"
+  "signIn": "உள்நுழையவும்",
+  "signOut": "வெளியேறவும்",
+  "completeRegistration": "பதிவை முடிக்கவும்",
+  "welcomeBack": "மீண்டும் வருக",
+  "signInPrompt": "SYU இலங்கையுடன் தொடர உள்நுழையவும்.",
+  "email": "மின்னஞ்சல்",
+  "password": "கடவுச்சொல்",
+  "forgotPassword": "கடவுச்சொல் மறந்துவிட்டதா?",
+  "newToSyu": "SYU இற்கு புதியவரா?",
+  "createAccount": "கணக்கை உருவாக்கவும்",
+  "home": "முகப்பு",
+  "news": "செய்திகள்",
+  "events": "நிகழ்வுகள்",
+  "chat": "அரட்டை",
+  "settings": "அமைப்புகள்",
+  "language": "மொழி",
+  "changeLanguage": "மொழியை மாற்றவும்",
+  "selectLanguage": "மொழியைத் தேர்ந்தெடுக்கவும்",
+  "notifications": "அறிவிப்புகள்",
+  "updateDetails": "உங்கள் விபரங்களை இற்றைப்படுத்தவும்",
+  "latestAnnouncements": "சமீபத்திய அறிவிப்புகள்",
+  "upcomingEvents": "வரவிருக்கும் நிகழ்வுகள்",
+  "messagesFromSyu": "SYU இலிருந்து செய்திகள்",
+  "adminDashboard": "நிர்வாக தளம்",
+  "members": "உறுப்பினர்கள்",
+  "clubs": "கழகங்கள்",
+  "broadcast": "ஒளிபரப்பு",
+  "reports": "அறிக்கைகள்",
+  "audit": "தணிக்கை",
+  "personal": "தனிப்பட்ட விபரங்கள்",
+  "location": "இடம்",
+  "qualifications": "தகைமைகள்",
+  "review": "மீளாய்வு",
+  "next": "தொடரவும்",
+  "submitRegistration": "பதிவைச் சமர்ப்பிக்கவும்",
+  "fullName": "முழுப் பெயர்",
+  "phone": "தொலைபேசி எண்",
+  "nic": "தேசிய அடையாள அட்டை எண்",
+  "dob": "பிறந்த திகதி",
+  "gender": "பாலினம்",
+  "district": "மாவட்டம்",
+  "dsDivision": "பிரதேச செயலகப் பிரிவு",
+  "gnDivision": "கிராம නිලධාරී பிரிவு",
+  "club": "இளைஞர் கழகம்",
+  "languageSkills": "மொழித் திறன்கள்",
+  "hubSubtitle": "உறுப்பினர் விபரங்கள், அறிவிப்புகள், நிகழ்வுகள் மற்றும் செய்திகளுக்கான உங்கள் மையம்.",
+  "completeRegistrationSubtitle": "உறுப்பினர் விபரங்களைச் சரிபார்த்து பதிவை முடிக்கவும்.",
+  "updateDetailsSubtitle": "உங்கள் விபரங்கள் மற்றும் தொடர்புகளை இற்றைப்படுத்தவும்.",
+  "newsSubtitle": "புதிய அறிவிப்புகளுக்கு 'செய்திகள்' பகுதிக்குச் செல்லவும்.",
+  "eventsSubtitle": "நிகழ்வுகளைப் பார்க்க 'நிகழ்வுகள்' பகுதிக்குச் செல்லவும்.",
+  "adminDashboardSubtitle": "உறுப்பினர்களை நிர்வகித்தல், செய்திகள் மற்றும் நிகழ்வுகளைப் பகிர்தல் மற்றும் மாவட்ட ரீதியான இளைஞர்களைச் சென்றடைதல்.",
+  "quickAccess": "விரைவான அணுகல்",
+  "publish": "வெளியீடு",
+  "otherTools": "ஏனைய கருவிகள்",
+  "confirmEmail": "மின்னஞ்சலை உறுதிப்படுத்தவும்",
+  "sentLinkTo": "6 இலக்கக் குறியீடு அனுப்பப்பட்டுள்ளது",
+  "openLinkPrompt": "கணக்கைச் செயல்படுத்த அந்த மின்னஞ்சலில் உள்ள குறியீட்டை உள்ளிடவும். தெரியவில்லை எனில் spam அல்லது junk கோப்புறையையும் பாருங்கள். மின்னஞ்சல் உறுதிப்படுத்தப்படும் வரை உள்நுழைய முடியாது.",
+  "goToSignIn": "நான் உறுதிப்படுத்தினேன் - உள்நுழையச் செல்லவும்",
+  "resendEmail": "குறியீட்டை மீண்டும் அனுப்பவும்",
+  "useDifferentEmail": "வேறு மின்னஞ்சலைப் பயன்படுத்தவும்",
+  "enterVerificationCode": "உறுதிப்படுத்தல் குறியீடு",
+  "verifyAndContinue": "உறுதிப்படுத்தி தொடரவும்",
+  "invalidVerificationCode": "மின்னஞ்சலில் உள்ள 6 இலக்கக் குறியீட்டை உள்ளிடவும்.",
+  "codeResent": "புதிய குறியீடு அனுப்பப்பட்டது. உங்கள் இன்பாக்ஸைப் பாருங்கள்.",
+  "codeResendFailed": "இப்போது மீண்டும் அனுப்ப முடியவில்லை. சிறிது காத்திருந்து மீண்டும் முயலவும்.",
+  "editProfile": "சுயவிவரத்தைத் திருத்தவும்",
+  "preferredName": "விருப்பப் பெயர்",
+  "phoneHint": "தொலைபேசி எண் (+94…)",
+  "completenessPercent": "முழுமை {percent}%",
+  "@completenessPercent": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "missingPrefix": "குறைவு: {items}",
+  "@missingPrefix": {
+    "placeholders": {
+      "items": {"type": "String"}
+    }
+  },
+  "selectAllThatApply": "பொருந்தும் அனைத்தையும் தேர்ந்தெடுக்கவும்.",
+  "selectLanguagesYouSpeak": "நீங்கள் பேசக்கூடிய மொழிகளைத் தேர்ந்தெடுக்கவும்.",
+  "langSinhala": "சிங்களம்",
+  "langTamil": "தமிழ்",
+  "langEnglish": "ஆங்கிலம்",
+  "saveChanges": "மாற்றங்களைச் சேமிக்கவும்",
+  "profileUpdated": "சுயவிவரம் இற்றைப்படுத்தப்பட்டது",
+  "fieldRequired": "தேவை",
+  "emailRequired": "மின்னஞ்சல் தேவை",
+  "passwordRequired": "கடவுச்சொல் தேவை",
+  "validEmail": "சரியான மின்னஞ்சலை உள்ளிடவும்",
+  "validPhone": "சரியான தொலைபேசி எண்ணை உள்ளிடவும்",
+  "nicRequired": "தேசிய அடையாள அட்டை எண் தேவை",
+  "nicInvalid": "சரியான அடையாள அட்டை எண்ணை உள்ளிடவும் (123456789V அல்லது 12 இலக்கங்கள்)",
+  "passwordMinLength": "குறைந்தது {count} எழுத்துக்களைப் பயன்படுத்தவும்",
+  "@passwordMinLength": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "dobRequired": "பிறந்த திகதி தேவை",
+  "ageTooYoung": "உங்களுக்கு குறைந்தது {age} வயது இருக்க வேண்டும்",
+  "@ageTooYoung": {
+    "placeholders": {
+      "age": {"type": "int"}
+    }
+  },
+  "ageTooOld": "உறுப்பினர் வயது வரம்பு {age}",
+  "@ageTooOld": {
+    "placeholders": {
+      "age": {"type": "int"}
+    }
+  },
+  "noAnnouncementsYet": "இன்னும் அறிவிப்புகள் இல்லை.",
+  "noEventsYet": "இன்னும் வெளியிடப்பட்ட நிகழ்வுகள் இல்லை.",
+  "chatListSubtitle": "SYU உடனான உங்கள் அரட்டைகள். அரட்டை திறந்திருக்கும்போது பதிலளிக்கலாம்.",
+  "noConversationsYet": "இன்னும் அரட்டைகள் இல்லை. நிர்வாகி உங்களுக்கு செய்தி அனுப்பினால் இங்கே தோன்றும்.",
+  "resetPassword": "கடவுச்சொல்லை மீட்டமைக்கவும்",
+  "resetPasswordPrompt": "உங்கள் கணக்கு மின்னஞ்சலை உள்ளிடவும். மீட்டமைப்பு இணைப்பை அனுப்புவோம்.",
+  "sendResetLink": "மீட்டமைப்பு இணைப்பை அனுப்பவும்",
+  "checkYourEmail": "உங்கள் மின்னஞ்சலைப் பாருங்கள்",
+  "resetLinkSent": "{email} க்கான கணக்கு இருந்தால், கடவுச்சொல் மீட்டமைப்பு இணைப்பு அனுப்பப்பட்டுள்ளது.",
+  "@resetLinkSent": {
+    "placeholders": {
+      "email": {"type": "String"}
+    }
+  },
+  "backToSignIn": "உள்நுழைவுக்குத் திரும்பவும்",
+  "createAccountPrompt": "உறுப்பினர் பதிவைத் தொடங்க உங்கள் கணக்கை உருவாக்கவும்.",
+  "alreadyHaveAccount": "ஏற்கனவே கணக்கு உள்ளதா? உள்நுழையவும்",
+  "genderFemale": "பெண்",
+  "genderMale": "ஆண்",
+  "genderOther": "மற்றவை",
+  "genderPreferNot": "கூற விரும்பவில்லை",
+  "fieldProfile": "சுயவிவரம்",
+  "notificationsAndAccount": "அறிவிப்புகள் மற்றும் கணக்கு",
+  "saved": "சேமித்தவை",
+  "browseAndMessage": "பார்த்து செய்தி அனுப்பவும்",
+  "quickShortlist": "விரைவுப் பட்டியல்",
+  "memberThreads": "உறுப்பினர் அரட்டைகள்",
+  "newMessages": "புதிய செய்திகள்",
+  "notifyAudiences": "பார்வையாளர்களுக்கு அறிவிக்கவும்",
+  "announcements": "அறிவிப்புகள்",
+  "createAndRsvp": "உருவாக்கி பதிவு செய்யவும்",
+  "youthClubs": "இளைஞர் கழகங்கள்",
+  "summaries": "சுருக்கங்கள்",
+  "adminActions": "நிர்வாக செயல்கள்",
+  "dashboard": "முகப்புப் பலகை",
+  "approvals": "அனுமதிகள்",
+  "all": "அனைத்தும்",
+  "searchMembersHint": "பெயர், மின்னஞ்சல், அடையாள அட்டை எண் தேடவும்",
+  "filters": "வடிகட்டிகள்",
+  "filtersWithCount": "வடிகட்டிகள் ({count})",
+  "@filtersWithCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statusActive": "செயலில்",
+  "statusSuspended": "இடைநிறுத்தப்பட்டது",
+  "statusPending": "நிலுவையில்",
+  "pageLabel": "பக்கம் {current}/{total}",
+  "@pageLabel": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "clear": "அழிக்கவும்",
+  "terminate": "முடிக்கவும்",
+  "reopen": "மீண்டும் திறக்கவும்",
+  "terminateChatTitle": "அரட்டையை முடிக்கவா?",
+  "terminateChatBody": "உறுப்பினரால் இனி பதிலளிக்க முடியாது. செய்திகள் தெரியும்.",
+  "clearChatTitle": "அனைத்து செய்திகளையும் அழிக்கவா?",
+  "clearChatBody": "இந்த அரட்டையின் அனைத்து செய்திகளையும் நீக்கி அரட்டையை மூடும். உறுப்பினரால் இனி பதிலளிக்க முடியாது.",
+  "messageMembers": "உறுப்பினர்களுக்கு செய்தி அனுப்பவும்",
+  "messageAction": "செய்தி",
+  "terminated": "முடிக்கப்பட்டது",
+  "chatClosedHint": "இந்த அரட்டை முடிக்கப்பட்டுள்ளது. உறுப்பினரால் பதிலளிக்க முடியாது. தொடர மீண்டும் திறக்கவும்.",
+  "messageHint": "செய்தி…",
+  "cancel": "ரத்துசெய்",
+  "hideFilters": "வடிகட்டிகளை மறைக்கவும்",
+  "savedWithCount": "சேமித்தவை {count}",
+  "@savedWithCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "rangeOf": "{from}–{to} / {total}",
+  "@rangeOf": {
+    "placeholders": {
+      "from": {"type": "int"},
+      "to": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "chatTerminated": "அரட்டை முடிக்கப்பட்டது",
+  "chatCleared": "அரட்டை அழிக்கப்பட்டது",
+  "chatReopened": "அரட்டை மீண்டும் திறக்கப்பட்டது",
+  "chatStatusOpen": "திறந்தது — பதிலளிக்கலாம்",
+  "chatStatusClosed": "மூடப்பட்டது — உறுப்பினர் பதிலளிக்க முடியாது",
+  "noMessagesYet": "இன்னும் செய்திகள் இல்லை — கீழே எழுதவும்",
+  "noMessages": "செய்திகள் இல்லை",
+  "selectMember": "உறுப்பினரைத் தேர்ந்தெடுக்கவும்",
+  "searchNameOrEmail": "பெயர் அல்லது மின்னஞ்சல் தேடவும்"
 }

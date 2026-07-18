@@ -9,6 +9,7 @@ import 'package:syu_sri_lanka/features/auth/presentation/forgot_password_screen.
 import 'package:syu_sri_lanka/features/auth/presentation/login_screen.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/register_screen.dart';
 import 'package:syu_sri_lanka/features/home/presentation/home_shell.dart';
+import 'package:syu_sri_lanka/features/messaging/presentation/conversations_list_screen.dart';
 import 'package:syu_sri_lanka/features/notifications/presentation/notification_center_screen.dart';
 import 'package:syu_sri_lanka/features/profile/presentation/edit_profile_screen.dart';
 import 'package:syu_sri_lanka/features/registration/presentation/registration_wizard_screen.dart';
@@ -96,6 +97,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/registration',
         builder: (_, _) => const RegistrationWizardScreen(),
+      ),
+      GoRoute(
+        path: '/messages',
+        builder: (_, _) => const ConversationsListScreen(active: true),
       ),
       GoRoute(
         path: '/profile/edit',

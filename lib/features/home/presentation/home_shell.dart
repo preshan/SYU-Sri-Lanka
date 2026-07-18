@@ -11,11 +11,18 @@ import 'package:syu_sri_lanka/features/messaging/data/unread_chats_provider.dart
 import 'package:syu_sri_lanka/features/messaging/presentation/conversations_list_screen.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
 import 'package:syu_sri_lanka/features/events/presentation/events_list_screen.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_chat_panel.dart';
+import 'package:syu_sri_lanka/core/localization/language_picker.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_overlay.dart';
 import 'package:syu_sri_lanka/features/announcements/presentation/announcements_feed.dart';
+import 'package:syu_sri_lanka/features/profile/domain/profile_completeness.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 /// Bump after registration/profile changes so Home/Settings CTAs refresh.
 final profileStatusTickProvider = StateProvider<int>((ref) => 0);
+
+/// Increment to switch [HomeShell] to the Chat bottom tab (admin quick access).
+final openHomeChatTabProvider = StateProvider<int>((ref) => 0);
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -25,72 +32,143 @@ class HomeShell extends ConsumerStatefulWidget {
 }
 
 class _HomeShellState extends ConsumerState<HomeShell> {
+  static const _chatIndex = 3;
+  static const _homeIndex = 0;
+
+  final _memberChatKey = GlobalKey<ConversationsListScreenState>();
+  final _adminChatKey = GlobalKey<AdminChatPanelState>();
+
   int _index = 0;
+  bool _isAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAdmin();
+  }
+
+  Future<void> _loadAdmin() async {
+    try {
+      final admin = await SupabaseBootstrap.client.rpc('is_super_admin');
+      if (mounted) setState(() => _isAdmin = admin == true);
+    } catch (_) {
+      if (mounted) setState(() => _isAdmin = false);
+    }
+  }
+
+  bool get _chatThreadOpen {
+    if (_isAdmin) {
+      return _adminChatKey.currentState?.hasOpenThread ?? false;
+    }
+    return _memberChatKey.currentState?.hasOpenThread ?? false;
+  }
+
+  bool _closeChatThreadIfOpen() {
+    if (_isAdmin) {
+      return _adminChatKey.currentState?.handleSystemBack() ?? false;
+    }
+    return _memberChatKey.currentState?.handleSystemBack() ?? false;
+  }
+
+  /// Android/iOS system back: close chat → Home tab → then allow exit.
+  void _onSystemBack() {
+    if (_closeChatThreadIfOpen()) {
+      setState(() {}); // refresh canPop after thread closes
+      return;
+    }
+    if (_index != _homeIndex) {
+      setState(() => _index = _homeIndex);
+    }
+  }
+
+  Widget _chatTab() {
+    if (_isAdmin) {
+      return SyuGradientBackground(
+        child: SafeArea(
+          child: AdminChatPanel(
+            key: _adminChatKey,
+            embedded: true,
+          ),
+        ),
+      );
+    }
+    return ConversationsListScreen(
+      key: _memberChatKey,
+      active: _index == _chatIndex,
+      embedInHomeShell: true,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(currentSessionProvider);
     final email = session?.user.email ?? 'Member';
-    final hasUnreadChats = ref.watch(unreadChatsProvider);
+    final hasUnread = ref.watch(unreadChatsProvider);
+    final chatIcon = hasUnread ? SyuIcons.chatUnread : SyuIcons.chat;
+    final chatIconColor = hasUnread ? SyuColors.crimson : null;
+    final l10n = AppLocalizations.of(context);
 
-    return Scaffold(
-      body: IndexedStack(
-        index: _index,
-        children: [
-          _HomeTab(email: email),
-          const AnnouncementsFeed(),
-          const EventsListScreen(),
-          ConversationsListScreen(active: _index == 3),
-          _SettingsTab(
-            email: email,
-            onSignOut: () async {
-              await ref.read(authRepositoryProvider).signOut();
-              if (context.mounted) context.go('/login');
-            },
-          ),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) {
-          setState(() => _index = i);
-          if (i == 3) {
-            ref.read(unreadChatsProvider.notifier).refresh();
-          }
-        },
-        destinations: [
-          const NavigationDestination(
-            icon: SyuIcon(SyuIcons.home),
-            selectedIcon: SyuIcon(SyuIcons.homeFilled),
-            label: 'Home',
-          ),
-          const NavigationDestination(
-            icon: SyuIcon(SyuIcons.news),
-            selectedIcon: SyuIcon(SyuIcons.news),
-            label: 'News',
-          ),
-          const NavigationDestination(
-            icon: SyuIcon(SyuIcons.calendar),
-            selectedIcon: SyuIcon(SyuIcons.calendarCheck),
-            label: 'Events',
-          ),
-          NavigationDestination(
-            icon: SyuIcon(
-              hasUnreadChats ? SyuIcons.chatUnread : SyuIcons.chat,
-              color: hasUnreadChats ? SyuColors.crimson : null,
+    ref.listen<int>(openHomeChatTabProvider, (_, _) {
+      setState(() => _index = _chatIndex);
+    });
+
+    // Allow OS minimize/exit only on Home with no open chat thread.
+    final allowExit = _index == _homeIndex && !_chatThreadOpen;
+
+    return PopScope(
+      canPop: allowExit,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _onSystemBack();
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _index,
+          children: [
+            _HomeTab(email: email),
+            const AnnouncementsFeed(),
+            const EventsListScreen(),
+            _chatTab(),
+            _SettingsTab(
+              email: email,
+              onSignOut: () async {
+                await ref.read(authRepositoryProvider).signOut();
+                if (context.mounted) context.go('/login');
+              },
             ),
-            selectedIcon: SyuIcon(
-              hasUnreadChats ? SyuIcons.chatUnread : SyuIcons.chatAlt,
-              color: hasUnreadChats ? SyuColors.crimson : null,
+          ],
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _index,
+          onDestinationSelected: (i) => setState(() => _index = i),
+          destinations: [
+            NavigationDestination(
+              icon: const SyuIcon(SyuIcons.home),
+              selectedIcon: const SyuIcon(SyuIcons.homeFilled),
+              label: l10n.home,
             ),
-            label: 'Chat',
-          ),
-          const NavigationDestination(
-            icon: SyuIcon(SyuIcons.settings),
-            selectedIcon: SyuIcon(SyuIcons.settings),
-            label: 'Settings',
-          ),
-        ],
+            NavigationDestination(
+              icon: const SyuIcon(SyuIcons.news),
+              selectedIcon: const SyuIcon(SyuIcons.news),
+              label: l10n.news,
+            ),
+            NavigationDestination(
+              icon: const SyuIcon(SyuIcons.calendar),
+              selectedIcon: const SyuIcon(SyuIcons.calendarCheck),
+              label: l10n.events,
+            ),
+            NavigationDestination(
+              icon: SyuIcon(chatIcon, color: chatIconColor),
+              selectedIcon: SyuIcon(chatIcon, color: chatIconColor),
+              label: l10n.chat,
+            ),
+            NavigationDestination(
+              icon: const SyuIcon(SyuIcons.settings),
+              selectedIcon: const SyuIcon(SyuIcons.settings),
+              label: l10n.settings,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -106,7 +184,7 @@ class _HomeTab extends ConsumerStatefulWidget {
 }
 
 class _HomeTabState extends ConsumerState<_HomeTab> {
-  String? _status;
+  bool _registrationIncomplete = true;
   bool _isAdmin = false;
   bool _loading = true;
 
@@ -122,19 +200,25 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
       if (user == null) return;
       final row = await SupabaseBootstrap.client
           .from('profiles')
-          .select('status')
+          .select(
+            'status,full_name,phone,nic,date_of_birth,district_id',
+          )
           .eq('id', user.id)
           .maybeSingle();
       final admin = await SupabaseBootstrap.client.rpc('is_super_admin');
       if (!mounted) return;
+      final status = row?['status'] as String? ?? 'active';
+      final completeness = ProfileCompleteness.fromProfile(row);
       setState(() {
-        _status = row?['status'] as String? ?? 'pending_registration';
+        _registrationIncomplete = completeness.missingKeys.isNotEmpty ||
+            status == 'pending_registration' ||
+            status == 'pending_approval';
         _isAdmin = admin == true;
       });
     } catch (_) {
       if (mounted) {
         setState(() {
-          _status = 'pending_registration';
+          _registrationIncomplete = true;
           _isAdmin = false;
         });
       }
@@ -142,11 +226,6 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
       if (mounted) setState(() => _loading = false);
     }
   }
-
-  bool get _registrationIncomplete =>
-      _status == null ||
-      _status == 'pending_registration' ||
-      _status == 'pending_approval';
 
   @override
   Widget build(BuildContext context) {
@@ -181,13 +260,14 @@ class _MemberHomeBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       children: [
         _HomeHeader(email: email),
         const SizedBox(height: 28),
         Text(
-          'Rise together.',
+          l10n.riseTogether,
           style: Theme.of(context).textTheme.displayMedium?.copyWith(
                 color: SyuColors.crimson,
                 fontSize: 48,
@@ -195,7 +275,7 @@ class _MemberHomeBody extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Your hub for membership, announcements, events, and club messaging.',
+          l10n.hubSubtitle,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: SyuColors.mist,
                 height: 1.45,
@@ -203,36 +283,30 @@ class _MemberHomeBody extends StatelessWidget {
         ),
         const SizedBox(height: 28),
         if (registrationIncomplete)
-          const _ActionTile(
+          _ActionTile(
             icon: SyuIcons.userCheck,
-            title: 'Complete registration',
-            subtitle: 'Finish your member profile to activate membership.',
+            title: l10n.completeRegistration,
+            subtitle: l10n.completeRegistrationSubtitle,
             onTapRoute: '/registration',
           )
         else
-          const _ActionTile(
+          _ActionTile(
             icon: SyuIcons.userEdit,
-            title: 'Update your details',
-            subtitle: 'Keep your profile, contacts, and club info current.',
+            title: l10n.updateDetails,
+            subtitle: l10n.updateDetailsSubtitle,
             onTapRoute: '/profile/edit',
           ),
         const SizedBox(height: 12),
-        const _ActionTile(
+        _ActionTile(
           icon: SyuIcons.news,
-          title: 'Latest announcements',
-          subtitle: 'Open the News tab for updates.',
+          title: l10n.latestAnnouncements,
+          subtitle: l10n.newsSubtitle,
         ),
         const SizedBox(height: 12),
-        const _ActionTile(
+        _ActionTile(
           icon: SyuIcons.calendarCheck,
-          title: 'Upcoming events',
-          subtitle: 'Browse and RSVP in the Events tab.',
-        ),
-        const SizedBox(height: 12),
-        const _ActionTile(
-          icon: SyuIcons.chat,
-          title: 'Messages from SYU',
-          subtitle: 'Open the Chat tab to read admin messages.',
+          title: l10n.upcomingEvents,
+          subtitle: l10n.eventsSubtitle,
         ),
       ],
     );
@@ -246,13 +320,14 @@ class _AdminHomeDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       children: [
         _HomeHeader(email: email),
         const SizedBox(height: 20),
         Text(
-          'Admin dashboard',
+          l10n.adminDashboard,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 color: SyuColors.ink,
                 fontWeight: FontWeight.w700,
@@ -261,85 +336,85 @@ class _AdminHomeDashboard extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          'Manage members, publish news and events, and reach youth across districts.',
+          l10n.adminDashboardSubtitle,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: SyuColors.mist,
                 height: 1.4,
               ),
         ),
         const SizedBox(height: 18),
-        Text('Members', style: _adminSectionTitle(context)),
+        Text(l10n.members, style: _adminSectionTitle(context)),
         const SizedBox(height: 8),
-        const _AdminTileGrid(
+        _AdminTileGrid(
           tiles: [
             _AdminSquareTile(
               icon: SyuIcons.people,
-              title: 'Members',
-              subtitle: 'Browse & message',
+              title: l10n.members,
+              subtitle: l10n.browseAndMessage,
               adminTab: 'members',
             ),
             _AdminSquareTile(
               icon: SyuIcons.bookmarkOutline,
-              title: 'Saved',
-              subtitle: 'Quick shortlist',
+              title: l10n.saved,
+              subtitle: l10n.quickShortlist,
               adminTab: 'members',
             ),
           ],
         ),
         const SizedBox(height: 16),
-        Text('Quick access', style: _adminSectionTitle(context)),
+        Text(l10n.quickAccess, style: _adminSectionTitle(context)),
         const SizedBox(height: 8),
-        const _AdminTileGrid(
+        _AdminTileGrid(
           tiles: [
-            _AdminChatSquareTile(),
+            const _AdminChatSquareTile(),
             _AdminSquareTile(
               icon: SyuIcons.mail,
-              title: 'Broadcast',
-              subtitle: 'Notify audiences',
+              title: l10n.broadcast,
+              subtitle: l10n.notifyAudiences,
               adminTab: 'broadcast',
             ),
           ],
         ),
         const SizedBox(height: 16),
-        Text('Publish', style: _adminSectionTitle(context)),
+        Text(l10n.publish, style: _adminSectionTitle(context)),
         const SizedBox(height: 8),
-        const _AdminTileGrid(
+        _AdminTileGrid(
           tiles: [
             _AdminSquareTile(
               icon: SyuIcons.news,
-              title: 'News',
-              subtitle: 'Announcements',
+              title: l10n.news,
+              subtitle: l10n.announcements,
               adminTab: 'news',
             ),
             _AdminSquareTile(
               icon: SyuIcons.calendar,
-              title: 'Events',
-              subtitle: 'Create & RSVP',
+              title: l10n.events,
+              subtitle: l10n.createAndRsvp,
               adminTab: 'events',
             ),
           ],
         ),
         const SizedBox(height: 16),
-        Text('Other tools', style: _adminSectionTitle(context)),
+        Text(l10n.otherTools, style: _adminSectionTitle(context)),
         const SizedBox(height: 8),
-        const _AdminTileGrid(
+        _AdminTileGrid(
           tiles: [
             _AdminSquareTile(
               icon: SyuIcons.userGroup,
-              title: 'Clubs',
-              subtitle: 'Youth clubs',
+              title: l10n.clubs,
+              subtitle: l10n.youthClubs,
               adminTab: 'clubs',
             ),
             _AdminSquareTile(
               icon: SyuIcons.chart,
-              title: 'Reports',
-              subtitle: 'Summaries',
+              title: l10n.reports,
+              subtitle: l10n.summaries,
               adminTab: 'reports',
             ),
             _AdminSquareTile(
               icon: SyuIcons.history,
-              title: 'Audit',
-              subtitle: 'Admin actions',
+              title: l10n.audit,
+              subtitle: l10n.adminActions,
               adminTab: 'audit',
             ),
           ],
@@ -390,12 +465,15 @@ class _AdminChatSquareTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasUnread = ref.watch(unreadChatsProvider);
+    final l10n = AppLocalizations.of(context);
     return _AdminSquareTile(
       icon: hasUnread ? SyuIcons.chatUnread : SyuIcons.chat,
-      title: 'Chat',
-      subtitle: hasUnread ? 'New messages' : 'Member threads',
-      adminTab: 'chat',
+      title: l10n.chat,
+      subtitle: hasUnread ? l10n.newMessages : l10n.memberThreads,
       iconColor: hasUnread ? SyuColors.crimson : null,
+      onTap: () {
+        ref.read(openHomeChatTabProvider.notifier).state++;
+      },
     );
   }
 }
@@ -405,14 +483,16 @@ class _AdminSquareTile extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.adminTab,
+    this.adminTab,
+    this.onTap,
     this.iconColor,
-  });
+  }) : assert(adminTab != null || onTap != null);
 
   final List<List<dynamic>> icon;
   final String title;
   final String subtitle;
-  final String adminTab;
+  final String? adminTab;
+  final VoidCallback? onTap;
   final Color? iconColor;
 
   @override
@@ -421,7 +501,7 @@ class _AdminSquareTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => openAdminOverlay(context, adminTab),
+        onTap: onTap ?? () => openAdminOverlay(context, adminTab!),
         child: Ink(
           decoration: BoxDecoration(
             color: SyuColors.inkElevated,
@@ -518,6 +598,7 @@ class _HomeHeader extends StatelessWidget {
             ],
           ),
         ),
+        const LanguagePicker(isCompact: true),
       ],
     );
   }
@@ -615,13 +696,20 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
       if (user == null) return;
       final row = await SupabaseBootstrap.client
           .from('profiles')
-          .select('full_name,status')
+          .select(
+            'full_name,status,phone,nic,date_of_birth,district_id',
+          )
           .eq('id', user.id)
           .maybeSingle();
       if (!mounted) return;
+      final status = row?['status'] as String? ?? 'active';
+      final incomplete =
+          ProfileCompleteness.fromProfile(row).missingKeys.isNotEmpty ||
+              status == 'pending_registration' ||
+              status == 'pending_approval';
       setState(() {
         _fullName = row?['full_name'] as String?;
-        _status = row?['status'] as String? ?? 'pending_registration';
+        _status = incomplete ? 'pending_registration' : status;
       });
     } catch (_) {
       // Soft-fail: settings still shows email + sign out.
@@ -643,6 +731,7 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
     ref.listen<int>(profileStatusTickProvider, (_, _) {
       _load();
     });
+    final l10n = AppLocalizations.of(context);
     final mistStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
           color: SyuColors.mist,
           fontSize: 11,
@@ -657,7 +746,7 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Settings',
+                l10n.settings,
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 8),
@@ -676,11 +765,21 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                 const SizedBox(height: 10),
                 const LinearProgressIndicator(color: SyuColors.crimson),
               ],
+              const SizedBox(height: 16),
+              Text(
+                l10n.language,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: SyuColors.mist,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              const LanguagePicker(),
               if (_status == 'pending_registration') ...[
                 const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () => context.push('/registration'),
-                  child: const Text('Complete registration'),
+                  child: Text(l10n.completeRegistration),
                 ),
               ],
               const SizedBox(height: 16),
@@ -689,15 +788,15 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                 icon: const SyuIcon(SyuIcons.edit, size: 20),
                 label: Text(
                   _status == 'pending_registration'
-                      ? 'Edit profile'
-                      : 'Update your details',
+                      ? l10n.editProfile
+                      : l10n.updateDetails,
                 ),
               ),
               buttonGap,
               OutlinedButton.icon(
                 onPressed: () => context.push('/settings'),
                 icon: const SyuIcon(SyuIcons.notification, size: 20),
-                label: const Text('Notifications & account'),
+                label: Text(l10n.notificationsAndAccount),
               ),
               const SizedBox(height: 14),
               OutlinedButton.icon(
@@ -712,7 +811,7 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
                   size: 20,
                   color: SyuColors.crimson,
                 ),
-                label: const Text('Sign out'),
+                label: Text(l10n.signOut),
               ),
               const Spacer(),
               Text(

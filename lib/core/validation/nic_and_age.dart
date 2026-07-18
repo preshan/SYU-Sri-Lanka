@@ -1,3 +1,5 @@
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
+
 /// Sri Lanka NIC validation (old 9-digit+letter and new 12-digit formats).
 class NicValidator {
   NicValidator._();
@@ -10,11 +12,9 @@ class NicValidator {
     return _old.hasMatch(nic) || _new.hasMatch(nic);
   }
 
-  static String? errorText(String? raw) {
-    if (raw == null || raw.trim().isEmpty) return 'NIC is required';
-    if (!isValid(raw)) {
-      return 'Enter a valid NIC (123456789V or 12 digits)';
-    }
+  static String? errorText(String? raw, AppLocalizations l10n) {
+    if (raw == null || raw.trim().isEmpty) return l10n.nicRequired;
+    if (!isValid(raw)) return l10n.nicInvalid;
     return null;
   }
 
@@ -52,11 +52,11 @@ class AgeRules {
     return age;
   }
 
-  static String? eligibilityError(DateTime? dob) {
-    if (dob == null) return 'Date of birth is required';
+  static String? eligibilityError(DateTime? dob, AppLocalizations l10n) {
+    if (dob == null) return l10n.dobRequired;
     final age = ageOn(dob);
-    if (age < minAge) return 'You must be at least $minAge years old';
-    if (age > maxAge) return 'Membership age limit is $maxAge';
+    if (age < minAge) return l10n.ageTooYoung(minAge);
+    if (age > maxAge) return l10n.ageTooOld(maxAge);
     return null;
   }
 }

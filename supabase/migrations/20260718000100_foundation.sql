@@ -16,7 +16,6 @@ create table if not exists public.roles (
 
 insert into public.roles (code, name, description) values
   ('member', 'Member', 'Approved SYU member'),
-  ('club_admin', 'Club Admin', 'Youth club administrator'),
   ('district_admin', 'District Admin', 'District-level administrator'),
   ('super_admin', 'Super Admin', 'National administrator')
 on conflict (code) do nothing;

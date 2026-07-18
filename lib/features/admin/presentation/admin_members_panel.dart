@@ -9,6 +9,7 @@ import 'package:syu_sri_lanka/core/export/syu_csv.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class AdminMembersPanel extends StatefulWidget {
   const AdminMembersPanel({super.key});
@@ -499,7 +500,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
         ? p['full_name'] as String
         : (p['email'] as String? ?? 'Member');
     if (!mounted) return;
-    context.go(
+    context.push(
       '/admin?tab=chat&member=${Uri.encodeComponent(id)}'
       '&name=${Uri.encodeComponent(name)}',
     );
@@ -574,7 +575,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     return best['name_en'] as String? ?? code ?? '';
   }
 
-  String _memberSubtitle(Map<String, dynamic> p) {
+  String _memberSubtitle(Map<String, dynamic> p, AppLocalizations l10n) {
     final nic = (p['nic'] as String?)?.trim();
     final line1 = <String>[
       if ((p['email'] as String?)?.isNotEmpty == true) p['email'] as String,
@@ -584,8 +585,9 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
       if (_genderLabel(p).isNotEmpty) _genderLabel(p),
       if (_ageLabel(p) != null) _ageLabel(p)!,
     ].join(' · ');
+    final status = p['status'] as String? ?? '';
     final line3 = <String>[
-      '${p['status']}',
+      _statusLabel(status, l10n),
       _districtName(p['district_id'] as int?),
       if (_highestQualificationLabel(p).isNotEmpty)
         _highestQualificationLabel(p),
@@ -612,46 +614,46 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     return n;
   }
 
-  String get _languageFilterLabel {
+  String _languageFilterLabel(AppLocalizations l10n) {
     final selected = <String>[
       if (_filterSinhala == true) 'Sinhala',
       if (_filterTamil == true) 'Tamil',
       if (_filterEnglish == true) 'English',
     ];
     if (selected.isEmpty) return 'Any';
-    if (selected.length == 3) return 'All';
+    if (selected.length == 3) return l10n.all;
     return selected.join(', ');
   }
 
-  String _districtLabel(int? id) {
-    if (id == null) return 'All';
+  String _districtLabel(int? id, AppLocalizations l10n) {
+    if (id == null) return l10n.all;
     for (final d in _districts) {
       if (d['id'] == id) return d['name'] as String? ?? '$id';
     }
     return '$id';
   }
 
-  String _dsLabel(int? id) {
-    if (id == null) return 'All';
+  String _dsLabel(int? id, AppLocalizations l10n) {
+    if (id == null) return l10n.all;
     for (final d in _dsDivisions) {
       if (d['id'] == id) return d['name'] as String? ?? '$id';
     }
     return '$id';
   }
 
-  String _gsLabel(int? id) {
-    if (id == null) return 'All';
+  String _gsLabel(int? id, AppLocalizations l10n) {
+    if (id == null) return l10n.all;
     for (final d in _gsDivisions) {
       if (d['id'] == id) return d['name'] as String? ?? '$id';
     }
     return '$id';
   }
 
-  String _statusLabel(String status) => switch (status) {
-        'pending_registration' => 'Incomplete',
-        'active' => 'Active',
-        'suspended' => 'Suspended',
-        _ => 'All',
+  String _statusLabel(String status, AppLocalizations l10n) => switch (status) {
+        'pending_registration' => l10n.statusPending,
+        'active' => l10n.statusActive,
+        'suspended' => l10n.statusSuspended,
+        _ => l10n.all,
       };
 
   Widget _compactSelect({
@@ -699,6 +701,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     return MenuAnchor(
       alignmentOffset: const Offset(0, 4),
       builder: (context, controller, _) {
+        final l10n = AppLocalizations.of(context);
         final active = _languageFilterCount > 0;
         return Material(
           color: active
@@ -722,7 +725,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Lang · $_languageFilterLabel',
+                        'Lang · ${_languageFilterLabel(l10n)}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -798,6 +801,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     }
 
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       children: [
@@ -821,10 +825,10 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                         ),
                       ),
                       segments: [
-                        const ButtonSegment(value: 'all', label: Text('All')),
+                        ButtonSegment(value: 'all', label: Text(l10n.all)),
                         ButtonSegment(
                           value: 'saved',
-                          label: Text('Saved ${_savedIds.length}'),
+                          label: Text(l10n.savedWithCount(_savedIds.length)),
                         ),
                       ],
                       selected: {_listMode},
@@ -868,7 +872,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                 },
                 decoration: InputDecoration(
                   isDense: true,
-                  hintText: 'Search name, email, NIC',
+                  hintText: l10n.searchMembersHint,
                   hintStyle: textTheme.bodySmall?.copyWith(fontSize: 12),
                   prefixIcon: const Icon(Icons.search_rounded, size: 18),
                   prefixIconConstraints:
@@ -876,7 +880,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                   suffixIcon: _search.text.isEmpty
                       ? null
                       : IconButton(
-                          tooltip: 'Clear',
+                          tooltip: l10n.clear,
                           visualDensity: VisualDensity.compact,
                           padding: EdgeInsets.zero,
                           constraints: const BoxConstraints(
@@ -941,10 +945,10 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                     ),
                     label: Text(
                       _filtersExpanded
-                          ? 'Hide filters'
+                          ? l10n.hideFilters
                           : (_activeFilterCount == 0
-                              ? 'Filters'
-                              : 'Filters ($_activeFilterCount)'),
+                              ? l10n.filters
+                              : l10n.filtersWithCount(_activeFilterCount)),
                       style: textTheme.labelMedium?.copyWith(fontSize: 12),
                     ),
                   ),
@@ -962,7 +966,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                             width: w,
                             child: _compactSelect(
                               label: 'District',
-                              valueText: _districtLabel(_districtFilter),
+                              valueText: _districtLabel(_districtFilter, l10n),
                               onSelected: (v) async {
                                 final id = v == -1 ? null : v as int?;
                                 setState(() => _districtFilter = id);
@@ -970,9 +974,9 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                 await _load(resetPage: true);
                               },
                               items: [
-                                const PopupMenuItem<Object?>(
+                                PopupMenuItem<Object?>(
                                   value: -1,
-                                  child: Text('All'),
+                                  child: Text(l10n.all),
                                 ),
                                 ..._districts.map(
                                   (d) => PopupMenuItem<Object?>(
@@ -987,7 +991,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                             width: w,
                             child: _compactSelect(
                               label: 'DS',
-                              valueText: _dsLabel(_dsFilter),
+                              valueText: _dsLabel(_dsFilter, l10n),
                               enabled: _districtFilter != null,
                               onSelected: (v) async {
                                 final id = v == -1 ? null : v as int?;
@@ -996,9 +1000,9 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                 await _load(resetPage: true);
                               },
                               items: [
-                                const PopupMenuItem<Object?>(
+                                PopupMenuItem<Object?>(
                                   value: -1,
-                                  child: Text('All'),
+                                  child: Text(l10n.all),
                                 ),
                                 ..._dsDivisions.map(
                                   (d) => PopupMenuItem<Object?>(
@@ -1013,7 +1017,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                             width: w,
                             child: _compactSelect(
                               label: 'GS',
-                              valueText: _gsLabel(_gsFilter),
+                              valueText: _gsLabel(_gsFilter, l10n),
                               enabled: _dsFilter != null,
                               onSelected: (v) async {
                                 final id = v == -1 ? null : v as int?;
@@ -1021,9 +1025,9 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                 await _load(resetPage: true);
                               },
                               items: [
-                                const PopupMenuItem<Object?>(
+                                PopupMenuItem<Object?>(
                                   value: -1,
-                                  child: Text('All'),
+                                  child: Text(l10n.all),
                                 ),
                                 ..._gsDivisions.map(
                                   (d) => PopupMenuItem<Object?>(
@@ -1041,28 +1045,28 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                             width: w,
                             child: _compactSelect(
                               label: 'Status',
-                              valueText: _statusLabel(_status),
+                              valueText: _statusLabel(_status, l10n),
                               onSelected: (v) async {
                                 if (v is! String) return;
                                 setState(() => _status = v);
                                 await _load(resetPage: true);
                               },
-                              items: const [
+                              items: [
                                 PopupMenuItem(
                                   value: 'all',
-                                  child: Text('All'),
+                                  child: Text(l10n.all),
                                 ),
                                 PopupMenuItem(
                                   value: 'pending_registration',
-                                  child: Text('Incomplete'),
+                                  child: Text(l10n.statusPending),
                                 ),
                                 PopupMenuItem(
                                   value: 'active',
-                                  child: Text('Active'),
+                                  child: Text(l10n.statusActive),
                                 ),
                                 PopupMenuItem(
                                   value: 'suspended',
-                                  child: Text('Suspended'),
+                                  child: Text(l10n.statusSuspended),
                                 ),
                               ],
                             ),
@@ -1132,7 +1136,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                 ),
                               ),
                               subtitle: Text(
-                                _memberSubtitle(p),
+                                _memberSubtitle(p, l10n),
                                 style: textTheme.bodySmall?.copyWith(
                                   color: SyuColors.mist,
                                   fontSize: 11,
@@ -1160,9 +1164,9 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                   await _setStatus(id, s);
                                 },
                                 itemBuilder: (_) => [
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'message',
-                                    child: Text('Message'),
+                                    child: Text(l10n.messageAction),
                                   ),
                                   PopupMenuItem(
                                     value: saved ? 'unsave' : 'save',
@@ -1172,13 +1176,13 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                           : 'Save for quick access',
                                     ),
                                   ),
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'active',
-                                    child: Text('Set active'),
+                                    child: Text(l10n.statusActive),
                                   ),
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'suspended',
-                                    child: Text('Suspend'),
+                                    child: Text(l10n.statusSuspended),
                                   ),
                                 ],
                               ),
@@ -1230,6 +1234,7 @@ class _PaginationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final from = total == 0 ? 0 : page * pageSize + 1;
     final to = total == 0 ? 0 : ((page + 1) * pageSize).clamp(0, total);
     return Material(
@@ -1241,7 +1246,7 @@ class _PaginationBar extends StatelessWidget {
           child: Row(
             children: [
               Text(
-                '$from–$to of $total',
+                l10n.rangeOf(from, to, total),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const Spacer(),
@@ -1251,7 +1256,7 @@ class _PaginationBar extends StatelessWidget {
                 tooltip: 'Previous page',
               ),
               Text(
-                'Page ${page + 1} / $totalPages',
+                l10n.pageLabel(page + 1, totalPages),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               IconButton(

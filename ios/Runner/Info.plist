@@ -77,7 +77,7 @@
 			<string>tel</string>
 			<string>sms</string>
 		</array>
-		<!-- Deep link / auth callback scheme -->
+		<!-- Deep link scheme for Supabase auth: syu://auth/callback -->
 		<key>CFBundleURLTypes</key>
 		<array>
 			<dict>

@@ -1,25 +1,29 @@
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
+
 class ProfileCompleteness {
   const ProfileCompleteness({
     required this.percent,
-    required this.missing,
+    required this.missingKeys,
   });
 
   final int percent;
-  final List<String> missing;
+
+  /// Stable keys: fullName, phone, nic, dob, district, profile
+  final List<String> missingKeys;
 
   static ProfileCompleteness fromProfile(Map<String, dynamic>? row) {
     if (row == null) {
       return const ProfileCompleteness(
         percent: 0,
-        missing: ['profile'],
+        missingKeys: ['profile'],
       );
     }
     final checks = <String, bool>{
-      'Full name': (row['full_name'] as String?)?.trim().isNotEmpty == true,
-      'Phone': (row['phone'] as String?)?.trim().isNotEmpty == true,
-      'NIC': (row['nic'] as String?)?.trim().isNotEmpty == true,
-      'Date of birth': row['date_of_birth'] != null,
-      'District': row['district_id'] != null,
+      'fullName': (row['full_name'] as String?)?.trim().isNotEmpty == true,
+      'phone': (row['phone'] as String?)?.trim().isNotEmpty == true,
+      'nic': (row['nic'] as String?)?.trim().isNotEmpty == true,
+      'dob': row['date_of_birth'] != null,
+      'district': row['district_id'] != null,
     };
     final missing = checks.entries
         .where((e) => !e.value)
@@ -27,6 +31,22 @@ class ProfileCompleteness {
         .toList();
     final done = checks.length - missing.length;
     final percent = ((done / checks.length) * 100).round();
-    return ProfileCompleteness(percent: percent, missing: missing);
+    return ProfileCompleteness(percent: percent, missingKeys: missing);
+  }
+
+  String localizedMissing(AppLocalizations l10n) {
+    return missingKeys.map((k) => labelFor(k, l10n)).join(', ');
+  }
+
+  static String labelFor(String key, AppLocalizations l10n) {
+    return switch (key) {
+      'fullName' => l10n.fullName,
+      'phone' => l10n.phone,
+      'nic' => l10n.nic,
+      'dob' => l10n.dob,
+      'district' => l10n.district,
+      'profile' => l10n.fieldProfile,
+      _ => key,
+    };
   }
 }

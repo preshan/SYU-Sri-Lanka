@@ -6,24 +6,50 @@ import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_chrome.dart';
 import 'package:syu_sri_lanka/features/messaging/data/unread_chats_provider.dart';
+import 'package:syu_sri_lanka/features/messaging/presentation/chat_ui.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 /// Admin ↔ member direct chats (no profile images).
 class AdminChatPanel extends ConsumerStatefulWidget {
-  const AdminChatPanel({super.key, this.initialMemberId, this.initialMemberName});
+  const AdminChatPanel({
+    super.key,
+    this.initialMemberId,
+    this.initialMemberName,
+    this.embedded = false,
+  });
 
   final String? initialMemberId;
   final String? initialMemberName;
 
+  /// When true (bottom nav), show a page title; AdminShell AppBar already titles overlay.
+  final bool embedded;
+
   @override
-  ConsumerState<AdminChatPanel> createState() => _AdminChatPanelState();
+  ConsumerState<AdminChatPanel> createState() => AdminChatPanelState();
 }
 
-class _AdminChatPanelState extends ConsumerState<AdminChatPanel> {
+class AdminChatPanelState extends ConsumerState<AdminChatPanel> {
   List<Map<String, dynamic>> _chats = [];
   bool _loading = true;
   String? _openId;
   String? _openTitle;
+  String? _openSubtitle;
   String? _openStatus;
+
+  bool get hasOpenThread => _openId != null;
+
+  /// System / gesture back: close open thread. Returns true if consumed.
+  bool handleSystemBack() {
+    if (_openId == null) return false;
+    setState(() {
+      _openId = null;
+      _openTitle = null;
+      _openSubtitle = null;
+      _openStatus = null;
+    });
+    _load();
+    return true;
+  }
 
   @override
   void initState() {
@@ -59,6 +85,29 @@ class _AdminChatPanelState extends ConsumerState<AdminChatPanel> {
     }
   }
 
+  Map<String, dynamic>? _memberOf(Map<String, dynamic> c) {
+    final member = c['member'];
+    if (member is Map) return Map<String, dynamic>.from(member);
+    return null;
+  }
+
+  String _memberTitle(Map<String, dynamic> c, {String fallback = 'Member'}) {
+    final member = _memberOf(c);
+    final name = (member?['full_name'] as String?)?.trim();
+    if (name != null && name.isNotEmpty) return name;
+    return (c['title'] as String?)?.trim().isNotEmpty == true
+        ? c['title'] as String
+        : fallback;
+  }
+
+  String _memberSubtitle(Map<String, dynamic> c) {
+    final member = _memberOf(c);
+    return chatPeerMeta(
+      email: member?['email'] as String?,
+      district: member?['district'] as String?,
+    );
+  }
+
   /// Opens existing thread (with history) or creates an empty open chat.
   Future<void> _openWithMember(String memberId, String memberName) async {
     try {
@@ -69,11 +118,17 @@ class _AdminChatPanelState extends ConsumerState<AdminChatPanel> {
       final map = Map<String, dynamic>.from(res as Map);
       await _load();
       if (!mounted) return;
+      final match = _chats.cast<Map<String, dynamic>?>().firstWhere(
+            (c) => c?['id'] == map['conversation_id'],
+            orElse: () => null,
+          );
+      final title = (map['member_name'] as String?)?.trim().isNotEmpty == true
+          ? map['member_name'] as String
+          : memberName;
       setState(() {
         _openId = map['conversation_id'] as String;
-        _openTitle = (map['member_name'] as String?)?.trim().isNotEmpty == true
-            ? map['member_name'] as String
-            : memberName;
+        _openTitle = title;
+        _openSubtitle = match != null ? _memberSubtitle(match) : '';
         _openStatus = map['status'] as String? ?? 'open';
       });
     } catch (e) {
@@ -82,7 +137,6 @@ class _AdminChatPanelState extends ConsumerState<AdminChatPanel> {
   }
 
   Future<void> _startWithMember(String memberId, String memberName) async {
-    // From "Message" picker: open history thread directly (no first-message dialog).
     await _openWithMember(memberId, memberName);
   }
 
@@ -97,19 +151,14 @@ class _AdminChatPanelState extends ConsumerState<AdminChatPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (_openId != null) {
       return _AdminChatThread(
         conversationId: _openId!,
-        title: _openTitle ?? 'Chat',
+        title: _openTitle ?? l10n.chat,
+        subtitle: _openSubtitle ?? '',
         status: _openStatus ?? 'open',
-        onBack: () {
-          setState(() {
-            _openId = null;
-            _openTitle = null;
-            _openStatus = null;
-          });
-          _load();
-        },
+        onBack: handleSystemBack,
         onClosed: () {
           setState(() => _openStatus = 'closed');
           _load();
@@ -120,13 +169,22 @@ class _AdminChatPanelState extends ConsumerState<AdminChatPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (widget.embedded)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+            child: Text(
+              l10n.chat,
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+          ),
         AdminPanelChrome.toolbar(
           context: context,
+          hint: widget.embedded ? l10n.messageMembers : null,
           actions: [
             FilledButton(
               style: AdminPanelChrome.compactFilled,
               onPressed: _pickMember,
-              child: const Text('Message'),
+              child: Text(l10n.messageAction),
             ),
           ],
         ),
@@ -156,15 +214,8 @@ class _AdminChatPanelState extends ConsumerState<AdminChatPanel> {
                               AdminPanelChrome.denseDivider(),
                           itemBuilder: (context, i) {
                             final c = _chats[i];
-                            final member = c['member'] is Map
-                                ? Map<String, dynamic>.from(c['member'] as Map)
-                                : null;
-                            final name = (member?['full_name'] as String?)
-                                        ?.trim()
-                                        .isNotEmpty ==
-                                    true
-                                ? member!['full_name'] as String
-                                : (c['title'] as String? ?? 'Member');
+                            final name = _memberTitle(c);
+                            final meta = _memberSubtitle(c);
                             final closed = c['status'] == 'closed';
                             return ListTile(
                               dense: true,
@@ -179,13 +230,14 @@ class _AdminChatPanelState extends ConsumerState<AdminChatPanel> {
                               ),
                               subtitle: Text(
                                 [
+                                  if (meta.isNotEmpty) meta,
                                   if (closed) 'Terminated',
                                   if ((c['last_message'] as String?)
                                           ?.isNotEmpty ==
                                       true)
                                     c['last_message'] as String,
                                 ].join(' · '),
-                                maxLines: 1,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: AdminPanelChrome.rowMetaStyle(context),
                               ),
@@ -197,7 +249,9 @@ class _AdminChatPanelState extends ConsumerState<AdminChatPanel> {
                               onTap: () => setState(() {
                                 _openId = c['id'] as String;
                                 _openTitle = name;
-                                _openStatus = c['status'] as String? ?? 'open';
+                                _openSubtitle = meta;
+                                _openStatus =
+                                    c['status'] as String? ?? 'open';
                               }),
                             );
                           },
@@ -263,8 +317,9 @@ class _MemberPickerDialogState extends State<_MemberPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: const Text('Select member'),
+      title: Text(l10n.selectMember),
       content: SizedBox(
         width: 420,
         height: 420,
@@ -273,7 +328,7 @@ class _MemberPickerDialogState extends State<_MemberPickerDialog> {
             TextField(
               controller: _query,
               decoration: InputDecoration(
-                hintText: 'Search name or email',
+                hintText: l10n.searchNameOrEmail,
                 suffixIcon: IconButton(
                   onPressed: _search,
                   icon: const SyuIcon(SyuIcons.search),
@@ -313,7 +368,7 @@ class _MemberPickerDialogState extends State<_MemberPickerDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
       ],
     );
@@ -324,6 +379,7 @@ class _AdminChatThread extends ConsumerStatefulWidget {
   const _AdminChatThread({
     required this.conversationId,
     required this.title,
+    required this.subtitle,
     required this.status,
     required this.onBack,
     required this.onClosed,
@@ -331,6 +387,7 @@ class _AdminChatThread extends ConsumerStatefulWidget {
 
   final String conversationId;
   final String title;
+  final String subtitle;
   final String status;
   final VoidCallback onBack;
   final VoidCallback onClosed;
@@ -343,6 +400,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
   final _controller = TextEditingController();
   final _scroll = ScrollController();
   List<Map<String, dynamic>> _messages = [];
+  DateTime? _peerLastReadAt;
   bool _loading = true;
   bool _sending = false;
   late String _status;
@@ -361,31 +419,87 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
     super.dispose();
   }
 
+  void _scrollToBottom({bool animated = false}) {
+    // reverse:true ListView — offset 0 is the newest messages (bottom).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scroll.hasClients) return;
+      if (animated) {
+        _scroll.animateTo(
+          0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scroll.jumpTo(0);
+      }
+    });
+  }
+
   Future<void> _load() async {
     try {
+      final uid = SupabaseBootstrap.client.auth.currentUser?.id;
       final rows = await SupabaseBootstrap.client
           .from('messages')
           .select('id,body,sender_id,created_at')
           .eq('conversation_id', widget.conversationId)
           .isFilter('deleted_at', null)
-          .order('created_at')
+          .order('created_at', ascending: true)
           .limit(200);
-      final conv = await SupabaseBootstrap.client
-          .from('conversations')
-          .select('status')
-          .eq('id', widget.conversationId)
-          .maybeSingle();
+
+      var status = _status;
+      try {
+        final conv = await SupabaseBootstrap.client
+            .from('conversations')
+            .select('status')
+            .eq('id', widget.conversationId)
+            .maybeSingle();
+        if (conv != null) {
+          status = conv['status'] as String? ?? status;
+        }
+      } catch (e) {
+        AppErrorMapper.log(e);
+      }
+
+      DateTime? peerRead = _peerLastReadAt;
+      if (uid != null) {
+        try {
+          final peers = await SupabaseBootstrap.client
+              .from('conversation_participants')
+              .select('last_read_at,user_id')
+              .eq('conversation_id', widget.conversationId)
+              .neq('user_id', uid)
+              .limit(1);
+          final peerRows = List<Map<String, dynamic>>.from(peers as List);
+          if (peerRows.isNotEmpty) {
+            peerRead = parseChatTimestamp(peerRows.first['last_read_at']);
+          }
+        } catch (e) {
+          AppErrorMapper.log(e);
+        }
+      }
+
+      if (!mounted) return;
       setState(() {
         _messages = List<Map<String, dynamic>>.from(rows as List);
-        if (conv != null) _status = conv['status'] as String? ?? _status;
+        _peerLastReadAt = peerRead;
+        _status = status;
+        _loading = false;
       });
-      await ref
-          .read(unreadChatsProvider.notifier)
-          .markConversationRead(widget.conversationId);
+      _scrollToBottom();
+
+      try {
+        await ref
+            .read(unreadChatsProvider.notifier)
+            .markConversationRead(widget.conversationId);
+      } catch (e) {
+        AppErrorMapper.log(e);
+      }
     } catch (e) {
       AppErrorMapper.log(e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+        AppErrorMapper.showSnackBar(context, e);
+      }
     }
   }
 
@@ -393,41 +507,54 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
     final text = _controller.text.trim();
     if (text.isEmpty || _sending || _status != 'open') return;
     setState(() => _sending = true);
+    final uid = SupabaseBootstrap.client.auth.currentUser!.id;
+    final optimistic = <String, dynamic>{
+      'id': 'local-${DateTime.now().microsecondsSinceEpoch}',
+      'body': text,
+      'sender_id': uid,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    setState(() {
+      _messages = [..._messages, optimistic];
+    });
+    _controller.clear();
+    _scrollToBottom(animated: true);
     try {
-      final uid = SupabaseBootstrap.client.auth.currentUser!.id;
       await SupabaseBootstrap.client.from('messages').insert({
         'conversation_id': widget.conversationId,
         'sender_id': uid,
         'body': text,
       });
-      _controller.clear();
       await _load();
-      if (_scroll.hasClients) {
-        _scroll.jumpTo(_scroll.position.maxScrollExtent);
-      }
+      _scrollToBottom(animated: true);
     } catch (e) {
-      if (mounted) AppErrorMapper.showSnackBar(context, e);
+      if (mounted) {
+        setState(() {
+          _messages =
+              _messages.where((m) => m['id'] != optimistic['id']).toList();
+        });
+        AppErrorMapper.showSnackBar(context, e);
+      }
     } finally {
       if (mounted) setState(() => _sending = false);
     }
   }
 
   Future<void> _terminate() async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Terminate chat?'),
-        content: const Text(
-          'The member will no longer be able to reply. Messages stay visible.',
-        ),
+        title: Text(l10n.terminateChatTitle),
+        content: Text(l10n.terminateChatBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Terminate'),
+            child: Text(l10n.terminate),
           ),
         ],
       ),
@@ -442,7 +569,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
       widget.onClosed();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Chat terminated')),
+          SnackBar(content: Text(l10n.chatTerminated)),
         );
       }
     } catch (e) {
@@ -451,22 +578,20 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
   }
 
   Future<void> _clear() async {
+    final l10n = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Clear all messages?'),
-        content: const Text(
-          'Deletes every message in this chat and closes it. '
-          'The member will no longer be able to reply.',
-        ),
+        title: Text(l10n.clearChatTitle),
+        content: Text(l10n.clearChatBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Clear'),
+            child: Text(l10n.clear),
           ),
         ],
       ),
@@ -484,7 +609,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
       widget.onClosed();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Chat cleared')),
+          SnackBar(content: Text(l10n.chatCleared)),
         );
       }
     } catch (e) {
@@ -493,6 +618,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
   }
 
   Future<void> _reopen() async {
+    final l10n = AppLocalizations.of(context);
     try {
       await SupabaseBootstrap.client.rpc(
         'admin_reopen_conversation',
@@ -501,7 +627,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
       setState(() => _status = 'open');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Chat reopened')),
+          SnackBar(content: Text(l10n.chatReopened)),
         );
       }
     } catch (e) {
@@ -512,6 +638,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
   @override
   Widget build(BuildContext context) {
     final uid = SupabaseBootstrap.client.auth.currentUser?.id;
+    final l10n = AppLocalizations.of(context);
     final open = _status == 'open';
     return Column(
       children: [
@@ -537,8 +664,18 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    if (widget.subtitle.isNotEmpty)
+                      Text(
+                        widget.subtitle,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 11,
+                              color: SyuColors.mist,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     Text(
-                      open ? 'Open — can reply' : 'Closed — member cannot reply',
+                      open ? l10n.chatStatusOpen : l10n.chatStatusClosed,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             fontSize: 11,
                             color: open ? SyuColors.mist : SyuColors.danger,
@@ -555,7 +692,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                   ),
                   onPressed: _clear,
-                  child: const Text('Clear'),
+                  child: Text(l10n.clear),
                 ),
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
@@ -564,7 +701,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
                     visualDensity: VisualDensity.compact,
                   ),
                   onPressed: _terminate,
-                  child: const Text('Terminate'),
+                  child: Text(l10n.terminate),
                 ),
               ] else
                 TextButton(
@@ -573,7 +710,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                   ),
                   onPressed: _reopen,
-                  child: const Text('Reopen'),
+                  child: Text(l10n.reopen),
                 ),
             ],
           ),
@@ -584,53 +721,14 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
               ? const Center(
                   child: CircularProgressIndicator(color: SyuColors.crimson),
                 )
-              : _messages.isEmpty
-                  ? Center(
-                      child: Text(
-                        open ? 'No messages yet — write below' : 'No messages',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: SyuColors.mist,
-                            ),
-                      ),
-                    )
-                  : ListView.builder(
-                      controller: _scroll,
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                      itemCount: _messages.length,
-                      itemBuilder: (context, i) {
-                        final m = _messages[i];
-                        final mine = m['sender_id'] == uid;
-                        return Align(
-                          alignment: mine
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 6),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.sizeOf(context).width * 0.72,
-                            ),
-                            decoration: BoxDecoration(
-                              color: mine
-                                  ? SyuColors.crimson.withValues(alpha: 0.9)
-                                  : SyuColors.inkSoft,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              m['body'] as String? ?? '',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: mine ? SyuColors.paper : SyuColors.ink,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+              : ChatMessagesView(
+                  messages: _messages,
+                  currentUserId: uid,
+                  peerLastReadAt: _peerLastReadAt,
+                  controller: _scroll,
+                  compact: true,
+                  emptyLabel: open ? l10n.noMessagesYet : l10n.noMessages,
+                ),
         ),
         if (open)
           Padding(
@@ -640,7 +738,7 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(hintText: 'Message…'),
+                    decoration: InputDecoration(hintText: l10n.messageHint),
                     minLines: 1,
                     maxLines: 4,
                     onSubmitted: (_) => _send(),
@@ -655,12 +753,12 @@ class _AdminChatThreadState extends ConsumerState<_AdminChatThread> {
             ),
           )
         else
-          const Padding(
-            padding: EdgeInsets.all(12),
+          Padding(
+            padding: const EdgeInsets.all(12),
             child: Text(
-              'This chat is closed. The member cannot reply. Tap Reopen to continue.',
+              l10n.chatClosedHint,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: SyuColors.mist),
+              style: const TextStyle(fontSize: 12, color: SyuColors.mist),
             ),
           ),
       ],

@@ -6,6 +6,7 @@ import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_chrome.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class AnnouncementsFeed extends ConsumerStatefulWidget {
   const AnnouncementsFeed({super.key});
@@ -105,6 +106,7 @@ class _AnnouncementsFeedState extends ConsumerState<AnnouncementsFeed> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SyuGradientBackground(
       child: SafeArea(
         child: Column(
@@ -115,7 +117,7 @@ class _AnnouncementsFeedState extends ConsumerState<AnnouncementsFeed> {
                 children: [
                   Expanded(
                     child: Text(
-                      _total == 0 ? 'News' : '$_total news',
+                      _total == 0 ? l10n.news : '$_total ${l10n.news}',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             color: SyuColors.mist,
                             fontWeight: FontWeight.w600,
@@ -159,7 +161,7 @@ class _AnnouncementsFeedState extends ConsumerState<AnnouncementsFeed> {
                                   const SizedBox(height: 40),
                                   Center(
                                     child: Text(
-                                      'No announcements yet.',
+                                      l10n.noAnnouncementsYet,
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyMedium

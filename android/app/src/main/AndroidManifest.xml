@@ -33,7 +33,17 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Custom scheme for auth / in-app deep links -->
+            <!-- Auth email verify / password reset → syu://auth/callback -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="syu"
+                    android:host="auth"
+                    android:pathPrefix="/callback"/>
+            </intent-filter>
+            <!-- Legacy in-app deep links -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>

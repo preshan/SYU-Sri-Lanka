@@ -7,5 +7,207 @@
   "riseTogether": "Rise together.",
   "signIn": "Sign in",
   "signOut": "Sign out",
-  "completeRegistration": "Complete registration"
+  "completeRegistration": "Complete registration",
+  "welcomeBack": "Welcome back",
+  "signInPrompt": "Sign in to continue with SYU Sri Lanka.",
+  "email": "Email",
+  "password": "Password",
+  "forgotPassword": "Forgot password?",
+  "newToSyu": "New to SYU?",
+  "createAccount": "Create account",
+  "home": "Home",
+  "news": "News",
+  "events": "Events",
+  "chat": "Chat",
+  "settings": "Settings",
+  "language": "Language",
+  "changeLanguage": "Change Language",
+  "selectLanguage": "Select Language",
+  "notifications": "Notifications",
+  "updateDetails": "Update your details",
+  "latestAnnouncements": "Latest announcements",
+  "upcomingEvents": "Upcoming events",
+  "messagesFromSyu": "Messages from SYU",
+  "adminDashboard": "Admin dashboard",
+  "members": "Members",
+  "clubs": "Clubs",
+  "broadcast": "Broadcast",
+  "reports": "Reports",
+  "audit": "Audit",
+  "personal": "Personal",
+  "location": "Location",
+  "qualifications": "Qualifications",
+  "review": "Review",
+  "next": "Continue",
+  "submitRegistration": "Submit registration",
+  "fullName": "Full Name",
+  "phone": "Phone Number",
+  "nic": "NIC",
+  "dob": "Date of Birth",
+  "gender": "Gender",
+  "district": "District",
+  "dsDivision": "DS Division",
+  "gnDivision": "GN Division",
+  "club": "Youth Club",
+  "languageSkills": "Language Skills",
+  "hubSubtitle": "Your hub for membership, announcements, events, and club messaging.",
+  "completeRegistrationSubtitle": "Finish your member profile to activate membership.",
+  "updateDetailsSubtitle": "Keep your profile, contacts, and club info current.",
+  "newsSubtitle": "Open the News tab for updates.",
+  "eventsSubtitle": "Browse and RSVP in the Events tab.",
+  "adminDashboardSubtitle": "Manage members, publish news and events, and reach youth across districts.",
+  "quickAccess": "Quick access",
+  "publish": "Publish",
+  "otherTools": "Other tools",
+  "confirmEmail": "Confirm your email",
+  "sentLinkTo": "We sent a 6-digit code to",
+  "openLinkPrompt": "Enter the code from that email to activate your account. Check your spam or junk folder if you do not see it. You cannot log in until your email is confirmed.",
+  "goToSignIn": "I confirmed — go to sign in",
+  "resendEmail": "Resend code",
+  "useDifferentEmail": "Use a different email",
+  "enterVerificationCode": "Verification code",
+  "verifyAndContinue": "Verify & continue",
+  "invalidVerificationCode": "Enter the 6-digit code from your email.",
+  "codeResent": "A new code was sent. Check your inbox.",
+  "codeResendFailed": "Could not resend right now. Wait a moment and try again.",
+  "editProfile": "Edit profile",
+  "preferredName": "Preferred name",
+  "phoneHint": "Phone (+94…)",
+  "completenessPercent": "Completeness {percent}%",
+  "@completenessPercent": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "missingPrefix": "Missing: {items}",
+  "@missingPrefix": {
+    "placeholders": {
+      "items": {"type": "String"}
+    }
+  },
+  "selectAllThatApply": "Select all that apply.",
+  "selectLanguagesYouSpeak": "Select languages you can speak.",
+  "langSinhala": "Sinhala",
+  "langTamil": "Tamil",
+  "langEnglish": "English",
+  "saveChanges": "Save changes",
+  "profileUpdated": "Profile updated",
+  "fieldRequired": "Required",
+  "emailRequired": "Email is required",
+  "passwordRequired": "Password is required",
+  "validEmail": "Enter a valid email",
+  "validPhone": "Enter a valid phone number",
+  "nicRequired": "NIC is required",
+  "nicInvalid": "Enter a valid NIC (123456789V or 12 digits)",
+  "passwordMinLength": "Use at least {count} characters",
+  "@passwordMinLength": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "dobRequired": "Date of birth is required",
+  "ageTooYoung": "You must be at least {age} years old",
+  "@ageTooYoung": {
+    "placeholders": {
+      "age": {"type": "int"}
+    }
+  },
+  "ageTooOld": "Membership age limit is {age}",
+  "@ageTooOld": {
+    "placeholders": {
+      "age": {"type": "int"}
+    }
+  },
+  "noAnnouncementsYet": "No announcements yet.",
+  "noEventsYet": "No published events yet.",
+  "chatListSubtitle": "Your chats with SYU. You can reply while a chat is open.",
+  "noConversationsYet": "No conversations yet. When an admin messages you, it will appear here.",
+  "resetPassword": "Reset password",
+  "resetPasswordPrompt": "Enter your account email and we will send a reset link.",
+  "sendResetLink": "Send reset link",
+  "checkYourEmail": "Check your email",
+  "resetLinkSent": "If an account exists for {email}, we sent a password reset link.",
+  "@resetLinkSent": {
+    "placeholders": {
+      "email": {"type": "String"}
+    }
+  },
+  "backToSignIn": "Back to sign in",
+  "createAccountPrompt": "Create your account to start membership registration.",
+  "alreadyHaveAccount": "Already have an account? Sign in",
+  "genderFemale": "Female",
+  "genderMale": "Male",
+  "genderOther": "Other",
+  "genderPreferNot": "Prefer not to say",
+  "fieldProfile": "Profile",
+  "notificationsAndAccount": "Notifications & account",
+  "saved": "Saved",
+  "browseAndMessage": "Browse & message",
+  "quickShortlist": "Quick shortlist",
+  "memberThreads": "Member threads",
+  "newMessages": "New messages",
+  "notifyAudiences": "Notify audiences",
+  "announcements": "Announcements",
+  "createAndRsvp": "Create & RSVP",
+  "youthClubs": "Youth clubs",
+  "summaries": "Summaries",
+  "adminActions": "Admin actions",
+  "dashboard": "Dashboard",
+  "approvals": "Approvals",
+  "all": "All",
+  "searchMembersHint": "Search name, email, NIC",
+  "filters": "Filters",
+  "filtersWithCount": "Filters ({count})",
+  "@filtersWithCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statusActive": "Active",
+  "statusSuspended": "Suspended",
+  "statusPending": "Pending",
+  "pageLabel": "Page {current}/{total}",
+  "@pageLabel": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "clear": "Clear",
+  "terminate": "Terminate",
+  "reopen": "Reopen",
+  "terminateChatTitle": "Terminate chat?",
+  "terminateChatBody": "The member will no longer be able to reply. Messages stay visible.",
+  "clearChatTitle": "Clear all messages?",
+  "clearChatBody": "Deletes every message in this chat and closes it. The member will no longer be able to reply.",
+  "messageMembers": "Message members",
+  "messageAction": "Message",
+  "terminated": "Terminated",
+  "chatClosedHint": "This chat is closed. The member cannot reply. Tap Reopen to continue.",
+  "messageHint": "Message…",
+  "cancel": "Cancel",
+  "hideFilters": "Hide filters",
+  "savedWithCount": "Saved {count}",
+  "@savedWithCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "rangeOf": "{from}–{to} of {total}",
+  "@rangeOf": {
+    "placeholders": {
+      "from": {"type": "int"},
+      "to": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "chatTerminated": "Chat terminated",
+  "chatCleared": "Chat cleared",
+  "chatReopened": "Chat reopened",
+  "chatStatusOpen": "Open — can reply",
+  "chatStatusClosed": "Closed — member cannot reply",
+  "noMessagesYet": "No messages yet — write below",
+  "noMessages": "No messages",
+  "selectMember": "Select member",
+  "searchNameOrEmail": "Search name or email"
 }

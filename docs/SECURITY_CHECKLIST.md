@@ -6,7 +6,7 @@
 - [x] Password reset flow documented (`docs/AUTH_RECOVERY.md`)
 - [x] Anon key only in mobile/web client; service role never shipped in APK
 - [ ] Rotate any management token ever pasted into chat/logs
-- [ ] Configure Auth redirect URLs for production domain + deep links
+- [x] Configure Auth redirect URLs for mobile deep link (`syu://auth/callback`) — see `docs/AUTH_RECOVERY.md`
 
 ## Database / RLS
 

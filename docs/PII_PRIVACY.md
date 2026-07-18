@@ -8,7 +8,7 @@
 
 ## Access
 - Members: own profile only (RLS)
-- Admins (`super_admin` / scoped roles): operational access via admin tools (to be enforced in admin RLS helpers)
+- Admins (`super_admin` / `district_admin`): operational access via admin tools (enforced with RLS helpers)
 
 ## Rules
 - Never log NIC/passwords in client crash reports

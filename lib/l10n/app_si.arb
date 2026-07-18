@@ -4,5 +4,207 @@
   "riseTogether": "එක්ව නැගී සිටිමු.",
   "signIn": "පිවිසෙන්න",
   "signOut": "ඉවත් වන්න",
-  "completeRegistration": "ලියාපදිංචිය සම්පූර්ණ කරන්න"
+  "completeRegistration": "ලියාපදිංචිය සම්පූර්ණ කරන්න",
+  "welcomeBack": "නැවතත් සාදරයෙන් පිළිගනිමු",
+  "signInPrompt": "SYU ශ්‍රී ලංකා සමඟ ඉදිරියට යාමට පිවිසෙන්න.",
+  "email": "විද්‍යුත් තැපෑල",
+  "password": "මුරපදය",
+  "forgotPassword": "මුරපදය අමතක වුනාද?",
+  "newToSyu": "SYU වෙත නවකයෙක්ද?",
+  "createAccount": "ගිණුමක් සාදන්න",
+  "home": "ප්‍රධාන",
+  "news": "පුවත්",
+  "events": "සිදුවීම්",
+  "chat": "පණිවිඩ",
+  "settings": "සැකසුම්",
+  "language": "භාෂාව",
+  "changeLanguage": "භාෂාව වෙනස් කරන්න",
+  "selectLanguage": "භාෂාව තෝරන්න",
+  "notifications": "දැනුම්දීම්",
+  "updateDetails": "ඔබේ විස්තර යාවත්කාලීන කරන්න",
+  "latestAnnouncements": "නවතම නිවේදන",
+  "upcomingEvents": "ඉදිරි සිදුවීම්",
+  "messagesFromSyu": "SYU වෙතින් පණිවිඩ",
+  "adminDashboard": "පාලක පුවරුව",
+  "members": "සාමාජිකයින්",
+  "clubs": "සමාජ",
+  "broadcast": "විකාශනය",
+  "reports": "වාර්තා",
+  "audit": "විගණනය",
+  "personal": "පෞද්ගලික",
+  "location": "ප්‍රදේශය",
+  "qualifications": "සුදුසුකම්",
+  "review": "සමාලෝචනය",
+  "next": "ඉදිරියට",
+  "submitRegistration": "ලියාපදිංචිය තහවුරු කරන්න",
+  "fullName": "සම්පූර්ණ නම",
+  "phone": "දුරකථන අංකය",
+  "nic": "හැඳුනුම්පත් අංකය",
+  "dob": "උපන් දිනය",
+  "gender": "ස්ත්‍රී/පුරුෂ භාවය",
+  "district": "දිස්ත්‍රික්කය",
+  "dsDivision": "ප්‍රා.ලේ. කොට්ඨාසය",
+  "gnDivision": "ග්‍රාම නිලධාරී වසම",
+  "club": "යොවුන් සමාජය",
+  "languageSkills": "භාෂා හැකියාවන්",
+  "hubSubtitle": "සාමාජිකත්වය, නිවේදන, සිදුවීම් සහ පණිවිඩ හුවමාරුව සඳහා වන ඔබගේ මධ්‍යස්ථානය.",
+  "completeRegistrationSubtitle": "සාමාජිකත්වය සක්‍රීය කිරීමට ඔබගේ තොරතුරු සම්පූර්ණ කරන්න.",
+  "updateDetailsSubtitle": "ඔබගේ පැතිකඩ සහ තොරතුරු යාවත්කාලීනව තබා ගන්න.",
+  "newsSubtitle": "නවතම පුවත් සඳහා 'පුවත්' ටැබය විවෘත කරන්න.",
+  "eventsSubtitle": "සිදුවීම් සඳහා ලියාපදිංචි වීමට 'සිදුවීම්' ටැබය විවෘත කරන්න.",
+  "adminDashboardSubtitle": "සාමාජිකයින් කළමනාකරණය, පුවත් සහ සිදුවීම් ප්‍රකාශනය, සහ දිස්ත්‍රික්ක පුරා තරුණ ප්‍රජාව වෙත ලඟා වීම.",
+  "quickAccess": "පහසු ප්‍රවේශය",
+  "publish": "ප්‍රකාශනය",
+  "otherTools": "වෙනත් මෙවලම්",
+  "confirmEmail": "ඊමේල් ලිපිනය තහවුරු කරන්න",
+  "sentLinkTo": "අපි ඉලක්කම් 6ක කේතයක් පහත ලිපිනයට එවා ඇත",
+  "openLinkPrompt": "ගිණුම සක්‍රීය කිරීමට ඊමේල් පණිවිඩයේ ඇති කේතය ඇතුළත් කරන්න. නොපෙනේ නම් spam හෝ junk ෆෝල්ඩරය පරීක්ෂා කරන්න. ඊමේල් තහවුරු කරන තෙක් ඔබට පිවිසිය නොහැක.",
+  "goToSignIn": "තහවුරු කළා - පිවිසුම් පිටුවට යන්න",
+  "resendEmail": "කේතය නැවත එවන්න",
+  "useDifferentEmail": "වෙනත් ඊමේල් ලිපිනයක් භාවිතා කරන්න",
+  "enterVerificationCode": "තහවුරු කේතය",
+  "verifyAndContinue": "තහවුරු කර ඉදිරියට",
+  "invalidVerificationCode": "ඊමේල් පණිවිඩයේ ඇති ඉලක්කම් 6ක කේතය ඇතුළත් කරන්න.",
+  "codeResent": "නව කේතයක් එවන ලදී. ඔබගේ එන ලිපි පරීක්ෂා කරන්න.",
+  "codeResendFailed": "දැන් නැවත එවීමට නොහැක. මඳක් රැඳී නැවත උත්සාහ කරන්න.",
+  "editProfile": "පැතිකඩ සංස්කරණය",
+  "preferredName": "කැමති නම",
+  "phoneHint": "දුරකථන අංකය (+94…)",
+  "completenessPercent": "සම්පූර්ණත්වය {percent}%",
+  "@completenessPercent": {
+    "placeholders": {
+      "percent": {"type": "int"}
+    }
+  },
+  "missingPrefix": "අඩුව: {items}",
+  "@missingPrefix": {
+    "placeholders": {
+      "items": {"type": "String"}
+    }
+  },
+  "selectAllThatApply": "අදාළ සියල්ල තෝරන්න.",
+  "selectLanguagesYouSpeak": "ඔබට කතා කළ හැකි භාෂා තෝරන්න.",
+  "langSinhala": "සිංහල",
+  "langTamil": "දෙමළ",
+  "langEnglish": "ඉංග්‍රීසි",
+  "saveChanges": "වෙනස්කම් සුරකින්න",
+  "profileUpdated": "පැතිකඩ යාවත්කාලීන විය",
+  "fieldRequired": "අවශ්‍යයි",
+  "emailRequired": "ඊමේල් ලිපිනය අවශ්‍යයි",
+  "passwordRequired": "මුරපදය අවශ්‍යයි",
+  "validEmail": "නිවැරදි ඊමේල් ලිපිනයක් ඇතුළත් කරන්න",
+  "validPhone": "නිවැරදි දුරකථන අංකයක් ඇතුළත් කරන්න",
+  "nicRequired": "ජාතික හැඳුනුම්පත් අංකය අවශ්‍යයි",
+  "nicInvalid": "නිවැරදි හැඳුනුම්පත් අංකයක් ඇතුළත් කරන්න (123456789V හෝ ඉලක්කම් 12)",
+  "passwordMinLength": "අවම වශයෙන් අනුලකුණු {count} ක් භාවිතා කරන්න",
+  "@passwordMinLength": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "dobRequired": "උපන් දිනය අවශ්‍යයි",
+  "ageTooYoung": "ඔබට අවම වශයෙන් වයස අවුරුදු {age} ක් විය යුතුය",
+  "@ageTooYoung": {
+    "placeholders": {
+      "age": {"type": "int"}
+    }
+  },
+  "ageTooOld": "සාමාජිකත්වය සඳහා උපරිම වයස අවුරුදු {age} කි",
+  "@ageTooOld": {
+    "placeholders": {
+      "age": {"type": "int"}
+    }
+  },
+  "noAnnouncementsYet": "තවම නිවේදන නැත.",
+  "noEventsYet": "තවම ප්‍රකාශිත සිදුවීම් නැත.",
+  "chatListSubtitle": "SYU සමඟ ඔබේ පණිවිඩ. සංවාදය විවෘතව ඇති විට පිළිතුරු දිය හැක.",
+  "noConversationsYet": "තවම සංවාද නැත. පරිපාලකයෙකු ඔබට පණිවිඩයක් යවන විට මෙහි පෙනෙනු ඇත.",
+  "resetPassword": "මුරපදය යළි සකසන්න",
+  "resetPasswordPrompt": "ඔබේ ගිණුමේ ඊමේල් ලිපිනය ඇතුළත් කරන්න. අපි යළි සැකසීමේ සබැඳියක් යවන්නෙමු.",
+  "sendResetLink": "යළි සැකසීමේ සබැඳිය යවන්න",
+  "checkYourEmail": "ඔබේ ඊමේල් පරීක්ෂා කරන්න",
+  "resetLinkSent": "{email} සඳහා ගිණුමක් තිබේ නම්, මුරපද යළි සැකසීමේ සබැඳියක් යවා ඇත.",
+  "@resetLinkSent": {
+    "placeholders": {
+      "email": {"type": "String"}
+    }
+  },
+  "backToSignIn": "පිවිසුමට ආපසු",
+  "createAccountPrompt": "සාමාජික ලියාපදිංචිය ආරම්භ කිරීමට ඔබේ ගිණුම සාදන්න.",
+  "alreadyHaveAccount": "දැනටමත් ගිණුමක් තිබේද? පිවිසෙන්න",
+  "genderFemale": "ගැහැණු",
+  "genderMale": "පිරිමි",
+  "genderOther": "වෙනත්",
+  "genderPreferNot": "පැවසීමට අකමැතියි",
+  "fieldProfile": "පැතිකඩ",
+  "notificationsAndAccount": "දැනුම්දීම් සහ ගිණුම",
+  "saved": "සුරැකි",
+  "browseAndMessage": "බලන්න සහ පණිවිඩ යවන්න",
+  "quickShortlist": "ඉක්මන් ලැයිස්තුව",
+  "memberThreads": "සාමාජික සංවාද",
+  "newMessages": "නව පණිවිඩ",
+  "notifyAudiences": "ප්‍රේක්ෂකයන්ට දැනුම් දෙන්න",
+  "announcements": "නිවේදන",
+  "createAndRsvp": "සාදන්න සහ ලියාපදිංචි වන්න",
+  "youthClubs": "යොවුන් සමාජ",
+  "summaries": "සාරාංශ",
+  "adminActions": "පරිපාලක ක්‍රියා",
+  "dashboard": "පුවරුව",
+  "approvals": "අනුමත කිරීම්",
+  "all": "සියල්ල",
+  "searchMembersHint": "නම, ඊමේල්, හැඳුනුම්පත් අංකය සොයන්න",
+  "filters": "පෙරහන්",
+  "filtersWithCount": "පෙරහන් ({count})",
+  "@filtersWithCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "statusActive": "සක්‍රීය",
+  "statusSuspended": "අත්හිටුවා ඇත",
+  "statusPending": "බලාපොරොත්තුවෙන්",
+  "pageLabel": "පිටුව {current}/{total}",
+  "@pageLabel": {
+    "placeholders": {
+      "current": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "clear": "මකන්න",
+  "terminate": "අවසන් කරන්න",
+  "reopen": "නැවත විවෘත කරන්න",
+  "terminateChatTitle": "සංවාදය අවසන් කරන්නද?",
+  "terminateChatBody": "සාමාජිකයාට තවදුරටත් පිළිතුරු දිය නොහැක. පණිවිඩ තවමත් පෙනෙනු ඇත.",
+  "clearChatTitle": "සියලු පණිවිඩ මකන්නද?",
+  "clearChatBody": "මෙම සංවාදයේ සියලු පණිවිඩ මකා සංවාදය වසයි. සාමාජිකයාට තවදුරටත් පිළිතුරු දිය නොහැක.",
+  "messageMembers": "සාමාජිකයන්ට පණිවිඩ යවන්න",
+  "messageAction": "පණිවිඩය",
+  "terminated": "අවසන් කළා",
+  "chatClosedHint": "මෙම සංවාදය අවසන් වී ඇත. සාමාජිකයාට පිළිතුරු දිය නොහැක. ඉදිරියට යාමට නැවත විවෘත කරන්න.",
+  "messageHint": "පණිවිඩය…",
+  "cancel": "අවලංගු කරන්න",
+  "hideFilters": "පෙරහන් සඟවන්න",
+  "savedWithCount": "සුරැකි {count}",
+  "@savedWithCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "rangeOf": "{from}–{to} / {total}",
+  "@rangeOf": {
+    "placeholders": {
+      "from": {"type": "int"},
+      "to": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "chatTerminated": "සංවාදය අවසන් කළා",
+  "chatCleared": "සංවාදය මකා දැමුවා",
+  "chatReopened": "සංවාදය නැවත විවෘත කළා",
+  "chatStatusOpen": "විවෘත — පිළිතුරු දිය හැක",
+  "chatStatusClosed": "වසා ඇත — සාමාජිකයාට පිළිතුරු දිය නොහැක",
+  "noMessagesYet": "තවම පණිවිඩ නැත — පහත ලියන්න",
+  "noMessages": "පණිවිඩ නැත",
+  "selectMember": "සාමාජිකයා තෝරන්න",
+  "searchNameOrEmail": "නම හෝ ඊමේල් සොයන්න"
 }

@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
+import 'package:syu_sri_lanka/core/localization/language_picker.dart';
+import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key, this.initialEmail, this.notice});
@@ -69,133 +72,151 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SyuGradientBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SyuBrandMark(height: 64, showWordmark: false),
-                      const SizedBox(height: 28),
-                      Text(
-                        'Welcome back',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Sign in to continue with SYU Sri Lanka.',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      if (_banner != null) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: SyuColors.crimson.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: SyuColors.crimson.withValues(alpha: 0.35),
+    final l10n = AppLocalizations.of(context);
+
+    return SyuBackScope(
+      allowExit: true,
+      child: SyuGradientBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            actions: const [
+              LanguagePicker(isCompact: true, onLightBackground: false),
+              SizedBox(width: 8),
+            ],
+          ),
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SyuBrandMark(height: 64, showWordmark: false),
+                        const SizedBox(height: 28),
+                        Text(
+                          l10n.welcomeBack,
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.signInPrompt,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        if (_banner != null) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: SyuColors.crimson.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color:
+                                    SyuColors.crimson.withValues(alpha: 0.35),
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            _banner!,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: SyuColors.ink,
-                                ),
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 28),
-                      TextFormField(
-                        controller: _email,
-                        keyboardType: TextInputType.emailAddress,
-                        autofillHints: const [AutofillHints.email],
-                        decoration: const InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: SyuFieldIcon(SyuIcons.mail),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Email is required';
-                          }
-                          if (!v.contains('@')) return 'Enter a valid email';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _password,
-                        obscureText: _obscure,
-                        autofillHints: const [AutofillHints.password],
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          prefixIcon: const SyuFieldIcon(SyuIcons.lock),
-                          suffixIcon: IconButton(
-                            onPressed: () =>
-                                setState(() => _obscure = !_obscure),
-                            icon: SyuIcon(
-                              _obscure ? SyuIcons.view : SyuIcons.viewOff,
-                              size: 18,
-                              strokeWidth: 1.25,
-                              color: SyuColors.mist,
+                            child: Text(
+                              _banner!,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: SyuColors.ink,
+                                  ),
                             ),
-                          ),
-                        ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) {
-                            return 'Password is required';
-                          }
-                          if (v.length < 6) return 'Minimum 6 characters';
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () => context.go(
-                            '/forgot-password?email=${Uri.encodeComponent(_email.text.trim())}',
-                          ),
-                          child: const Text('Forgot password?'),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      FilledButton(
-                        onPressed: _loading ? null : _submit,
-                        child: _loading
-                            ? const SizedBox(
-                                height: 22,
-                                width: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.4,
-                                  color: SyuColors.paper,
-                                ),
-                              )
-                            : const Text('Sign in'),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'New to SYU?',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          TextButton(
-                            onPressed: () => context.go('/register'),
-                            child: const Text('Create account'),
                           ),
                         ],
-                      ),
-                    ],
+                        const SizedBox(height: 28),
+                        TextFormField(
+                          controller: _email,
+                          keyboardType: TextInputType.emailAddress,
+                          autofillHints: const [AutofillHints.email],
+                          decoration: InputDecoration(
+                            labelText: l10n.email,
+                            prefixIcon: const SyuFieldIcon(SyuIcons.mail),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return l10n.emailRequired;
+                            }
+                            if (!v.contains('@')) return l10n.validEmail;
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                        TextFormField(
+                          controller: _password,
+                          obscureText: _obscure,
+                          autofillHints: const [AutofillHints.password],
+                          decoration: InputDecoration(
+                            labelText: l10n.password,
+                            prefixIcon: const SyuFieldIcon(SyuIcons.lock),
+                            suffixIcon: IconButton(
+                              onPressed: () =>
+                                  setState(() => _obscure = !_obscure),
+                              icon: SyuIcon(
+                                _obscure ? SyuIcons.view : SyuIcons.viewOff,
+                                size: 18,
+                                strokeWidth: 1.25,
+                                color: SyuColors.mist,
+                              ),
+                            ),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.isEmpty) {
+                              return l10n.passwordRequired;
+                            }
+                            if (v.length < 6) return l10n.passwordMinLength(6);
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () => context.go(
+                              '/forgot-password?email=${Uri.encodeComponent(_email.text.trim())}',
+                            ),
+                            child: Text(l10n.forgotPassword),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FilledButton(
+                          onPressed: _loading ? null : _submit,
+                          child: _loading
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.4,
+                                    color: SyuColors.paper,
+                                  ),
+                                )
+                              : Text(l10n.signIn),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              l10n.newToSyu,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            TextButton(
+                              onPressed: () => context.go('/register'),
+                              child: Text(l10n.createAccount),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

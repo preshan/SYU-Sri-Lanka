@@ -7,7 +7,7 @@ void main() {
     test('scores empty profile low', () {
       final c = ProfileCompleteness.fromProfile({});
       expect(c.percent, 0);
-      expect(c.missing, isNotEmpty);
+      expect(c.missingKeys, isNotEmpty);
     });
 
     test('scores complete profile high', () {
@@ -20,7 +20,7 @@ void main() {
         'avatar_path': 'uid/avatar.jpg',
       });
       expect(c.percent, 100);
-      expect(c.missing, isEmpty);
+      expect(c.missingKeys, isEmpty);
     });
   });
 

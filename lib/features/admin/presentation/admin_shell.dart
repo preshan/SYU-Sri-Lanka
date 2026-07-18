@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
+import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
@@ -11,6 +12,7 @@ import 'package:syu_sri_lanka/features/admin/presentation/admin_broadcast_panels
 import 'package:syu_sri_lanka/features/admin/presentation/admin_chat_panel.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_clubs_panel.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_members_panel.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class AdminShell extends ConsumerStatefulWidget {
   const AdminShell({
@@ -35,26 +37,30 @@ class AdminShell extends ConsumerStatefulWidget {
 }
 
 class _AdminShellState extends ConsumerState<AdminShell> {
-  static const _titles = [
-    'Approvals',
-    'Members',
-    'Clubs',
-    'News',
-    'Events',
-    'Chat',
-    'Broadcast',
-    'Reports',
-    'Audit',
-  ];
+  final _chatKey = GlobalKey<AdminChatPanelState>();
 
   bool _checking = true;
   bool _allowed = false;
   late int _tab;
 
+  static const _tabCount = 9;
+
+  List<String> _titles(AppLocalizations l10n) => [
+        l10n.approvals,
+        l10n.members,
+        l10n.clubs,
+        l10n.news,
+        l10n.events,
+        l10n.chat,
+        l10n.broadcast,
+        l10n.reports,
+        l10n.audit,
+      ];
+
   @override
   void initState() {
     super.initState();
-    _tab = widget.initialTab.clamp(0, _titles.length - 1);
+    _tab = widget.initialTab.clamp(0, _tabCount - 1);
     _check();
   }
 
@@ -62,7 +68,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   void didUpdateWidget(covariant AdminShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.initialTab != widget.initialTab) {
-      _tab = widget.initialTab.clamp(0, _titles.length - 1);
+      _tab = widget.initialTab.clamp(0, _tabCount - 1);
     }
   }
 
@@ -79,12 +85,28 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   }
 
   void _leave() {
-    // Always go home — do not capture a pageBuilder context in onLeave.
     if (widget.onLeave != null) {
       widget.onLeave!();
       return;
     }
-    context.go('/home');
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/home');
+    }
+  }
+
+  bool _closeChatIfOpen() =>
+      _chatKey.currentState?.handleSystemBack() ?? false;
+
+  /// System back: close open chat, else leave admin → Home.
+  bool _onSystemBack() {
+    if (_closeChatIfOpen()) {
+      setState(() {});
+      return true;
+    }
+    _leave();
+    return true;
   }
 
   Widget get _panel {
@@ -95,9 +117,10 @@ class _AdminShellState extends ConsumerState<AdminShell> {
       3 => const AdminAnnouncementsPanel(),
       4 => const AdminEventsPanel(),
       5 => AdminChatPanel(
-        initialMemberId: widget.initialMemberId,
-        initialMemberName: widget.initialMemberName,
-      ),
+          key: _chatKey,
+          initialMemberId: widget.initialMemberId,
+          initialMemberName: widget.initialMemberName,
+        ),
       6 => const AdminBroadcastPanel(),
       7 => const _AdminReports(),
       8 => const AdminAuditPanel(),
@@ -145,33 +168,39 @@ class _AdminShellState extends ConsumerState<AdminShell> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 48,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const SyuIcon(SyuIcons.back),
-          tooltip: 'Admin dashboard',
-          onPressed: _leave,
-        ),
-        title: Text(
-          _titles[_tab],
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(
-              visualDensity: VisualDensity.compact,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-            ),
-            onPressed: _leave,
-            child: const Text('Dashboard'),
+    final chatOpen = _chatKey.currentState?.hasOpenThread ?? false;
+    final l10n = AppLocalizations.of(context);
+
+    return SyuBackScope(
+      onBack: _onSystemBack,
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: 48,
+          titleSpacing: 0,
+          leading: IconButton(
+            icon: const SyuIcon(SyuIcons.back),
+            tooltip: chatOpen ? 'Back to chats' : 'Admin dashboard',
+            onPressed: () => _onSystemBack(),
           ),
-        ],
+          title: Text(
+            _titles(l10n)[_tab],
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+              ),
+              onPressed: _leave,
+              child: Text(l10n.dashboard),
+            ),
+          ],
+        ),
+        body: _panel,
       ),
-      body: _panel,
     );
   }
 }

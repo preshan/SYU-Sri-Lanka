@@ -1,31 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
+import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/features/messaging/data/unread_chats_provider.dart';
+import 'package:syu_sri_lanka/features/messaging/presentation/chat_ui.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class ConversationsListScreen extends ConsumerStatefulWidget {
-  const ConversationsListScreen({super.key, this.active = true});
+  const ConversationsListScreen({
+    super.key,
+    this.active = true,
+    this.embedInHomeShell = false,
+  });
 
   /// When false (other bottom-nav tabs), skip auto-refresh.
   final bool active;
 
+  /// When true, [HomeShell] owns system-back; when false (e.g. `/messages`), handle locally.
+  final bool embedInHomeShell;
+
   @override
-  ConsumerState<ConversationsListScreen> createState() =>
-      _ConversationsListScreenState();
+  ConversationsListScreenState createState() => ConversationsListScreenState();
 }
 
-class _ConversationsListScreenState
+class ConversationsListScreenState
     extends ConsumerState<ConversationsListScreen> {
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
   String? _error;
   String? _openId;
   String? _openTitle;
+  String? _openSubtitle;
   String? _openStatus;
+
+  bool get hasOpenThread => _openId != null;
+
+  /// System / gesture back: close open thread. Returns true if consumed.
+  bool handleSystemBack() {
+    if (_openId == null) return false;
+    setState(() {
+      _openId = null;
+      _openTitle = null;
+      _openSubtitle = null;
+      _openStatus = null;
+    });
+    _load();
+    return true;
+  }
 
   @override
   void initState() {
@@ -64,6 +90,12 @@ class _ConversationsListScreenState
     }
   }
 
+  Map<String, dynamic>? _peerOf(Map<String, dynamic> c) {
+    final peer = c['peer'];
+    if (peer is Map) return Map<String, dynamic>.from(peer);
+    return null;
+  }
+
   String _displayTitle(Map<String, dynamic> c) {
     if (c['type'] == 'direct') return 'SYU Admin';
     final title = c['title'] as String?;
@@ -71,133 +103,181 @@ class _ConversationsListScreenState
     return c['type'] as String? ?? 'Chat';
   }
 
+  String _displaySubtitle(Map<String, dynamic> c) {
+    final peer = _peerOf(c);
+    return chatPeerMeta(
+      email: peer?['email'] as String?,
+      district: peer?['district'] as String?,
+    );
+  }
+
+  void _openChat(Map<String, dynamic> c) {
+    setState(() {
+      _openId = c['id'] as String;
+      _openTitle = _displayTitle(c);
+      _openSubtitle = _displaySubtitle(c);
+      _openStatus = c['status'] as String? ?? 'open';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_openId != null) {
-      return _ChatThread(
-        conversationId: _openId!,
-        title: _openTitle ?? 'Chat',
-        status: _openStatus ?? 'open',
-        onBack: () {
-          setState(() {
-            _openId = null;
-            _openTitle = null;
-            _openStatus = null;
-          });
-          _load();
-        },
-      );
-    }
-
-    return SyuGradientBackground(
-      child: SafeArea(
-        child: RefreshIndicator(
-          color: SyuColors.crimson,
-          onRefresh: _load,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-            children: [
-              Text(
-                'Messages',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Chats with SYU admins and clubs.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 20),
-              if (_loading)
-                const Padding(
-                  padding: EdgeInsets.only(top: 48),
-                  child: Center(
-                    child: CircularProgressIndicator(color: SyuColors.crimson),
-                  ),
-                )
-              else if (_error != null)
-                Text(_error!, style: const TextStyle(color: SyuColors.danger))
-              else if (_items.isEmpty)
-                Text(
-                  'No conversations yet. When an admin messages you, it will appear here.',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                )
-              else
-                ..._items.map((c) {
-                  final closed = c['status'] == 'closed';
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(18),
-                        onTap: () => setState(() {
-                          _openId = c['id'] as String;
-                          _openTitle = _displayTitle(c);
-                          _openStatus = c['status'] as String? ?? 'open';
-                        }),
-                        child: Container(
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            color:
-                                SyuColors.inkElevated.withValues(alpha: 0.9),
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: SyuColors.border),
+    final l10n = AppLocalizations.of(context);
+    final body = _openId != null
+        ? _ChatThread(
+            conversationId: _openId!,
+            title: _openTitle ?? l10n.chat,
+            subtitle: _openSubtitle ?? '',
+            status: _openStatus ?? 'open',
+            onBack: handleSystemBack,
+          )
+        : SyuGradientBackground(
+            child: SafeArea(
+              child: RefreshIndicator(
+                color: SyuColors.crimson,
+                onRefresh: _load,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+                  children: [
+                    Row(
+                      children: [
+                        if (context.canPop())
+                          IconButton(
+                            onPressed: () => context.pop(),
+                            icon: const SyuIcon(SyuIcons.back),
                           ),
-                          child: Row(
-                            children: [
-                              SyuIcon(
-                                closed ? SyuIcons.lock : SyuIcons.chat,
-                                color: SyuColors.crimsonSoft,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                        Expanded(
+                          child: Text(
+                            l10n.chat,
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      l10n.chatListSubtitle,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 20),
+                    if (_loading)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 48),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: SyuColors.crimson,
+                          ),
+                        ),
+                      )
+                    else if (_error != null)
+                      Text(
+                        _error!,
+                        style: const TextStyle(color: SyuColors.danger),
+                      )
+                    else if (_items.isEmpty)
+                      Text(
+                        l10n.noConversationsYet,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      )
+                    else
+                      ..._items.map((c) {
+                        final closed = c['status'] == 'closed';
+                        final subtitle = _displaySubtitle(c);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(18),
+                              onTap: () => _openChat(c),
+                              child: Container(
+                                padding: const EdgeInsets.all(18),
+                                decoration: BoxDecoration(
+                                  color: SyuColors.inkElevated
+                                      .withValues(alpha: 0.9),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: SyuColors.border),
+                                ),
+                                child: Row(
                                   children: [
-                                    Text(
-                                      _displayTitle(c),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium,
+                                    SyuIcon(
+                                      closed ? SyuIcons.lock : SyuIcons.chat,
+                                      color: SyuColors.crimsonSoft,
                                     ),
-                                    if (closed)
-                                      Text(
-                                        'Chat ended',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(color: SyuColors.mist),
-                                      )
-                                    else if ((c['last_message'] as String?)
-                                            ?.isNotEmpty ==
-                                        true)
-                                      Text(
-                                        c['last_message'] as String,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(color: SyuColors.mist),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            _displayTitle(c),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium,
+                                          ),
+                                          if (subtitle.isNotEmpty)
+                                            Text(
+                                              subtitle,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color: SyuColors.mist,
+                                                    fontSize: 11,
+                                                  ),
+                                            ),
+                                          if (closed)
+                                            Text(
+                                              'Chat ended',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color: SyuColors.mist,
+                                                  ),
+                                            )
+                                          else if ((c['last_message'] as String?)
+                                                  ?.isNotEmpty ==
+                                              true)
+                                            Text(
+                                              c['last_message'] as String,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color: SyuColors.mist,
+                                                  ),
+                                            ),
+                                        ],
                                       ),
+                                    ),
+                                    const SyuIcon(
+                                      SyuIcons.chevronRight,
+                                      color: SyuColors.mist,
+                                    ),
                                   ],
                                 ),
                               ),
-                              const SyuIcon(
-                                SyuIcons.chevronRight,
-                                color: SyuColors.mist,
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-            ],
-          ),
-        ),
-      ),
+                        );
+                      }),
+                  ],
+                ),
+              ),
+            ),
+          );
+
+    if (widget.embedInHomeShell) return body;
+    return SyuBackScope(
+      onBack: handleSystemBack,
+      fallbackLocation: '/home',
+      child: body,
     );
   }
 }
@@ -206,12 +286,14 @@ class _ChatThread extends ConsumerStatefulWidget {
   const _ChatThread({
     required this.conversationId,
     required this.title,
+    required this.subtitle,
     required this.status,
     required this.onBack,
   });
 
   final String conversationId;
   final String title;
+  final String subtitle;
   final String status;
   final VoidCallback onBack;
 
@@ -223,6 +305,7 @@ class _ChatThreadState extends ConsumerState<_ChatThread> {
   final _controller = TextEditingController();
   final _scroll = ScrollController();
   List<Map<String, dynamic>> _messages = [];
+  DateTime? _peerLastReadAt;
   bool _loading = true;
   bool _sending = false;
   late String _status;
@@ -241,31 +324,87 @@ class _ChatThreadState extends ConsumerState<_ChatThread> {
     super.dispose();
   }
 
+  void _scrollToBottom({bool animated = false}) {
+    // reverse:true ListView — offset 0 is the newest messages (bottom).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scroll.hasClients) return;
+      if (animated) {
+        _scroll.animateTo(
+          0,
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      } else {
+        _scroll.jumpTo(0);
+      }
+    });
+  }
+
   Future<void> _load() async {
     try {
+      final uid = SupabaseBootstrap.client.auth.currentUser?.id;
       final rows = await SupabaseBootstrap.client
           .from('messages')
           .select('id,body,sender_id,created_at')
           .eq('conversation_id', widget.conversationId)
           .isFilter('deleted_at', null)
-          .order('created_at')
+          .order('created_at', ascending: true)
           .limit(200);
-      final conv = await SupabaseBootstrap.client
-          .from('conversations')
-          .select('status')
-          .eq('id', widget.conversationId)
-          .maybeSingle();
+
+      var status = _status;
+      try {
+        final conv = await SupabaseBootstrap.client
+            .from('conversations')
+            .select('status')
+            .eq('id', widget.conversationId)
+            .maybeSingle();
+        if (conv != null) {
+          status = conv['status'] as String? ?? status;
+        }
+      } catch (e) {
+        AppErrorMapper.log(e);
+      }
+
+      DateTime? peerRead = _peerLastReadAt;
+      if (uid != null) {
+        try {
+          final peers = await SupabaseBootstrap.client
+              .from('conversation_participants')
+              .select('last_read_at,user_id')
+              .eq('conversation_id', widget.conversationId)
+              .neq('user_id', uid)
+              .limit(1);
+          final peerRows = List<Map<String, dynamic>>.from(peers as List);
+          if (peerRows.isNotEmpty) {
+            peerRead = parseChatTimestamp(peerRows.first['last_read_at']);
+          }
+        } catch (e) {
+          AppErrorMapper.log(e);
+        }
+      }
+
+      if (!mounted) return;
       setState(() {
         _messages = List<Map<String, dynamic>>.from(rows as List);
-        if (conv != null) _status = conv['status'] as String? ?? _status;
+        _peerLastReadAt = peerRead;
+        _status = status;
+        _loading = false;
       });
-      await ref
-          .read(unreadChatsProvider.notifier)
-          .markConversationRead(widget.conversationId);
+      _scrollToBottom();
+
+      try {
+        await ref
+            .read(unreadChatsProvider.notifier)
+            .markConversationRead(widget.conversationId);
+      } catch (e) {
+        AppErrorMapper.log(e);
+      }
     } catch (e) {
       AppErrorMapper.log(e);
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+        AppErrorMapper.showSnackBar(context, e);
+      }
     }
   }
 
@@ -273,20 +412,33 @@ class _ChatThreadState extends ConsumerState<_ChatThread> {
     final text = _controller.text.trim();
     if (text.isEmpty || _sending || _status != 'open') return;
     setState(() => _sending = true);
+    final uid = SupabaseBootstrap.client.auth.currentUser!.id;
+    final optimistic = <String, dynamic>{
+      'id': 'local-${DateTime.now().microsecondsSinceEpoch}',
+      'body': text,
+      'sender_id': uid,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+    };
+    setState(() {
+      _messages = [..._messages, optimistic];
+    });
+    _controller.clear();
+    _scrollToBottom(animated: true);
     try {
-      final uid = SupabaseBootstrap.client.auth.currentUser!.id;
       await SupabaseBootstrap.client.from('messages').insert({
         'conversation_id': widget.conversationId,
         'sender_id': uid,
         'body': text,
       });
-      _controller.clear();
       await _load();
-      if (_scroll.hasClients) {
-        _scroll.jumpTo(_scroll.position.maxScrollExtent);
-      }
+      _scrollToBottom(animated: true);
     } catch (e) {
-      if (mounted) AppErrorMapper.showSnackBar(context, e);
+      if (mounted) {
+        setState(() {
+          _messages = _messages.where((m) => m['id'] != optimistic['id']).toList();
+        });
+        AppErrorMapper.showSnackBar(context, e);
+      }
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -316,6 +468,17 @@ class _ChatThreadState extends ConsumerState<_ChatThread> {
                           widget.title,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
+                        if (widget.subtitle.isNotEmpty)
+                          Text(
+                            widget.subtitle,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  color: SyuColors.mist,
+                                  fontSize: 11,
+                                ),
+                          ),
                         if (!open)
                           Text(
                             'This chat was ended by an admin',
@@ -336,45 +499,14 @@ class _ChatThreadState extends ConsumerState<_ChatThread> {
                       child:
                           CircularProgressIndicator(color: SyuColors.crimson),
                     )
-                  : ListView.builder(
+                  : ChatMessagesView(
+                      messages: _messages,
+                      currentUserId: uid,
+                      peerLastReadAt: _peerLastReadAt,
                       controller: _scroll,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      itemCount: _messages.length,
-                      itemBuilder: (context, i) {
-                        final m = _messages[i];
-                        final mine = m['sender_id'] == uid;
-                        return Align(
-                          alignment: mine
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            constraints: BoxConstraints(
-                              maxWidth:
-                                  MediaQuery.sizeOf(context).width * 0.75,
-                            ),
-                            decoration: BoxDecoration(
-                              color: mine
-                                  ? SyuColors.crimson.withValues(alpha: 0.9)
-                                  : SyuColors.inkSoft,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Text(
-                              m['body'] as String? ?? '',
-                              style: TextStyle(
-                                color: mine ? SyuColors.paper : SyuColors.ink,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
+                      emptyLabel: open
+                          ? 'No messages yet — write below'
+                          : 'No messages',
                     ),
             ),
             if (open)
@@ -405,7 +537,7 @@ class _ChatThreadState extends ConsumerState<_ChatThread> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'You can no longer reply — this chat was terminated.',
+                  'This chat was ended.',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: SyuColors.mist,

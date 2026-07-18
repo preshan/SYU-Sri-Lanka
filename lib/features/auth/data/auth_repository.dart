@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:syu_sri_lanka/core/auth/auth_redirects.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 
 final supabaseClientProvider = Provider<SupabaseClient>(
@@ -35,6 +36,7 @@ class AuthRepository {
     return _client.auth.signUp(
       email: email,
       password: password,
+      emailRedirectTo: AuthRedirects.emailRedirectTo,
       data: {
         if (fullName != null && fullName.trim().isNotEmpty)
           'full_name': fullName.trim(),
@@ -45,13 +47,29 @@ class AuthRepository {
   Future<void> signOut() => _client.auth.signOut();
 
   Future<void> resetPassword(String email) {
-    return _client.auth.resetPasswordForEmail(email);
+    return _client.auth.resetPasswordForEmail(
+      email,
+      redirectTo: AuthRedirects.emailRedirectTo,
+    );
   }
 
   Future<void> resendSignupEmail(String email) {
     return _client.auth.resend(
       type: OtpType.signup,
       email: email,
+      emailRedirectTo: AuthRedirects.emailRedirectTo,
+    );
+  }
+
+  /// Confirm signup with the 6-digit code from the email (`{{ .Token }}`).
+  Future<AuthResponse> verifySignupOtp({
+    required String email,
+    required String token,
+  }) {
+    return _client.auth.verifyOTP(
+      type: OtpType.signup,
+      email: email.trim(),
+      token: token.trim(),
     );
   }
 }

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
+import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
 import 'package:syu_sri_lanka/core/validation/nic_and_age.dart';
 import 'package:syu_sri_lanka/features/home/presentation/home_shell.dart';
 import 'package:syu_sri_lanka/features/location/presentation/cascading_location_picker.dart';
+import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class RegistrationWizardScreen extends ConsumerStatefulWidget {
   const RegistrationWizardScreen({super.key});
@@ -106,9 +108,13 @@ class _RegistrationWizardScreenState
 
   void _next() {
     if (!_formKeys[_step].currentState!.validate()) return;
-    if (_step == 0 && AgeRules.eligibilityError(_dob) != null) {
+    if (_step == 0 && AgeRules.eligibilityError(_dob, AppLocalizations.of(context)) != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AgeRules.eligibilityError(_dob)!)),
+        SnackBar(
+          content: Text(
+            AgeRules.eligibilityError(_dob, AppLocalizations.of(context))!,
+          ),
+        ),
       );
       return;
     }
@@ -139,7 +145,11 @@ class _RegistrationWizardScreenState
 
   void _back() {
     if (_step == 0) {
-      context.go('/home');
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go('/home');
+      }
       return;
     }
     setState(() => _step--);
@@ -147,6 +157,16 @@ class _RegistrationWizardScreenState
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
     );
+  }
+
+  bool _handleSystemBack() {
+    if (_step == 0) return false;
+    setState(() => _step--);
+    _pageController.previousPage(
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
+    return true;
   }
 
   Future<void> _submit() async {
@@ -202,62 +222,73 @@ class _RegistrationWizardScreenState
 
   @override
   Widget build(BuildContext context) {
-    final titles = ['Personal', 'Location', 'Qualifications', 'Review'];
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Registration · ${titles[_step]}'),
-        leading: IconButton(
-          icon: const SyuIcon(SyuIcons.back),
-          onPressed: _back,
+    final l10n = AppLocalizations.of(context);
+    final titles = [
+      l10n.personal,
+      l10n.location,
+      l10n.qualifications,
+      l10n.review
+    ];
+    return SyuBackScope(
+      onBack: _handleSystemBack,
+      fallbackLocation: '/home',
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Registration · ${titles[_step]}'),
+          leading: IconButton(
+            icon: const SyuIcon(SyuIcons.back),
+            onPressed: _back,
+          ),
         ),
-      ),
-      body: Column(
-        children: [
-          LinearProgressIndicator(
-            value: (_step + 1) / 4,
-            color: SyuColors.crimson,
-            backgroundColor: SyuColors.inkSoft,
-          ),
-          Expanded(
-            child: _loadingMeta
-                ? const Center(
-                    child: CircularProgressIndicator(color: SyuColors.crimson),
-                  )
-                : PageView(
-                    controller: _pageController,
-                    physics: const NeverScrollableScrollPhysics(),
-                    children: [
-                      _personalStep(),
-                      _locationStep(),
-                      _qualificationsStep(),
-                      _reviewStep(),
-                    ],
-                  ),
-          ),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-              child: FilledButton(
-                onPressed: _submitting ? null : _next,
-                child: _submitting
-                    ? const SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.4,
-                          color: SyuColors.paper,
-                        ),
-                      )
-                    : Text(_step == 3 ? 'Submit registration' : 'Continue'),
+        body: Column(
+          children: [
+            LinearProgressIndicator(
+              value: (_step + 1) / 4,
+              color: SyuColors.crimson,
+              backgroundColor: SyuColors.inkSoft,
+            ),
+            Expanded(
+              child: _loadingMeta
+                  ? const Center(
+                      child: CircularProgressIndicator(color: SyuColors.crimson),
+                    )
+                  : PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _personalStep(),
+                        _locationStep(),
+                        _qualificationsStep(),
+                        _reviewStep(),
+                      ],
+                    ),
+            ),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                child: FilledButton(
+                  onPressed: _submitting ? null : _next,
+                  child: _submitting
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.4,
+                            color: SyuColors.paper,
+                          ),
+                        )
+                      : Text(_step == 3 ? l10n.submitRegistration : l10n.next),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _personalStep() {
+    final l10n = AppLocalizations.of(context);
     return Form(
       key: _formKeys[0],
       child: ListView(
@@ -266,21 +297,21 @@ class _RegistrationWizardScreenState
           TextFormField(
             controller: _fullName,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(labelText: 'Full name'),
+            decoration: InputDecoration(labelText: l10n.fullName),
             validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Required' : null,
+                (v == null || v.trim().isEmpty) ? l10n.fieldRequired : null,
           ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _phone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(
-              labelText: 'Phone (+94…)',
-              prefixIcon: SyuFieldIcon(SyuIcons.phone),
+            decoration: InputDecoration(
+              labelText: l10n.phoneHint,
+              prefixIcon: const SyuFieldIcon(SyuIcons.phone),
             ),
             validator: (v) {
               if (v == null || v.trim().length < 9) {
-                return 'Enter a valid phone number';
+                return l10n.validPhone;
               }
               return null;
             },
@@ -289,21 +320,21 @@ class _RegistrationWizardScreenState
           TextFormField(
             controller: _nic,
             textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(labelText: 'NIC'),
-            validator: NicValidator.errorText,
+            decoration: InputDecoration(labelText: l10n.nic),
+            validator: (v) => NicValidator.errorText(v, l10n),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             // ignore: deprecated_member_use
             value: _gender,
-            decoration: const InputDecoration(labelText: 'Gender'),
-            items: const [
-              DropdownMenuItem(value: 'female', child: Text('Female')),
-              DropdownMenuItem(value: 'male', child: Text('Male')),
-              DropdownMenuItem(value: 'other', child: Text('Other')),
+            decoration: InputDecoration(labelText: l10n.gender),
+            items: [
+              DropdownMenuItem(value: 'female', child: Text(l10n.genderFemale)),
+              DropdownMenuItem(value: 'male', child: Text(l10n.genderMale)),
+              DropdownMenuItem(value: 'other', child: Text(l10n.genderOther)),
               DropdownMenuItem(
                 value: 'prefer_not',
-                child: Text('Prefer not to say'),
+                child: Text(l10n.genderPreferNot),
               ),
             ],
             onChanged: (v) => setState(() => _gender = v),
@@ -313,7 +344,7 @@ class _RegistrationWizardScreenState
             contentPadding: EdgeInsets.zero,
             title: Text(
               _dob == null
-                  ? 'Date of birth'
+                  ? l10n.dob
                   : 'DOB: ${_dob!.toIso8601String().split('T').first} (age ${AgeRules.ageOn(_dob!)})',
             ),
             trailing: const SyuIcon(SyuIcons.calendar),
@@ -442,18 +473,19 @@ class _RegistrationWizardScreenState
   }
 
   Widget _qualificationsStep() {
+    final l10n = AppLocalizations.of(context);
     return Form(
       key: _formKeys[2],
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'Qualifications',
+            l10n.qualifications,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
-            'Select all that apply.',
+            l10n.selectAllThatApply,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 12),
@@ -477,31 +509,31 @@ class _RegistrationWizardScreenState
           }),
           const SizedBox(height: 20),
           Text(
-            'Language skills',
+            l10n.languageSkills,
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
-            'Select languages you can speak.',
+            l10n.selectLanguagesYouSpeak,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 8),
           CheckboxListTile(
             value: _speaksSinhala,
             activeColor: SyuColors.crimson,
-            title: const Text('Sinhala'),
+            title: Text(l10n.langSinhala),
             onChanged: (v) => setState(() => _speaksSinhala = v == true),
           ),
           CheckboxListTile(
             value: _speaksTamil,
             activeColor: SyuColors.crimson,
-            title: const Text('Tamil'),
+            title: Text(l10n.langTamil),
             onChanged: (v) => setState(() => _speaksTamil = v == true),
           ),
           CheckboxListTile(
             value: _speaksEnglish,
             activeColor: SyuColors.crimson,
-            title: const Text('English'),
+            title: Text(l10n.langEnglish),
             onChanged: (v) => setState(() => _speaksEnglish = v == true),
           ),
         ],
