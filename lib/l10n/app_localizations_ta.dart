@@ -475,51 +475,6 @@ class AppLocalizationsTa extends AppLocalizations {
   String get adminActions => 'நிர்வாக செயல்கள்';
 
   @override
-  String get mailSettings => 'அஞ்சல்';
-
-  @override
-  String get mailSettingsSubtitle => 'பதிவு குறியீடுகளுக்கான Gmail SMTP';
-
-  @override
-  String get mailSettingsIntro =>
-      'Gmail முகவரி மற்றும் App Password-ஐ இங்கே சேமிக்கவும். சேமித்தவுடன் ஆப்ஸை மீண்டும் deploy செய்யாமல் Auth அஞ்சல் அனுப்பல் புதுப்பிக்கப்படும். சேமித்த பிறகு கடவுச்சொல் மீண்டும் காட்டப்படாது.';
-
-  @override
-  String get mailSettingsGmail => 'Gmail முகவரி';
-
-  @override
-  String get mailSettingsAppPassword => 'App Password';
-
-  @override
-  String get mailSettingsPasswordHintSet =>
-      'தற்போதைய கடவுச்சொல்லை வைத்திருக்க காலியாக விடவும்';
-
-  @override
-  String get mailSettingsPasswordHintNew => '16 எழுத்து Google App Password';
-
-  @override
-  String get mailSettingsFromEmail => 'அனுப்புநர் மின்னஞ்சல்';
-
-  @override
-  String get mailSettingsFromEmailHint => 'வழக்கமாக Gmail முகவரியே';
-
-  @override
-  String get mailSettingsFromName => 'அனுப்புநர் பெயர்';
-
-  @override
-  String get mailSettingsSaveAndApply => 'சேமித்து பயன்படுத்து';
-
-  @override
-  String get mailSettingsSaved =>
-      'அஞ்சல் அமைப்புகள் சேமிக்கப்பட்டு Auth-இல் பயன்படுத்தப்பட்டன';
-
-  @override
-  String get mailSettingsEmailRequired => 'Gmail முகவரியை உள்ளிடவும்';
-
-  @override
-  String get mailSettingsPasswordRequired => 'App Password-ஐ உள்ளிடவும்';
-
-  @override
   String get dashboard => 'முகப்புப் பலகை';
 
   @override
@@ -634,4 +589,30 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get searchNameOrEmail => 'பெயர் அல்லது மின்னஞ்சல் தேடவும்';
+
+  @override
+  String get divisionAdmins => 'பிரிவு நிர்வாகிகள்';
+
+  @override
+  String get divisionAdminsHint => 'இந்த மாவட்டத்திற்கான தொடர்புகள்';
+
+  @override
+  String get noDivisionAdmins => 'இந்த மாவட்டத்திற்கு பிரிவு நிர்வாகிகள் இல்லை';
+
+  @override
+  String get divisionAdminContactRequired =>
+      'உங்கள் பெயர் மற்றும் தொலைபேசி எண்ணைச் சேர்க்கவும்';
+
+  @override
+  String get divisionAdminContactBody =>
+      'மாவட்ட நிர்வாகிகள் தொடர்புகொள்ள, பிரிவு நிர்வாகிகள் பெயர் மற்றும் தொலைபேசி எண்ணை வழங்க வேண்டும்.';
+
+  @override
+  String get addContactDetails => 'தொடர்பு விவரங்களைச் சேர்க்கவும்';
+
+  @override
+  String get nameRequired => 'பெயர் தேவை';
+
+  @override
+  String get phoneRequired => 'தொலைபேசி எண் தேவை';
 }

@@ -470,50 +470,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminActions => 'Admin actions';
 
   @override
-  String get mailSettings => 'Mail';
-
-  @override
-  String get mailSettingsSubtitle => 'Gmail SMTP for signup codes';
-
-  @override
-  String get mailSettingsIntro =>
-      'Store the Gmail address and App Password here. Saving applies them to Auth email delivery without redeploying the app. The password is never shown again after save.';
-
-  @override
-  String get mailSettingsGmail => 'Gmail address';
-
-  @override
-  String get mailSettingsAppPassword => 'App Password';
-
-  @override
-  String get mailSettingsPasswordHintSet =>
-      'Leave blank to keep current password';
-
-  @override
-  String get mailSettingsPasswordHintNew => '16-character Google App Password';
-
-  @override
-  String get mailSettingsFromEmail => 'From email';
-
-  @override
-  String get mailSettingsFromEmailHint => 'Usually the same as Gmail';
-
-  @override
-  String get mailSettingsFromName => 'From name';
-
-  @override
-  String get mailSettingsSaveAndApply => 'Save and apply';
-
-  @override
-  String get mailSettingsSaved => 'Mail settings saved and applied to Auth';
-
-  @override
-  String get mailSettingsEmailRequired => 'Enter the Gmail address';
-
-  @override
-  String get mailSettingsPasswordRequired => 'Enter the App Password';
-
-  @override
   String get dashboard => 'Dashboard';
 
   @override
@@ -628,4 +584,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchNameOrEmail => 'Search name or email';
+
+  @override
+  String get divisionAdmins => 'Division admins';
+
+  @override
+  String get divisionAdminsHint => 'Contacts for this district';
+
+  @override
+  String get noDivisionAdmins => 'No division admins for this district yet';
+
+  @override
+  String get divisionAdminContactRequired => 'Add your name and phone number';
+
+  @override
+  String get divisionAdminContactBody =>
+      'Division admins must share a name and phone so district admins can reach you.';
+
+  @override
+  String get addContactDetails => 'Add contact details';
+
+  @override
+  String get nameRequired => 'Name is required';
+
+  @override
+  String get phoneRequired => 'Phone number is required';
 }

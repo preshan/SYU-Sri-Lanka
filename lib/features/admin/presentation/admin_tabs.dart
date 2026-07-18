@@ -10,7 +10,6 @@ int? adminTabIndexFromName(String? tab) {
     'broadcast' => 6,
     'reports' => 7,
     'audit' => 8,
-    'mail' => 9,
     'approvals' => 0,
     _ => int.tryParse(tab),
   };

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/app_info.dart';
+import 'package:syu_sri_lanka/core/config/app_config.dart';
 import 'package:syu_sri_lanka/core/localization/language_picker.dart';
 import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
 import 'package:syu_sri_lanka/core/permissions/app_permissions.dart';
@@ -18,11 +19,13 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool? _notificationsOn;
+  String _websiteUrl = AppConfig.defaultWebsiteUrl;
 
   @override
   void initState() {
     super.initState();
     _refreshPermission();
+    _loadWebsiteUrl();
   }
 
   Future<void> _refreshPermission() async {
@@ -30,9 +33,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) setState(() => _notificationsOn = on);
   }
 
+  Future<void> _loadWebsiteUrl() async {
+    final url = await AppConfig.websiteUrl();
+    if (mounted) setState(() => _websiteUrl = url);
+  }
+
   Future<void> _enableNotifications() async {
     await AppPermissions.requestNotificationsOrOpenSettings();
     await _refreshPermission();
+  }
+
+  String get _websiteHostLabel {
+    final uri = Uri.tryParse(_websiteUrl);
+    if (uri == null || uri.host.isEmpty) return _websiteUrl;
+    return uri.host;
   }
 
   @override
@@ -110,9 +124,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 leading: const SyuIcon(SyuIcons.info,
                     color: SyuColors.crimsonSoft),
                 title: const Text('SYU website'),
-                subtitle: const Text('Open syu.lk in your browser'),
+                subtitle: Text('Open $_websiteHostLabel in your browser'),
                 onTap: () async {
-                  final ok = await AppPermissions.openHttps('syu.lk');
+                  final ok = await AppPermissions.openHttps(_websiteUrl);
                   if (!context.mounted) return;
                   if (!ok) {
                     ScaffoldMessenger.of(context).showSnackBar(

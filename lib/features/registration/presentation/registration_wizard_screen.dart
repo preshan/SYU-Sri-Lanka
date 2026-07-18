@@ -27,7 +27,9 @@ class _RegistrationWizardScreenState
   final _fullName = TextEditingController();
   final _phone = TextEditingController();
   final _nic = TextEditingController();
+  final _nicFocus = FocusNode();
   final _occupation = TextEditingController();
+  final _dobDisplay = TextEditingController();
   DateTime? _dob;
   LocationSelection _location = const LocationSelection();
   String? _gender;
@@ -35,14 +37,12 @@ class _RegistrationWizardScreenState
   bool _speaksSinhala = false;
   bool _speaksTamil = false;
   bool _speaksEnglish = false;
-  /// none | listed | yes (already a member)
+  /// none | yes (already a member)
   String _clubMode = 'none';
-  String? _clubId;
   final _clubName = TextEditingController();
   final _clubRegistrationNo = TextEditingController();
   final _otherQualification = TextEditingController();
   List<Map<String, dynamic>> _qualifications = [];
-  List<Map<String, dynamic>> _clubs = [];
   bool _loadingMeta = true;
   bool _submitting = false;
   int _step = 0;
@@ -50,7 +50,38 @@ class _RegistrationWizardScreenState
   @override
   void initState() {
     super.initState();
+    _nicFocus.addListener(_onNicFocusChange);
     _loadMeta();
+  }
+
+  void _onNicFocusChange() {
+    if (!_nicFocus.hasFocus) {
+      _applyNicDerivedFields();
+    }
+  }
+
+  void _applyNicDerivedFields() {
+    final nic = _nic.text;
+    if (!NicValidator.isValid(nic)) return;
+    final dob = NicValidator.dobFromNic(nic);
+    final gender = NicValidator.genderFromNic(nic);
+    if (dob == null && gender == null) return;
+    setState(() {
+      if (dob != null) {
+        _dob = dob;
+        _syncDobDisplay();
+      }
+      if (gender != null && (_gender == null || _gender == 'prefer_not')) {
+        _gender = gender;
+      }
+    });
+  }
+
+  void _syncDobDisplay() {
+    _dobDisplay.text = _dob == null
+        ? ''
+        : '${_dob!.toIso8601String().split('T').first}'
+            '  ·  age ${AgeRules.ageOn(_dob!)}';
   }
 
   Future<void> _loadMeta() async {
@@ -60,14 +91,8 @@ class _RegistrationWizardScreenState
           .select('id,code,name_en')
           .eq('is_active', true)
           .order('level_order');
-      final clubs = await SupabaseBootstrap.client
-          .from('youth_clubs')
-          .select('id,name,district_id')
-          .eq('is_active', true)
-          .order('name');
       setState(() {
         _qualifications = List<Map<String, dynamic>>.from(q as List);
-        _clubs = List<Map<String, dynamic>>.from(clubs as List);
       });
     } catch (e) {
       AppErrorMapper.log(e);
@@ -78,11 +103,14 @@ class _RegistrationWizardScreenState
 
   @override
   void dispose() {
+    _nicFocus.removeListener(_onNicFocusChange);
+    _nicFocus.dispose();
     _pageController.dispose();
     _fullName.dispose();
     _phone.dispose();
     _nic.dispose();
     _occupation.dispose();
+    _dobDisplay.dispose();
     _clubName.dispose();
     _clubRegistrationNo.dispose();
     _otherQualification.dispose();
@@ -93,7 +121,7 @@ class _RegistrationWizardScreenState
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(now.year - 20),
+      initialDate: _dob ?? DateTime(now.year - 20),
       firstDate: DateTime(now.year - 80),
       lastDate: DateTime(now.year - AgeRules.minAge),
       builder: (context, child) {
@@ -109,7 +137,12 @@ class _RegistrationWizardScreenState
         );
       },
     );
-    if (picked != null) setState(() => _dob = picked);
+    if (picked != null) {
+      setState(() {
+        _dob = picked;
+        _syncDobDisplay();
+      });
+    }
   }
 
   void _next() {
@@ -213,7 +246,7 @@ class _RegistrationWizardScreenState
           'p_district_id': _location.districtId,
           'p_ds_division_id': _location.dsDivisionId,
           'p_gn_division_id': _location.gnDivisionId,
-          'p_youth_club_id': _clubMode == 'listed' ? _clubId : null,
+          'p_youth_club_id': null,
           'p_qualification_ids':
               selected.map((q) => q['id'] as String).toList(),
           'p_requested_youth_club_name':
@@ -337,6 +370,7 @@ class _RegistrationWizardScreenState
             decoration: InputDecoration(
               labelText: l10n.occupation,
               hintText: l10n.occupationHint,
+              counterText: '',
             ),
             validator: (v) {
               final t = v?.trim() ?? '';
@@ -362,9 +396,15 @@ class _RegistrationWizardScreenState
           const SizedBox(height: 12),
           TextFormField(
             controller: _nic,
+            focusNode: _nicFocus,
             textCapitalization: TextCapitalization.characters,
             decoration: InputDecoration(labelText: l10n.nic),
             validator: (v) => NicValidator.errorText(v, l10n),
+            onEditingComplete: () {
+              _applyNicDerivedFields();
+              FocusScope.of(context).nextFocus();
+            },
+            onFieldSubmitted: (_) => _applyNicDerivedFields(),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
@@ -383,15 +423,31 @@ class _RegistrationWizardScreenState
             onChanged: (v) => setState(() => _gender = v),
           ),
           const SizedBox(height: 12),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              _dob == null
-                  ? l10n.dob
-                  : 'DOB: ${_dob!.toIso8601String().split('T').first} (age ${AgeRules.ageOn(_dob!)})',
-            ),
-            trailing: const SyuIcon(SyuIcons.calendar),
+          TextFormField(
+            readOnly: true,
+            controller: _dobDisplay,
             onTap: _pickDob,
+            decoration: InputDecoration(
+              labelText: l10n.dob,
+              hintText: l10n.dob,
+              suffixIcon: const SyuFieldIcon(SyuIcons.calendar),
+              filled: true,
+              fillColor: SyuColors.inkSoft,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: SyuColors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide:
+                    const BorderSide(color: SyuColors.crimson, width: 1.4),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: SyuColors.border),
+              ),
+            ),
+            validator: (_) => _dob == null ? l10n.dobRequired : null,
           ),
         ],
       ),
@@ -440,7 +496,6 @@ class _RegistrationWizardScreenState
             // ignore: deprecated_member_use
             onChanged: (v) => setState(() {
               _clubMode = v!;
-              _clubId = null;
               _clubName.clear();
               _clubRegistrationNo.clear();
             }),
@@ -453,7 +508,6 @@ class _RegistrationWizardScreenState
             // ignore: deprecated_member_use
             onChanged: (v) => setState(() {
               _clubMode = v!;
-              _clubId = null;
             }),
           ),
           if (_clubMode == 'yes') ...[
@@ -481,6 +535,7 @@ class _RegistrationWizardScreenState
               decoration: InputDecoration(
                 labelText: l10n.youthClubRegistrationNo,
                 hintText: l10n.youthClubRegistrationNoHint,
+                counterText: '',
               ),
               validator: (v) {
                 if (_clubMode != 'yes') return null;
@@ -491,77 +546,6 @@ class _RegistrationWizardScreenState
                 }
                 return null;
               },
-            ),
-          ],
-          if (_clubMode == 'none') ...[
-            const SizedBox(height: 8),
-            Text(
-              l10n.selectClubFromList,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              // ignore: deprecated_member_use
-              value: _clubId ?? '',
-              decoration: InputDecoration(labelText: l10n.youthClub),
-              items: [
-                DropdownMenuItem(
-                  value: '',
-                  child: Text(l10n.chooseAClub),
-                ),
-                ..._clubs
-                    .where(
-                      (c) =>
-                          _location.districtId == null ||
-                          c['district_id'] == null ||
-                          c['district_id'] == _location.districtId,
-                    )
-                    .map(
-                      (c) => DropdownMenuItem(
-                        value: c['id'] as String,
-                        child: Text(c['name'] as String),
-                      ),
-                    ),
-              ],
-              onChanged: (v) => setState(() {
-                _clubId = (v == null || v.isEmpty) ? null : v;
-                if (_clubId != null) {
-                  _clubMode = 'listed';
-                }
-              }),
-            ),
-          ],
-          if (_clubMode == 'listed') ...[
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              // ignore: deprecated_member_use
-              value: _clubId ?? '',
-              decoration: InputDecoration(labelText: l10n.youthClub),
-              items: [
-                DropdownMenuItem(
-                  value: '',
-                  child: Text(l10n.chooseAClub),
-                ),
-                ..._clubs
-                    .where(
-                      (c) =>
-                          _location.districtId == null ||
-                          c['district_id'] == null ||
-                          c['district_id'] == _location.districtId,
-                    )
-                    .map(
-                      (c) => DropdownMenuItem(
-                        value: c['id'] as String,
-                        child: Text(c['name'] as String),
-                      ),
-                    ),
-              ],
-              onChanged: (v) => setState(() {
-                _clubId = (v == null || v.isEmpty) ? null : v;
-                if (_clubId == null) {
-                  _clubMode = 'none';
-                }
-              }),
             ),
           ],
         ],
@@ -686,23 +670,27 @@ class _RegistrationWizardScreenState
             'DOB',
             _dob == null ? '-' : _dob!.toIso8601String().split('T').first,
           ),
-          _row('District ID', '${_location.districtId ?? '-'}'),
+          _row(
+            l10n.district,
+            _location.districtName ?? '-',
+          ),
+          _row(
+            l10n.dsDivision,
+            _location.dsDivisionName ?? '-',
+          ),
+          _row(
+            l10n.gnDivision,
+            _location.gnDivisionName ?? '-',
+          ),
           _row(
             l10n.youthClub,
-            switch (_clubMode) {
-              'listed' => () {
-                final matches =
-                    _clubs.where((c) => c['id'] == _clubId).toList();
-                if (matches.isEmpty) return l10n.chooseAClub;
-                return matches.first['name'] as String? ?? l10n.chooseAClub;
-              }(),
-              'yes' => [
-                  _clubName.text.trim(),
-                  if (_clubRegistrationNo.text.trim().isNotEmpty)
-                    _clubRegistrationNo.text.trim(),
-                ].join(' · '),
-              _ => l10n.youthClubMemberNo,
-            },
+            _clubMode == 'yes'
+                ? [
+                    _clubName.text.trim(),
+                    if (_clubRegistrationNo.text.trim().isNotEmpty)
+                      _clubRegistrationNo.text.trim(),
+                  ].join(' · ')
+                : l10n.youthClubMemberNo,
           ),
           _row(
             l10n.qualifications,

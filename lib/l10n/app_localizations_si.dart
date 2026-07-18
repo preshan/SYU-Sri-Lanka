@@ -471,50 +471,6 @@ class AppLocalizationsSi extends AppLocalizations {
   String get adminActions => 'පරිපාලක ක්‍රියා';
 
   @override
-  String get mailSettings => 'තැපැල්';
-
-  @override
-  String get mailSettingsSubtitle => 'ලියාපදිංචි කේත සඳහා Gmail SMTP';
-
-  @override
-  String get mailSettingsIntro =>
-      'Gmail ලිපිනය සහ App Password මෙහි සුරකින්න. සුරැකීමෙන් යෙදුම නැවත deploy නොකර Auth ඊමේල් යැවීම යාවත්කාලීන වේ. සුරැකීමෙන් පසු මුරපදය නැවත නොපෙන්වයි.';
-
-  @override
-  String get mailSettingsGmail => 'Gmail ලිපිනය';
-
-  @override
-  String get mailSettingsAppPassword => 'App Password';
-
-  @override
-  String get mailSettingsPasswordHintSet =>
-      'වත්මන් මුරපදය තබා ගැනීමට හිස්ව තබන්න';
-
-  @override
-  String get mailSettingsPasswordHintNew => 'අක්ෂර 16ක Google App Password';
-
-  @override
-  String get mailSettingsFromEmail => 'යවන්නාගේ ඊමේල්';
-
-  @override
-  String get mailSettingsFromEmailHint => 'සාමාන්‍යයෙන් Gmail ලිපිනයම';
-
-  @override
-  String get mailSettingsFromName => 'යවන්නාගේ නම';
-
-  @override
-  String get mailSettingsSaveAndApply => 'සුරකින්න සහ යොදන්න';
-
-  @override
-  String get mailSettingsSaved => 'තැපැල් සැකසුම් සුරැකී Auth වෙත යොදන ලදී';
-
-  @override
-  String get mailSettingsEmailRequired => 'Gmail ලිපිනය ඇතුළත් කරන්න';
-
-  @override
-  String get mailSettingsPasswordRequired => 'App Password ඇතුළත් කරන්න';
-
-  @override
   String get dashboard => 'පුවරුව';
 
   @override
@@ -629,4 +585,29 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get searchNameOrEmail => 'නම හෝ ඊමේල් සොයන්න';
+
+  @override
+  String get divisionAdmins => 'අංශ පරිපාලකයන්';
+
+  @override
+  String get divisionAdminsHint => 'මෙම දිස්ත්‍රික්කයේ සම්බන්ධතා';
+
+  @override
+  String get noDivisionAdmins => 'මෙම දිස්ත්‍රික්කයට අංශ පරිපාලකයන් නැත';
+
+  @override
+  String get divisionAdminContactRequired => 'ඔබේ නම සහ දුරකථන අංකය එක් කරන්න';
+
+  @override
+  String get divisionAdminContactBody =>
+      'දිස්ත්‍රික් පරිපාලකයන්ට සම්බන්ධ වීමට අංශ පරිපාලකයන් නම සහ දුරකථන අංකය ලබා දිය යුතුය.';
+
+  @override
+  String get addContactDetails => 'සම්බන්ධතා විස්තර එක් කරන්න';
+
+  @override
+  String get nameRequired => 'නම අවශ්‍යයි';
+
+  @override
+  String get phoneRequired => 'දුරකථන අංකය අවශ්‍යයි';
 }

@@ -29,11 +29,17 @@ class LocationSelection {
     this.districtId,
     this.dsDivisionId,
     this.gnDivisionId,
+    this.districtName,
+    this.dsDivisionName,
+    this.gnDivisionName,
   });
 
   final int? districtId;
   final int? dsDivisionId;
   final int? gnDivisionId;
+  final String? districtName;
+  final String? dsDivisionName;
+  final String? gnDivisionName;
 }
 
 class CascadingLocationPicker extends ConsumerStatefulWidget {
@@ -139,6 +145,18 @@ class _CascadingLocationPickerState
         districtId: _districtId,
         dsDivisionId: _dsId,
         gnDivisionId: _gnId,
+        districtName: _districtId == null
+            ? null
+            : _districts
+                .where((d) => d.id == _districtId)
+                .map((d) => d.name)
+                .firstOrNull,
+        dsDivisionName: _dsId == null
+            ? null
+            : _ds.where((d) => d.id == _dsId).map((d) => d.name).firstOrNull,
+        gnDivisionName: _gnId == null
+            ? null
+            : _gn.where((g) => g.id == _gnId).map((g) => g.name).firstOrNull,
       ),
     );
   }

@@ -964,90 +964,6 @@ abstract class AppLocalizations {
   /// **'Admin actions'**
   String get adminActions;
 
-  /// No description provided for @mailSettings.
-  ///
-  /// In en, this message translates to:
-  /// **'Mail'**
-  String get mailSettings;
-
-  /// No description provided for @mailSettingsSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Gmail SMTP for signup codes'**
-  String get mailSettingsSubtitle;
-
-  /// No description provided for @mailSettingsIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'Store the Gmail address and App Password here. Saving applies them to Auth email delivery without redeploying the app. The password is never shown again after save.'**
-  String get mailSettingsIntro;
-
-  /// No description provided for @mailSettingsGmail.
-  ///
-  /// In en, this message translates to:
-  /// **'Gmail address'**
-  String get mailSettingsGmail;
-
-  /// No description provided for @mailSettingsAppPassword.
-  ///
-  /// In en, this message translates to:
-  /// **'App Password'**
-  String get mailSettingsAppPassword;
-
-  /// No description provided for @mailSettingsPasswordHintSet.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave blank to keep current password'**
-  String get mailSettingsPasswordHintSet;
-
-  /// No description provided for @mailSettingsPasswordHintNew.
-  ///
-  /// In en, this message translates to:
-  /// **'16-character Google App Password'**
-  String get mailSettingsPasswordHintNew;
-
-  /// No description provided for @mailSettingsFromEmail.
-  ///
-  /// In en, this message translates to:
-  /// **'From email'**
-  String get mailSettingsFromEmail;
-
-  /// No description provided for @mailSettingsFromEmailHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Usually the same as Gmail'**
-  String get mailSettingsFromEmailHint;
-
-  /// No description provided for @mailSettingsFromName.
-  ///
-  /// In en, this message translates to:
-  /// **'From name'**
-  String get mailSettingsFromName;
-
-  /// No description provided for @mailSettingsSaveAndApply.
-  ///
-  /// In en, this message translates to:
-  /// **'Save and apply'**
-  String get mailSettingsSaveAndApply;
-
-  /// No description provided for @mailSettingsSaved.
-  ///
-  /// In en, this message translates to:
-  /// **'Mail settings saved and applied to Auth'**
-  String get mailSettingsSaved;
-
-  /// No description provided for @mailSettingsEmailRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the Gmail address'**
-  String get mailSettingsEmailRequired;
-
-  /// No description provided for @mailSettingsPasswordRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter the App Password'**
-  String get mailSettingsPasswordRequired;
-
   /// No description provided for @dashboard.
   ///
   /// In en, this message translates to:
@@ -1257,6 +1173,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search name or email'**
   String get searchNameOrEmail;
+
+  /// No description provided for @divisionAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'Division admins'**
+  String get divisionAdmins;
+
+  /// No description provided for @divisionAdminsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts for this district'**
+  String get divisionAdminsHint;
+
+  /// No description provided for @noDivisionAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'No division admins for this district yet'**
+  String get noDivisionAdmins;
+
+  /// No description provided for @divisionAdminContactRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your name and phone number'**
+  String get divisionAdminContactRequired;
+
+  /// No description provided for @divisionAdminContactBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Division admins must share a name and phone so district admins can reach you.'**
+  String get divisionAdminContactBody;
+
+  /// No description provided for @addContactDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Add contact details'**
+  String get addContactDetails;
+
+  /// No description provided for @nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get nameRequired;
+
+  /// No description provided for @phoneRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number is required'**
+  String get phoneRequired;
 }
 
 class _AppLocalizationsDelegate

@@ -18,21 +18,49 @@ class NicValidator {
     return null;
   }
 
-  /// Best-effort DOB extraction for new-format NICs (YYYYDDD...).
-  /// Returns null when format does not encode a reliable date.
-  static DateTime? tentativeDob(String raw) {
-    final nic = raw.trim();
-    if (!_new.hasMatch(nic)) return null;
-    final year = int.tryParse(nic.substring(0, 4));
-    final dayOfYear = int.tryParse(nic.substring(4, 7));
-    if (year == null || dayOfYear == null) return null;
+  /// Old: `YYDDDXXXXV` (year = 1900+YY). New: `YYYYDDDXXXXX`.
+  /// Day-of-year > 500 means female (subtract 500).
+  static DateTime? dobFromNic(String raw) {
+    final nic = raw.trim().toUpperCase();
+    int? year;
+    int? dayOfYear;
+
+    if (_old.hasMatch(nic)) {
+      year = 1900 + int.parse(nic.substring(0, 2));
+      dayOfYear = int.parse(nic.substring(2, 5));
+    } else if (_new.hasMatch(nic)) {
+      year = int.parse(nic.substring(0, 4));
+      dayOfYear = int.parse(nic.substring(4, 7));
+    } else {
+      return null;
+    }
+
     var days = dayOfYear;
-    // Female NICs traditionally add 500 to day-of-year.
     if (days > 500) days -= 500;
     if (days < 1 || days > 366) return null;
-    final start = DateTime(year);
-    return start.add(Duration(days: days - 1));
+
+    final candidate = DateTime(year, 1, 1).add(Duration(days: days - 1));
+    if (candidate.year != year) return null;
+    return DateTime(candidate.year, candidate.month, candidate.day);
   }
+
+  /// `male` / `female` from day-of-year encoding, or null if unknown.
+  static String? genderFromNic(String raw) {
+    final nic = raw.trim().toUpperCase();
+    int? dayOfYear;
+    if (_old.hasMatch(nic)) {
+      dayOfYear = int.tryParse(nic.substring(2, 5));
+    } else if (_new.hasMatch(nic)) {
+      dayOfYear = int.tryParse(nic.substring(4, 7));
+    }
+    if (dayOfYear == null) return null;
+    if (dayOfYear > 500) return 'female';
+    if (dayOfYear >= 1) return 'male';
+    return null;
+  }
+
+  /// @Deprecated — use [dobFromNic].
+  static DateTime? tentativeDob(String raw) => dobFromNic(raw);
 }
 
 /// Age helpers for SYU eligibility.

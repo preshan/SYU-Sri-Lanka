@@ -17,6 +17,33 @@ void main() {
       expect(NicValidator.isValid('ABCDEFGHIJ'), isFalse);
       expect(NicValidator.errorText('', l10n), isNotNull);
     });
+
+    test('dobFromNic parses old format YYDDD…V', () {
+      // 1993, day-of-year 292 → 1993-10-19
+      final dob = NicValidator.dobFromNic('932923456V');
+      expect(dob, isNotNull);
+      expect(dob!.year, 1993);
+      expect(dob.month, 10);
+      expect(dob.day, 19);
+      expect(NicValidator.genderFromNic('932923456V'), 'male');
+    });
+
+    test('dobFromNic parses old format female (day + 500)', () {
+      // 1993, day 292 + 500 = 792
+      final dob = NicValidator.dobFromNic('937923456V');
+      expect(dob, isNotNull);
+      expect(dob!.year, 1993);
+      expect(dob.month, 10);
+      expect(dob.day, 19);
+      expect(NicValidator.genderFromNic('937923456V'), 'female');
+    });
+
+    test('dobFromNic parses new 12-digit format', () {
+      // 2001, day 32 → 2001-02-01
+      final dob = NicValidator.dobFromNic('200103212345');
+      expect(dob, DateTime(2001, 2, 1));
+      expect(NicValidator.genderFromNic('200103212345'), 'male');
+    });
   });
 
   group('AgeRules', () {

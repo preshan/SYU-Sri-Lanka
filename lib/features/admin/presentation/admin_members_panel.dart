@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/export/csv_download.dart';
 import 'package:syu_sri_lanka/core/export/syu_csv.dart';
+import 'package:syu_sri_lanka/core/permissions/app_permissions.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
@@ -25,6 +26,10 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
   List<Map<String, dynamic>> _districts = [];
   List<Map<String, dynamic>> _dsDivisions = [];
   List<Map<String, dynamic>> _gsDivisions = [];
+  List<Map<String, dynamic>> _divisionAdmins = [];
+  bool _loadingDivisionAdmins = false;
+  /// When true, district filter is fixed to the district admin's scope.
+  bool _districtFilterLocked = false;
 
   /// null = ALL districts
   int? _districtFilter;
@@ -91,23 +96,42 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
           .select('id,name')
           .order('name');
       int? adminDistrict;
+      var lockDistrict = false;
       if (uid != null) {
         final me = await SupabaseBootstrap.client
             .from('profiles')
             .select('district_id')
             .eq('id', uid)
             .maybeSingle();
+        final isSuper =
+            await SupabaseBootstrap.client.rpc('is_super_admin') == true;
+        final isDistrictAdmin =
+            await SupabaseBootstrap.client.rpc('is_district_admin') == true;
         adminDistrict = me?['district_id'] as int?;
+        if (isDistrictAdmin && !isSuper) {
+          lockDistrict = true;
+          final scoped = await SupabaseBootstrap.client
+              .rpc('my_district_admin_district_ids');
+          final ids = (scoped as List?)
+                  ?.map((e) => e is int ? e : int.tryParse('$e'))
+                  .whereType<int>()
+                  .toList() ??
+              const <int>[];
+          if (ids.isNotEmpty) {
+            adminDistrict = ids.first;
+          }
+        }
       }
       setState(() {
         _districts = List<Map<String, dynamic>>.from(districts as List);
-        // Default to admin's district when set; otherwise ALL
         _districtFilter = adminDistrict;
+        _districtFilterLocked = lockDistrict && adminDistrict != null;
       });
       if (adminDistrict != null) {
         await _loadDs(adminDistrict);
       }
       await _loadSavedIds();
+      await _loadDivisionAdmins();
       await _load(resetPage: true);
     } catch (e) {
       if (mounted) AppErrorMapper.showSnackBar(context, e);
@@ -172,6 +196,40 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
           (rows as List).map((r) => (r as Map)['member_id'] as String),
         );
     });
+  }
+
+  Future<void> _loadDivisionAdmins() async {
+    final districtId = _districtFilter;
+    if (districtId == null) {
+      if (mounted) {
+        setState(() {
+          _divisionAdmins = [];
+          _loadingDivisionAdmins = false;
+        });
+      }
+      return;
+    }
+    setState(() => _loadingDivisionAdmins = true);
+    try {
+      final rows = await SupabaseBootstrap.client.rpc(
+        'list_division_admins_for_district',
+        params: {
+          'p_district_id': districtId,
+          'p_ds_division_id': _dsFilter,
+        },
+      );
+      if (!mounted) return;
+      setState(() {
+        _divisionAdmins = List<Map<String, dynamic>>.from(rows as List? ?? []);
+      });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _divisionAdmins = []);
+        AppErrorMapper.log(e);
+      }
+    } finally {
+      if (mounted) setState(() => _loadingDivisionAdmins = false);
+    }
   }
 
   Future<void> _load({bool resetPage = false}) async {
@@ -986,17 +1044,21 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                             child: _compactSelect(
                               label: 'District',
                               valueText: _districtLabel(_districtFilter, l10n),
+                              enabled: !_districtFilterLocked,
                               onSelected: (v) async {
+                                if (_districtFilterLocked) return;
                                 final id = v == -1 ? null : v as int?;
                                 setState(() => _districtFilter = id);
                                 await _loadDs(id);
+                                await _loadDivisionAdmins();
                                 await _load(resetPage: true);
                               },
                               items: [
-                                PopupMenuItem<Object?>(
-                                  value: -1,
-                                  child: Text(l10n.all),
-                                ),
+                                if (!_districtFilterLocked)
+                                  PopupMenuItem<Object?>(
+                                    value: -1,
+                                    child: Text(l10n.all),
+                                  ),
                                 ..._districts.map(
                                   (d) => PopupMenuItem<Object?>(
                                     value: d['id'] as int,
@@ -1016,6 +1078,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                 final id = v == -1 ? null : v as int?;
                                 setState(() => _dsFilter = id);
                                 await _loadGs(id);
+                                await _loadDivisionAdmins();
                                 await _load(resetPage: true);
                               },
                               items: [
@@ -1101,114 +1164,134 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
           ),
         ),
         Expanded(
-          child: _loading
-              ? const Center(
-                  child: CircularProgressIndicator(color: SyuColors.crimson),
-                )
-              : RefreshIndicator(
-                  onRefresh: () => _load(),
-                  child: _rows.isEmpty
-                      ? ListView(
-                          children: [
-                            const SizedBox(height: 40),
-                            Center(
-                              child: Text(
-                                _listMode == 'saved'
-                                    ? 'No saved members yet'
-                                    : 'No members for this filter',
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: SyuColors.mist,
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(10, 0, 2, 6),
-                          itemCount: _rows.length,
-                          separatorBuilder: (_, _) => const Divider(
-                            height: 1,
-                            thickness: 1,
-                            color: SyuColors.border,
-                          ),
-                          itemBuilder: (context, i) {
-                            final p = _rows[i];
-                            final id = p['id'] as String;
-                            final saved = _savedIds.contains(id);
-                            return ListTile(
-                              dense: true,
-                              visualDensity: const VisualDensity(
-                                horizontal: 0,
-                                vertical: -2,
-                              ),
-                              contentPadding: const EdgeInsets.only(
-                                left: 2,
-                                right: 0,
-                              ),
-                              minVerticalPadding: 4,
-                              title: Text(
-                                p['full_name'] as String? ?? 'Unnamed',
-                                style: textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                  height: 1.15,
-                                ),
-                              ),
-                              subtitle: Text(
-                                _memberSubtitle(p, l10n),
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: SyuColors.mist,
-                                  fontSize: 11,
-                                  height: 1.3,
-                                ),
-                              ),
-                              trailing: PopupMenuButton<String>(
-                                padding: EdgeInsets.zero,
-                                icon: Icon(
-                                  Icons.more_vert,
-                                  size: 18,
-                                  color: saved
-                                      ? SyuColors.crimson
-                                      : SyuColors.mist,
-                                ),
-                                onSelected: (s) async {
-                                  if (s == 'message') {
-                                    await _messageMember(p);
-                                    return;
-                                  }
-                                  if (s == 'save' || s == 'unsave') {
-                                    await _toggleSave(p);
-                                    return;
-                                  }
-                                  await _setStatus(id, s);
-                                },
-                                itemBuilder: (_) => [
-                                  PopupMenuItem(
-                                    value: 'message',
-                                    child: Text(l10n.messageAction),
-                                  ),
-                                  PopupMenuItem(
-                                    value: saved ? 'unsave' : 'save',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_districtFilter != null)
+                _DivisionAdminsHeader(
+                  loading: _loadingDivisionAdmins,
+                  admins: _divisionAdmins,
+                ),
+              Expanded(
+                child: _loading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: SyuColors.crimson,
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () async {
+                          await _loadDivisionAdmins();
+                          await _load();
+                        },
+                        child: _rows.isEmpty
+                            ? ListView(
+                                children: [
+                                  const SizedBox(height: 40),
+                                  Center(
                                     child: Text(
-                                      saved
-                                          ? 'Remove from saved'
-                                          : 'Save for quick access',
+                                      _listMode == 'saved'
+                                          ? 'No saved members yet'
+                                          : 'No members for this filter',
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: SyuColors.mist,
+                                      ),
                                     ),
                                   ),
-                                  PopupMenuItem(
-                                    value: 'active',
-                                    child: Text(l10n.statusActive),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'suspended',
-                                    child: Text(l10n.statusSuspended),
-                                  ),
                                 ],
+                              )
+                            : ListView.separated(
+                                padding:
+                                    const EdgeInsets.fromLTRB(10, 0, 2, 6),
+                                itemCount: _rows.length,
+                                separatorBuilder: (_, _) => const Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: SyuColors.border,
+                                ),
+                                itemBuilder: (context, i) {
+                                  final p = _rows[i];
+                                  final id = p['id'] as String;
+                                  final saved = _savedIds.contains(id);
+                                  return ListTile(
+                                    dense: true,
+                                    visualDensity: const VisualDensity(
+                                      horizontal: 0,
+                                      vertical: -2,
+                                    ),
+                                    contentPadding: const EdgeInsets.only(
+                                      left: 2,
+                                      right: 0,
+                                    ),
+                                    minVerticalPadding: 4,
+                                    title: Text(
+                                      p['full_name'] as String? ?? 'Unnamed',
+                                      style:
+                                          textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                        height: 1.15,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      _memberSubtitle(p, l10n),
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: SyuColors.mist,
+                                        fontSize: 11,
+                                        height: 1.3,
+                                      ),
+                                    ),
+                                    trailing: PopupMenuButton<String>(
+                                      padding: EdgeInsets.zero,
+                                      icon: Icon(
+                                        Icons.more_vert,
+                                        size: 18,
+                                        color: saved
+                                            ? SyuColors.crimson
+                                            : SyuColors.mist,
+                                      ),
+                                      onSelected: (s) async {
+                                        if (s == 'message') {
+                                          await _messageMember(p);
+                                          return;
+                                        }
+                                        if (s == 'save' || s == 'unsave') {
+                                          await _toggleSave(p);
+                                          return;
+                                        }
+                                        await _setStatus(id, s);
+                                      },
+                                      itemBuilder: (_) => [
+                                        PopupMenuItem(
+                                          value: 'message',
+                                          child: Text(l10n.messageAction),
+                                        ),
+                                        PopupMenuItem(
+                                          value: saved ? 'unsave' : 'save',
+                                          child: Text(
+                                            saved
+                                                ? 'Remove from saved'
+                                                : 'Save for quick access',
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'active',
+                                          child: Text(l10n.statusActive),
+                                        ),
+                                        PopupMenuItem(
+                                          value: 'suspended',
+                                          child:
+                                              Text(l10n.statusSuspended),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
-                ),
+                      ),
+              ),
+            ],
+          ),
         ),
         _PaginationBar(
           page: _page,
@@ -1232,6 +1315,120 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     );
   }
 
+}
+
+class _DivisionAdminsHeader extends StatelessWidget {
+  const _DivisionAdminsHeader({
+    required this.loading,
+    required this.admins,
+  });
+
+  final bool loading;
+  final List<Map<String, dynamic>> admins;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final textTheme = Theme.of(context).textTheme;
+    return Material(
+      color: SyuColors.inkSoft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.divisionAdmins,
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
+            Text(
+              l10n.divisionAdminsHint,
+              style: textTheme.bodySmall?.copyWith(
+                color: SyuColors.mist,
+                fontSize: 11,
+              ),
+            ),
+            const SizedBox(height: 6),
+            if (loading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Center(
+                  child: SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: SyuColors.crimson,
+                    ),
+                  ),
+                ),
+              )
+            else if (admins.isEmpty)
+              Text(
+                l10n.noDivisionAdmins,
+                style: textTheme.bodySmall?.copyWith(
+                  color: SyuColors.mist,
+                  fontSize: 12,
+                ),
+              )
+            else
+              ...admins.map((a) {
+                final name =
+                    (a['full_name'] as String?)?.trim().isNotEmpty == true
+                        ? a['full_name'] as String
+                        : 'Unnamed';
+                final phone = (a['phone'] as String?)?.trim() ?? '';
+                final ds = (a['ds_division_name'] as String?)?.trim() ?? '';
+                final subtitle = [
+                  if (ds.isNotEmpty) ds,
+                  if (phone.isNotEmpty) phone else 'No phone',
+                ].join(' · ');
+                return ListTile(
+                  dense: true,
+                  visualDensity: const VisualDensity(
+                    horizontal: 0,
+                    vertical: -3,
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                  minVerticalPadding: 2,
+                  title: Text(
+                    name,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  subtitle: Text(
+                    subtitle,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: SyuColors.mist,
+                      fontSize: 11,
+                    ),
+                  ),
+                  trailing: phone.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: phone,
+                          visualDensity: VisualDensity.compact,
+                          icon: const SyuIcon(
+                            SyuIcons.phone,
+                            size: 18,
+                            color: SyuColors.crimson,
+                          ),
+                          onPressed: () =>
+                              AppPermissions.openLink('tel:$phone'),
+                        ),
+                );
+              }),
+            const Divider(height: 12, color: SyuColors.border),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _PaginationBar extends StatelessWidget {

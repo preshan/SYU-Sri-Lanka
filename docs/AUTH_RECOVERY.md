@@ -19,7 +19,7 @@ Supabase Auth **autoconfirm** is enabled so Auth does not send its own mail
 | Store | Value |
 |-------|--------|
 | Table | `public.app_mail_settings` (`id = 1`) |
-| Admin UI | Other tools → **Mail** → Save and apply |
+| Update | Directly in the DB (`smtp_user`, `smtp_pass`, `from_email`, `from_name`) |
 
 ### Flutter wiring
 

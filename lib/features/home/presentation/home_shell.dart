@@ -49,7 +49,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   Future<void> _loadAdmin() async {
     try {
-      final admin = await SupabaseBootstrap.client.rpc('is_super_admin');
+      final admin = await SupabaseBootstrap.client.rpc('is_org_admin');
       if (mounted) setState(() => _isAdmin = admin == true);
     } catch (_) {
       if (mounted) setState(() => _isAdmin = false);
@@ -186,6 +186,7 @@ class _HomeTab extends ConsumerStatefulWidget {
 class _HomeTabState extends ConsumerState<_HomeTab> {
   bool _registrationIncomplete = true;
   bool _isAdmin = false;
+  bool _divisionContactIncomplete = false;
   bool _loading = true;
 
   @override
@@ -205,9 +206,16 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
           )
           .eq('id', user.id)
           .maybeSingle();
-      final admin = await SupabaseBootstrap.client.rpc('is_super_admin');
+      final results = await Future.wait([
+        SupabaseBootstrap.client.rpc('is_org_admin'),
+        SupabaseBootstrap.client.rpc('is_super_admin'),
+        SupabaseBootstrap.client.rpc('is_division_admin'),
+      ]);
+      final orgAdmin = results[0] == true;
+      final superAdmin = results[1] == true;
+      final divisionAdmin = results[2] == true;
       if (!mounted) return;
-      if (row != null && row['app_email_verified'] != true && admin != true) {
+      if (row != null && row['app_email_verified'] != true && !superAdmin) {
         final email = user.email ?? '';
         context.go(
           '/confirm-email?email=${Uri.encodeComponent(email)}',
@@ -216,17 +224,22 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
       }
       final status = row?['status'] as String? ?? 'active';
       final completeness = ProfileCompleteness.fromProfile(row);
+      final name = (row?['full_name'] as String?)?.trim() ?? '';
+      final phone = (row?['phone'] as String?)?.trim() ?? '';
       setState(() {
         _registrationIncomplete = completeness.missingKeys.isNotEmpty ||
             status == 'pending_registration' ||
             status == 'pending_approval';
-        _isAdmin = admin == true;
+        _isAdmin = orgAdmin;
+        _divisionContactIncomplete =
+            divisionAdmin && (name.isEmpty || phone.isEmpty);
       });
     } catch (_) {
       if (mounted) {
         setState(() {
           _registrationIncomplete = true;
           _isAdmin = false;
+          _divisionContactIncomplete = false;
         });
       }
     } finally {
@@ -250,6 +263,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                 : _MemberHomeBody(
                     email: widget.email,
                     registrationIncomplete: _registrationIncomplete,
+                    divisionContactIncomplete: _divisionContactIncomplete,
                   ),
       ),
     );
@@ -260,10 +274,12 @@ class _MemberHomeBody extends StatefulWidget {
   const _MemberHomeBody({
     required this.email,
     required this.registrationIncomplete,
+    this.divisionContactIncomplete = false,
   });
 
   final String email;
   final bool registrationIncomplete;
+  final bool divisionContactIncomplete;
 
   @override
   State<_MemberHomeBody> createState() => _MemberHomeBodyState();
@@ -280,6 +296,12 @@ class _MemberHomeBodyState extends State<_MemberHomeBody> {
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       children: [
         _HomeHeader(email: widget.email),
+        if (widget.divisionContactIncomplete) ...[
+          const SizedBox(height: 16),
+          _DivisionAdminContactBanner(
+            onComplete: () => context.push('/profile/edit'),
+          ),
+        ],
         if (showBanner) ...[
           const SizedBox(height: 16),
           _RegistrationIncompleteBanner(
@@ -304,7 +326,14 @@ class _MemberHomeBodyState extends State<_MemberHomeBody> {
               ),
         ),
         const SizedBox(height: 28),
-        if (widget.registrationIncomplete)
+        if (widget.divisionContactIncomplete)
+          _ActionTile(
+            icon: SyuIcons.userEdit,
+            title: l10n.addContactDetails,
+            subtitle: l10n.divisionAdminContactBody,
+            onTapRoute: '/profile/edit',
+          )
+        else if (widget.registrationIncomplete)
           _ActionTile(
             icon: SyuIcons.userCheck,
             title: l10n.completeRegistration,
@@ -331,6 +360,71 @@ class _MemberHomeBodyState extends State<_MemberHomeBody> {
           subtitle: l10n.eventsSubtitle,
         ),
       ],
+    );
+  }
+}
+
+class _DivisionAdminContactBanner extends StatelessWidget {
+  const _DivisionAdminContactBanner({required this.onComplete});
+
+  final VoidCallback onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Material(
+      color: SyuColors.crimson.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(14),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 2),
+              child: SyuIcon(
+                SyuIcons.userEdit,
+                color: SyuColors.crimson,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.divisionAdminContactRequired,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: SyuColors.ink,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.divisionAdminContactBody,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: SyuColors.mist,
+                          height: 1.35,
+                        ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: SyuColors.crimson,
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: onComplete,
+                    child: Text(l10n.addContactDetails),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -513,12 +607,6 @@ class _AdminHomeDashboard extends StatelessWidget {
               title: l10n.audit,
               subtitle: l10n.adminActions,
               adminTab: 'audit',
-            ),
-            _AdminSquareTile(
-              icon: SyuIcons.mailOpen,
-              title: l10n.mailSettings,
-              subtitle: l10n.mailSettingsSubtitle,
-              adminTab: 'mail',
             ),
           ],
         ),
