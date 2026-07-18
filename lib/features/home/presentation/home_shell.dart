@@ -7,6 +7,7 @@ import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/features/announcements/presentation/announcements_feed.dart';
 import 'package:syu_sri_lanka/features/auth/data/auth_repository.dart';
 import 'package:syu_sri_lanka/features/events/presentation/events_list_screen.dart';
+import 'package:syu_sri_lanka/features/messaging/presentation/conversations_list_screen.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -30,11 +31,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           _HomeTab(email: email),
           const AnnouncementsFeed(),
           const EventsListScreen(),
-          const _PlaceholderTab(
-            title: 'Messages',
-            subtitle: 'Club and direct conversations (Sprint 4).',
-            icon: Icons.chat_bubble_outline_rounded,
-          ),
+          const ConversationsListScreen(),
           _ProfileTab(
             email: email,
             onSignOut: () async {
@@ -217,43 +214,6 @@ class _ActionTile extends StatelessWidget {
   }
 }
 
-class _PlaceholderTab extends StatelessWidget {
-  const _PlaceholderTab({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return SyuGradientBackground(
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 48, color: SyuColors.crimsonSoft),
-              const SizedBox(height: 16),
-              Text(title, style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 8),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ProfileTab extends ConsumerStatefulWidget {
   const _ProfileTab({required this.email, required this.onSignOut});
 
@@ -346,6 +306,18 @@ class _ProfileTabState extends ConsumerState<_ProfileTab> {
                   child: const Text('Complete registration'),
                 ),
               ],
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/profile/edit'),
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Edit profile'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/settings'),
+                icon: const Icon(Icons.settings_outlined),
+                label: const Text('Settings'),
+              ),
               const Spacer(),
               OutlinedButton.icon(
                 onPressed: widget.onSignOut,

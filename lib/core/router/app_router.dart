@@ -7,7 +7,9 @@ import 'package:syu_sri_lanka/features/auth/presentation/forgot_password_screen.
 import 'package:syu_sri_lanka/features/auth/presentation/login_screen.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/register_screen.dart';
 import 'package:syu_sri_lanka/features/home/presentation/home_shell.dart';
+import 'package:syu_sri_lanka/features/profile/presentation/edit_profile_screen.dart';
 import 'package:syu_sri_lanka/features/registration/presentation/registration_wizard_screen.dart';
+import 'package:syu_sri_lanka/features/settings/presentation/settings_screen.dart';
 import 'package:syu_sri_lanka/features/splash/presentation/splash_screen.dart';
 
 final _authRefreshProvider = Provider<ValueNotifier<int>>((ref) {
@@ -70,6 +72,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/registration',
         builder: (_, _) => const RegistrationWizardScreen(),
+      ),
+      GoRoute(
+        path: '/profile/edit',
+        builder: (_, _) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (_, _) => const SettingsScreen(),
       ),
     ],
   );
