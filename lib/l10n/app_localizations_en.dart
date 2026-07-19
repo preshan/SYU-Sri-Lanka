@@ -539,6 +539,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusSuspended => 'Suspended';
 
   @override
+  String get statusNotSuspended => 'Not suspended';
+
+  @override
+  String get suspendedBy => 'Suspended by';
+
+  @override
+  String get memberSuspended => 'Member suspended.';
+
+  @override
+  String get memberStatusUpdated => 'Member status updated.';
+
+  @override
   String get statusPending => 'Pending';
 
   @override
@@ -638,6 +650,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noDivisionAdmins => 'No division admins for this district yet';
 
   @override
+  String get divisionalOrganizers => 'Divisional organizers';
+
+  @override
+  String get divisionalOrganizersHint => 'Contacts for this district';
+
+  @override
+  String get noDivisionalOrganizers =>
+      'No divisional organizers for this filter yet';
+
+  @override
+  String get divisionalOrganizersManageSubtitle =>
+      'Add a contact for each DS division in your district.';
+
+  @override
+  String get tapToAddOrganizer => 'Tap to add organizer contact';
+
+  @override
+  String get addOrganizer => 'Add organizer';
+
+  @override
+  String get editOrganizer => 'Edit organizer';
+
+  @override
+  String get removeOrganizer => 'Remove';
+
+  @override
+  String get organizerFieldsRequired => 'Name and mobile number are required.';
+
+  @override
+  String get mobile => 'Mobile';
+
+  @override
+  String get landline => 'Landline';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get showLess => 'Show less';
+
+  @override
+  String showNMore(int count) {
+    return 'Show $count more';
+  }
+
+  @override
   String get divisionAdminContactRequired => 'Add your name and phone number';
 
   @override
@@ -664,4 +722,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get userTypeDivisionAdmins => 'Division admins';
+
+  @override
+  String get adminNote => 'Special note';
+
+  @override
+  String get adminNoteHint =>
+      'Private — only visible to admins in your scope. Members cannot see this.';
+
+  @override
+  String get adminNoteSaved => 'Note saved.';
+
+  @override
+  String get adminNoteCleared => 'Note cleared.';
+
+  @override
+  String get adminNoteTooLong => 'Use 1024 characters or fewer.';
+
+  @override
+  String get clearNote => 'Clear note';
+
+  @override
+  String get addMember => 'Add member';
+
+  @override
+  String get adminAddMemberSubtitle =>
+      'Creates an active account and emails a temporary password. The member must set a new password on first login.';
+
+  @override
+  String get createMemberAccount => 'Create member account';
+
+  @override
+  String get adminMemberCreated =>
+      'Member created. Temporary password sent to their email.';
+
+  @override
+  String get adminMemberCreatedMailFailed =>
+      'Member created, but the temporary password email could not be sent.';
+
+  @override
+  String get adminMemberTempPasswordSentHint =>
+      'They must sign in with the temporary password from their email, then set a new password immediately.';
+
+  @override
+  String get adminMemberTempPasswordMailFailedHint =>
+      'Ask them to use Forgot password on the login screen, or try adding them again with a corrected email.';
+
+  @override
+  String get adminMemberTempPasswordHint =>
+      'They must change the password after signing in.';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get forcePasswordTitle => 'Set a new password';
+
+  @override
+  String get forcePasswordBody =>
+      'Your account was created by an admin. Choose a new password to continue.';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get confirmPassword => 'Confirm password';
+
+  @override
+  String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get setNewPassword => 'Set password & continue';
+
+  @override
+  String get passwordUpdated => 'Password updated.';
+
+  @override
+  String get changeMemberEmail => 'Change email';
+
+  @override
+  String get changeMemberEmailHint =>
+      'Only allowed until the member sets their own password. A new temporary password will be emailed to the updated address.';
+
+  @override
+  String get memberEmailUpdated =>
+      'Email updated. Temporary password sent to the new address.';
+
+  @override
+  String get memberEmailUpdatedMailFailed =>
+      'Email updated, but the temporary password email could not be sent.';
+
+  @override
+  String get staffAdmins => 'District & DN admins';
+
+  @override
+  String get staffAdminsSubtitle =>
+      'Super admin can add district and DN admins. District admins can add DN admins. Name, email, and phone are required.';
+
+  @override
+  String get staffAdminsManageSubtitle => 'Add, edit, and suspend admins';
+
+  @override
+  String get addStaffAdmin => 'Add admin';
+
+  @override
+  String get editStaffAdmin => 'Edit admin';
+
+  @override
+  String get createStaffAdmin => 'Create admin account';
+
+  @override
+  String get staffAdminCreated => 'Admin created. Temporary password emailed.';
+
+  @override
+  String get staffAdminUpdated => 'Admin updated.';
+
+  @override
+  String get noStaffAdmins => 'No admins for this filter.';
+
+  @override
+  String get districtRequired => 'District is required';
+
+  @override
+  String get dsRequired => 'DS division is required';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get accountSuspendedContactAdmin =>
+      'Your account is suspended. Please contact an admin.';
 }

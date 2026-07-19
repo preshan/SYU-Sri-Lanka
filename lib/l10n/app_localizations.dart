@@ -1090,6 +1090,30 @@ abstract class AppLocalizations {
   /// **'Suspended'**
   String get statusSuspended;
 
+  /// No description provided for @statusNotSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Not suspended'**
+  String get statusNotSuspended;
+
+  /// No description provided for @suspendedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspended by'**
+  String get suspendedBy;
+
+  /// No description provided for @memberSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Member suspended.'**
+  String get memberSuspended;
+
+  /// No description provided for @memberStatusUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Member status updated.'**
+  String get memberStatusUpdated;
+
   /// No description provided for @statusPending.
   ///
   /// In en, this message translates to:
@@ -1270,6 +1294,90 @@ abstract class AppLocalizations {
   /// **'No division admins for this district yet'**
   String get noDivisionAdmins;
 
+  /// No description provided for @divisionalOrganizers.
+  ///
+  /// In en, this message translates to:
+  /// **'Divisional organizers'**
+  String get divisionalOrganizers;
+
+  /// No description provided for @divisionalOrganizersHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacts for this district'**
+  String get divisionalOrganizersHint;
+
+  /// No description provided for @noDivisionalOrganizers.
+  ///
+  /// In en, this message translates to:
+  /// **'No divisional organizers for this filter yet'**
+  String get noDivisionalOrganizers;
+
+  /// No description provided for @divisionalOrganizersManageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a contact for each DS division in your district.'**
+  String get divisionalOrganizersManageSubtitle;
+
+  /// No description provided for @tapToAddOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to add organizer contact'**
+  String get tapToAddOrganizer;
+
+  /// No description provided for @addOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Add organizer'**
+  String get addOrganizer;
+
+  /// No description provided for @editOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit organizer'**
+  String get editOrganizer;
+
+  /// No description provided for @removeOrganizer.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeOrganizer;
+
+  /// No description provided for @organizerFieldsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name and mobile number are required.'**
+  String get organizerFieldsRequired;
+
+  /// No description provided for @mobile.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get mobile;
+
+  /// No description provided for @landline.
+  ///
+  /// In en, this message translates to:
+  /// **'Landline'**
+  String get landline;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get showLess;
+
+  /// No description provided for @showNMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {count} more'**
+  String showNMore(int count);
+
   /// No description provided for @divisionAdminContactRequired.
   ///
   /// In en, this message translates to:
@@ -1323,6 +1431,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Division admins'**
   String get userTypeDivisionAdmins;
+
+  /// No description provided for @adminNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Special note'**
+  String get adminNote;
+
+  /// No description provided for @adminNoteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Private — only visible to admins in your scope. Members cannot see this.'**
+  String get adminNoteHint;
+
+  /// No description provided for @adminNoteSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Note saved.'**
+  String get adminNoteSaved;
+
+  /// No description provided for @adminNoteCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Note cleared.'**
+  String get adminNoteCleared;
+
+  /// No description provided for @adminNoteTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 1024 characters or fewer.'**
+  String get adminNoteTooLong;
+
+  /// No description provided for @clearNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear note'**
+  String get clearNote;
+
+  /// No description provided for @addMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Add member'**
+  String get addMember;
+
+  /// No description provided for @adminAddMemberSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Creates an active account and emails a temporary password. The member must set a new password on first login.'**
+  String get adminAddMemberSubtitle;
+
+  /// No description provided for @createMemberAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create member account'**
+  String get createMemberAccount;
+
+  /// No description provided for @adminMemberCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Member created. Temporary password sent to their email.'**
+  String get adminMemberCreated;
+
+  /// No description provided for @adminMemberCreatedMailFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Member created, but the temporary password email could not be sent.'**
+  String get adminMemberCreatedMailFailed;
+
+  /// No description provided for @adminMemberTempPasswordSentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'They must sign in with the temporary password from their email, then set a new password immediately.'**
+  String get adminMemberTempPasswordSentHint;
+
+  /// No description provided for @adminMemberTempPasswordMailFailedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask them to use Forgot password on the login screen, or try adding them again with a corrected email.'**
+  String get adminMemberTempPasswordMailFailedHint;
+
+  /// No description provided for @adminMemberTempPasswordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'They must change the password after signing in.'**
+  String get adminMemberTempPasswordHint;
+
+  /// No description provided for @done.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get done;
+
+  /// No description provided for @forcePasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a new password'**
+  String get forcePasswordTitle;
+
+  /// No description provided for @forcePasswordBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account was created by an admin. Choose a new password to continue.'**
+  String get forcePasswordBody;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPassword;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get confirmPassword;
+
+  /// No description provided for @passwordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get passwordsDoNotMatch;
+
+  /// No description provided for @setNewPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Set password & continue'**
+  String get setNewPassword;
+
+  /// No description provided for @passwordUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated.'**
+  String get passwordUpdated;
+
+  /// No description provided for @changeMemberEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get changeMemberEmail;
+
+  /// No description provided for @changeMemberEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only allowed until the member sets their own password. A new temporary password will be emailed to the updated address.'**
+  String get changeMemberEmailHint;
+
+  /// No description provided for @memberEmailUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Email updated. Temporary password sent to the new address.'**
+  String get memberEmailUpdated;
+
+  /// No description provided for @memberEmailUpdatedMailFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Email updated, but the temporary password email could not be sent.'**
+  String get memberEmailUpdatedMailFailed;
+
+  /// No description provided for @staffAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'District & DN admins'**
+  String get staffAdmins;
+
+  /// No description provided for @staffAdminsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Super admin can add district and DN admins. District admins can add DN admins. Name, email, and phone are required.'**
+  String get staffAdminsSubtitle;
+
+  /// No description provided for @staffAdminsManageSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add, edit, and suspend admins'**
+  String get staffAdminsManageSubtitle;
+
+  /// No description provided for @addStaffAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Add admin'**
+  String get addStaffAdmin;
+
+  /// No description provided for @editStaffAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit admin'**
+  String get editStaffAdmin;
+
+  /// No description provided for @createStaffAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Create admin account'**
+  String get createStaffAdmin;
+
+  /// No description provided for @staffAdminCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin created. Temporary password emailed.'**
+  String get staffAdminCreated;
+
+  /// No description provided for @staffAdminUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin updated.'**
+  String get staffAdminUpdated;
+
+  /// No description provided for @noStaffAdmins.
+  ///
+  /// In en, this message translates to:
+  /// **'No admins for this filter.'**
+  String get noStaffAdmins;
+
+  /// No description provided for @districtRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'District is required'**
+  String get districtRequired;
+
+  /// No description provided for @dsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'DS division is required'**
+  String get dsRequired;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @accountSuspendedContactAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is suspended. Please contact an admin.'**
+  String get accountSuspendedContactAdmin;
 }
 
 class _AppLocalizationsDelegate

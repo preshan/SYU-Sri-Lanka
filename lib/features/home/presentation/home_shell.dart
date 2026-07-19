@@ -15,6 +15,8 @@ import 'package:syu_sri_lanka/features/events/presentation/events_list_screen.da
 import 'package:syu_sri_lanka/features/admin/presentation/admin_chat_panel.dart';
 import 'package:syu_sri_lanka/core/localization/language_picker.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_overlay.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/divisional_organizers_panel.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/staff_admins_panel.dart';
 import 'package:syu_sri_lanka/features/announcements/presentation/announcements_feed.dart';
 import 'package:syu_sri_lanka/features/profile/domain/profile_completeness.dart';
 import 'package:syu_sri_lanka/l10n/app_localizations.dart';
@@ -188,6 +190,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
   bool _registrationIncomplete = true;
   bool _isAdmin = false;
   bool _isSuperAdmin = false;
+  bool _isDistrictAdmin = false;
   bool _isDivisionAdmin = false;
   bool _divisionContactIncomplete = false;
   bool _loading = true;
@@ -205,7 +208,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
       final row = await SupabaseBootstrap.client
           .from('profiles')
           .select(
-            'status,full_name,phone,nic,date_of_birth,district_id,app_email_verified',
+            'status,full_name,phone,nic,date_of_birth,district_id,app_email_verified,must_change_password',
           )
           .eq('id', user.id)
           .maybeSingle();
@@ -213,16 +216,28 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
         SupabaseBootstrap.client.rpc('is_staff_admin'),
         SupabaseBootstrap.client.rpc('is_super_admin'),
         SupabaseBootstrap.client.rpc('is_division_admin'),
+        SupabaseBootstrap.client.rpc('is_district_admin'),
       ]);
       final orgAdmin = results[0] == true;
       final superAdmin = results[1] == true;
       final divisionAdmin = results[2] == true;
+      final districtAdmin = results[3] == true;
       if (!mounted) return;
+      if (row != null && row['status'] == 'suspended') {
+        await SupabaseBootstrap.client.auth.signOut();
+        if (!mounted) return;
+        context.go('/login');
+        return;
+      }
       if (row != null && row['app_email_verified'] != true && !superAdmin) {
         final email = user.email ?? '';
         context.go(
           '/confirm-email?email=${Uri.encodeComponent(email)}',
         );
+        return;
+      }
+      if (row != null && row['must_change_password'] == true) {
+        context.go('/force-password');
         return;
       }
       final status = row?['status'] as String? ?? 'active';
@@ -235,6 +250,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
             status == 'pending_approval';
         _isAdmin = orgAdmin;
         _isSuperAdmin = superAdmin;
+        _isDistrictAdmin = districtAdmin;
         _isDivisionAdmin = divisionAdmin;
         _divisionContactIncomplete =
             divisionAdmin && (name.isEmpty || phone.isEmpty);
@@ -245,6 +261,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
           _registrationIncomplete = true;
           _isAdmin = false;
           _isSuperAdmin = false;
+          _isDistrictAdmin = false;
           _isDivisionAdmin = false;
           _divisionContactIncomplete = false;
         });
@@ -276,6 +293,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
                 ? _AdminHomeDashboard(
                     email: widget.email,
                     isSuperAdmin: _isSuperAdmin,
+                    isDistrictAdmin: _isDistrictAdmin,
                     isDivisionAdmin: _isDivisionAdmin,
                   )
                 : _MemberHomeBody(
@@ -585,11 +603,13 @@ class _AdminHomeDashboard extends StatefulWidget {
   const _AdminHomeDashboard({
     required this.email,
     required this.isSuperAdmin,
+    required this.isDistrictAdmin,
     required this.isDivisionAdmin,
   });
 
   final String email;
   final bool isSuperAdmin;
+  final bool isDistrictAdmin;
   final bool isDivisionAdmin;
 
   @override
@@ -727,6 +747,46 @@ class _AdminHomeDashboardState extends State<_AdminHomeDashboard> {
                     : l10n.whatsappGroupLinkHint,
                 iconColor: SyuIcons.whatsappGreen,
                 onTap: _openWhatsappLinkForm,
+              ),
+            ],
+          ),
+        ],
+        if (widget.isDistrictAdmin || widget.isSuperAdmin) ...[
+          const SizedBox(height: 16),
+          Text(l10n.staffAdmins, style: _adminSectionTitle(context)),
+          const SizedBox(height: 8),
+          _AdminTileGrid(
+            tiles: [
+              _AdminSquareTile(
+                icon: SyuIcons.userCheck,
+                title: l10n.staffAdmins,
+                subtitle: l10n.staffAdminsManageSubtitle,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const StaffAdminsPanel(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(l10n.divisionalOrganizers, style: _adminSectionTitle(context)),
+          const SizedBox(height: 8),
+          _AdminTileGrid(
+            tiles: [
+              _AdminSquareTile(
+                icon: SyuIcons.userGroup,
+                title: l10n.divisionalOrganizers,
+                subtitle: l10n.divisionalOrganizersManageSubtitle,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const DivisionalOrganizersPanel(),
+                    ),
+                  );
+                },
               ),
             ],
           ),

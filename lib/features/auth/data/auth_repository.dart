@@ -34,6 +34,16 @@ class AuthRepository {
     return v == true;
   }
 
+  Future<bool> mustChangePassword() async {
+    final v = await _client.rpc('must_change_password');
+    return v == true;
+  }
+
+  Future<bool> isAccountSuspended() async {
+    final v = await _client.rpc('is_account_suspended');
+    return v == true;
+  }
+
   Future<AuthResponse> signUp({
     required String email,
     required String password,

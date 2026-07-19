@@ -544,6 +544,18 @@ class AppLocalizationsTa extends AppLocalizations {
   String get statusSuspended => 'இடைநிறுத்தப்பட்டது';
 
   @override
+  String get statusNotSuspended => 'இடைநிறுத்தப்படவில்லை';
+
+  @override
+  String get suspendedBy => 'இடைநிறுத்தியவர்';
+
+  @override
+  String get memberSuspended => 'உறுப்பினர் இடைநிறுத்தப்பட்டார்.';
+
+  @override
+  String get memberStatusUpdated => 'உறுப்பினர் நிலை புதுப்பிக்கப்பட்டது.';
+
+  @override
   String get statusPending => 'நிலுவையில்';
 
   @override
@@ -643,6 +655,52 @@ class AppLocalizationsTa extends AppLocalizations {
   String get noDivisionAdmins => 'இந்த மாவட்டத்திற்கு பிரிவு நிர்வாகிகள் இல்லை';
 
   @override
+  String get divisionalOrganizers => 'பிரதேச அமைப்பாளர்கள்';
+
+  @override
+  String get divisionalOrganizersHint => 'இந்த மாவட்டத்திற்கான தொடர்புகள்';
+
+  @override
+  String get noDivisionalOrganizers =>
+      'இந்த வடிகட்டிக்கு பிரதேச அமைப்பாளர்கள் இல்லை';
+
+  @override
+  String get divisionalOrganizersManageSubtitle =>
+      'உங்கள் மாவட்டத்தின் ஒவ்வொரு பிர.செ பிரிவிற்கும் தொடர்பைச் சேர்க்கவும்.';
+
+  @override
+  String get tapToAddOrganizer => 'அமைப்பாளர் தொடர்பைச் சேர்க்க தட்டவும்';
+
+  @override
+  String get addOrganizer => 'அமைப்பாளரைச் சேர்க்கவும்';
+
+  @override
+  String get editOrganizer => 'அமைப்பாளரைத் திருத்தவும்';
+
+  @override
+  String get removeOrganizer => 'அகற்று';
+
+  @override
+  String get organizerFieldsRequired => 'பெயர் மற்றும் கைபேசி எண் தேவை.';
+
+  @override
+  String get mobile => 'கைபேசி';
+
+  @override
+  String get landline => 'நிலையான தொலைபேசி';
+
+  @override
+  String get save => 'சேமிக்கவும்';
+
+  @override
+  String get showLess => 'குறைவாகக் காட்டு';
+
+  @override
+  String showNMore(int count) {
+    return 'மேலும் $count காட்டு';
+  }
+
+  @override
   String get divisionAdminContactRequired =>
       'உங்கள் பெயர் மற்றும் தொலைபேசி எண்ணைச் சேர்க்கவும்';
 
@@ -670,4 +728,136 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get userTypeDivisionAdmins => 'பிரிவு நிர்வாகிகள்';
+
+  @override
+  String get adminNote => 'சிறப்பு குறிப்பு';
+
+  @override
+  String get adminNoteHint =>
+      'தனிப்பட்டது — உங்கள் வரம்பில் உள்ள நிர்வாகிகளுக்கு மட்டும். உறுப்பினர்களுக்குத் தெரியாது.';
+
+  @override
+  String get adminNoteSaved => 'குறிப்பு சேமிக்கப்பட்டது.';
+
+  @override
+  String get adminNoteCleared => 'குறிப்பு அகற்றப்பட்டது.';
+
+  @override
+  String get adminNoteTooLong => '1024 எழுத்துகளுக்குள் பயன்படுத்தவும்.';
+
+  @override
+  String get clearNote => 'குறிப்பை அகற்று';
+
+  @override
+  String get addMember => 'உறுப்பினரைச் சேர்';
+
+  @override
+  String get adminAddMemberSubtitle =>
+      'செயலில் உள்ள கணக்கை உருவாக்கி தற்காலிக கடவுச்சொல்லை மின்னஞ்சல் செய்யும். முதல் உள்நுழைவில் புதிய கடவுச்சொல் அமைக்க வேண்டும்.';
+
+  @override
+  String get createMemberAccount => 'உறுப்பினர் கணக்கை உருவாக்கு';
+
+  @override
+  String get adminMemberCreated =>
+      'உறுப்பினர் உருவாக்கப்பட்டது. தற்காலிக கடவுச்சொல் அவர்களின் மின்னஞ்சலுக்கு அனுப்பப்பட்டது.';
+
+  @override
+  String get adminMemberCreatedMailFailed =>
+      'உறுப்பினர் உருவாக்கப்பட்டது, ஆனால் தற்காலிக கடவுச்சொல் மின்னஞ்சல் அனுப்ப முடியவில்லை.';
+
+  @override
+  String get adminMemberTempPasswordSentHint =>
+      'மின்னஞ்சலில் உள்ள தற்காலிக கடவுச்சொல்லால் உள்நுழைந்து உடனடியாக புதிய கடவுச்சொல்லை அமைக்க வேண்டும்.';
+
+  @override
+  String get adminMemberTempPasswordMailFailedHint =>
+      'உள்நுழைவுத் திரையில் கடவுச்சொல் மறந்துவிட்டதா பயன்படுத்தச் சொல்லுங்கள், அல்லது சரியான மின்னஞ்சலுடன் மீண்டும் முயற்சிக்கவும்.';
+
+  @override
+  String get adminMemberTempPasswordHint =>
+      'உள்நுழைந்ததும் கடவுச்சொல்லை மாற்ற வேண்டும்.';
+
+  @override
+  String get done => 'முடிந்தது';
+
+  @override
+  String get forcePasswordTitle => 'புதிய கடவுச்சொல்லை அமைக்கவும்';
+
+  @override
+  String get forcePasswordBody =>
+      'உங்கள் கணக்கு நிர்வாகியால் உருவாக்கப்பட்டது. தொடர புதிய கடவுச்சொல்லைத் தேர்ந்தெடுக்கவும்.';
+
+  @override
+  String get newPassword => 'புதிய கடவுச்சொல்';
+
+  @override
+  String get confirmPassword => 'கடவுச்சொல்லை உறுதிப்படுத்தவும்';
+
+  @override
+  String get passwordsDoNotMatch => 'கடவுச்சொற்கள் பொருந்தவில்லை';
+
+  @override
+  String get setNewPassword => 'கடவுச்சொல்லை அமைத்துத் தொடரவும்';
+
+  @override
+  String get passwordUpdated => 'கடவுச்சொல் புதுப்பிக்கப்பட்டது.';
+
+  @override
+  String get changeMemberEmail => 'மின்னஞ்சலை மாற்று';
+
+  @override
+  String get changeMemberEmailHint =>
+      'உறுப்பினர் தங்கள் கடவுச்சொல்லை அமைக்கும் வரை மட்டுமே அனுமதி. புதிய தற்காலிக கடவுச்சொல் புதுப்பிக்கப்பட்ட முகவரிக்கு மின்னஞ்சல் செய்யப்படும்.';
+
+  @override
+  String get memberEmailUpdated =>
+      'மின்னஞ்சல் புதுப்பிக்கப்பட்டது. தற்காலிக கடவுச்சொல் புதிய முகவரிக்கு அனுப்பப்பட்டது.';
+
+  @override
+  String get memberEmailUpdatedMailFailed =>
+      'மின்னஞ்சல் புதுப்பிக்கப்பட்டது, ஆனால் தற்காலிக கடவுச்சொல் மின்னஞ்சல் அனுப்ப முடியவில்லை.';
+
+  @override
+  String get staffAdmins => 'மாவட்ட & DN நிர்வாகிகள்';
+
+  @override
+  String get staffAdminsSubtitle =>
+      'சூப்பர் நிர்வாகி மாவட்ட மற்றும் DN நிர்வாகிகளைச் சேர்க்கலாம். மாவட்ட நிர்வாகிகள் DN நிர்வாகிகளைச் சேர்க்கலாம். பெயர், மின்னஞ்சல், தொலைபேசி தேவை.';
+
+  @override
+  String get staffAdminsManageSubtitle =>
+      'நிர்வாகிகளைச் சேர், திருத்து, இடைநிறுத்து';
+
+  @override
+  String get addStaffAdmin => 'நிர்வாகியைச் சேர்';
+
+  @override
+  String get editStaffAdmin => 'நிர்வாகியைத் திருத்து';
+
+  @override
+  String get createStaffAdmin => 'நிர்வாகி கணக்கை உருவாக்கு';
+
+  @override
+  String get staffAdminCreated =>
+      'நிர்வாகி உருவாக்கப்பட்டது. தற்காலிக கடவுச்சொல் மின்னஞ்சல் செய்யப்பட்டது.';
+
+  @override
+  String get staffAdminUpdated => 'நிர்வாகி புதுப்பிக்கப்பட்டது.';
+
+  @override
+  String get noStaffAdmins => 'இந்த வடிகட்டிக்கு நிர்வாகிகள் இல்லை.';
+
+  @override
+  String get districtRequired => 'மாவட்டம் தேவை';
+
+  @override
+  String get dsRequired => 'DS பிரிவு தேவை';
+
+  @override
+  String get edit => 'திருத்து';
+
+  @override
+  String get accountSuspendedContactAdmin =>
+      'உங்கள் கணக்கு இடைநிறுத்தப்பட்டுள்ளது. நிர்வாகியைத் தொடர்புகொள்ளவும்.';
 }

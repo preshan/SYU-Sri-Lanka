@@ -2,9 +2,11 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/admin_add_member_screen.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_shell.dart';
 import 'package:syu_sri_lanka/features/admin/presentation/admin_tabs.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/confirm_email_screen.dart';
+import 'package:syu_sri_lanka/features/auth/presentation/force_password_change_screen.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/forgot_password_screen.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/login_screen.dart';
 import 'package:syu_sri_lanka/features/auth/presentation/register_screen.dart';
@@ -72,6 +74,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           email: state.uri.queryParameters['email'] ?? '',
         ),
       ),
+      GoRoute(
+        path: '/force-password',
+        builder: (_, _) => const ForcePasswordChangeScreen(),
+      ),
       GoRoute(path: '/home', builder: (_, _) => const HomeShell()),
       GoRoute(
         path: '/admin',
@@ -95,6 +101,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           );
         },
+      ),
+      GoRoute(
+        path: '/admin/add-member',
+        builder: (_, _) => const AdminAddMemberScreen(),
       ),
       GoRoute(
         path: '/registration',

@@ -9,7 +9,9 @@ import 'package:syu_sri_lanka/core/export/syu_csv.dart';
 import 'package:syu_sri_lanka/core/permissions/app_permissions.dart';
 import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
+import 'package:syu_sri_lanka/core/utils/syu_phone_links.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
+import 'package:syu_sri_lanka/features/admin/presentation/organizer_contact_tile.dart';
 import 'package:syu_sri_lanka/l10n/app_localizations.dart';
 
 class AdminMembersPanel extends StatefulWidget {
@@ -29,8 +31,8 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
   List<Map<String, dynamic>> _districts = [];
   List<Map<String, dynamic>> _dsDivisions = [];
   List<Map<String, dynamic>> _gsDivisions = [];
-  List<Map<String, dynamic>> _divisionAdmins = [];
-  bool _loadingDivisionAdmins = false;
+  List<Map<String, dynamic>> _organizers = [];
+  bool _loadingOrganizers = false;
   /// When true, district filter is fixed to the district admin's scope.
   bool _districtFilterLocked = false;
   bool _dsFilterLocked = false;
@@ -46,7 +48,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
   int? _dsFilter;
   /// null = ALL GS (GN) divisions
   int? _gsFilter;
-  String _status = 'all';
+  String _status = 'active';
   /// Language filters: null = any; true = must speak
   bool? _filterSinhala;
   bool? _filterTamil;
@@ -54,6 +56,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
   /// 'all' | 'saved'
   late String _listMode;
   final Set<String> _savedIds = {};
+  final Set<String> _notedIds = {};
   final _search = TextEditingController();
   Timer? _searchDebounce;
   String _searchQuery = '';
@@ -104,7 +107,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
   bool get _canFilterDistrictAdmins =>
       _isSuperAdmin || _isDistrictAdmin;
 
-  bool get _showDivisionAdminsStrip =>
+  bool get _showOrganizersStrip =>
       !_isDivisionOnly &&
       (_isSuperAdmin || _isDistrictAdmin) &&
       _districtFilter != null;
@@ -197,7 +200,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
         }
       }
       await _loadSavedIds();
-      await _loadDivisionAdmins();
+      await _loadOrganizers();
       await _load(resetPage: true);
     } catch (e) {
       if (mounted) AppErrorMapper.showSnackBar(context, e);
@@ -266,96 +269,45 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     });
   }
 
-  Future<void> _loadDivisionAdmins() async {
+  Future<void> _loadOrganizers() async {
     final districtId = _districtFilter;
-    // Always load when a district is selected for district/super admins.
     final shouldShow = (_isSuperAdmin || _isDistrictAdmin) &&
         !_isDivisionOnly &&
         districtId != null;
     if (!shouldShow) {
       if (mounted) {
         setState(() {
-          _divisionAdmins = [];
-          _loadingDivisionAdmins = false;
+          _organizers = [];
+          _loadingOrganizers = false;
         });
       }
       return;
     }
-    setState(() => _loadingDivisionAdmins = true);
+    setState(() => _loadingOrganizers = true);
     try {
-      final idParams = <String, dynamic>{
-        'p_user_types': ['division_admin'],
+      final params = <String, dynamic>{
         'p_district_id': districtId,
       };
       if (_dsFilter != null) {
-        idParams['p_ds_division_id'] = _dsFilter;
+        params['p_ds_division_id'] = _dsFilter;
       }
-      final rawIds = await SupabaseBootstrap.client.rpc(
-        'directory_user_ids',
-        params: idParams,
+      final raw = await SupabaseBootstrap.client.rpc(
+        'list_divisional_organizers',
+        params: params,
       );
-      final ids = (rawIds as List?)
-              ?.map((e) => '$e')
-              .where((e) => e.isNotEmpty)
-              .toList() ??
-          const <String>[];
-      if (ids.isEmpty) {
-        if (!mounted) return;
-        setState(() => _divisionAdmins = []);
-        return;
-      }
-
-      final rows = await SupabaseBootstrap.client
-          .from('profiles')
-          .select('id,full_name,phone,ds_division_id')
-          .inFilter('id', ids)
-          .order('full_name');
-
-      final dsNameById = <int, String>{
-        for (final d in _dsDivisions)
-          if (d['id'] is int)
-            d['id'] as int: (d['name'] as String?) ?? '',
-      };
-      final missingDs = (rows as List)
-          .map((r) => (r as Map)['ds_division_id'])
-          .whereType<int>()
-          .where((id) => !dsNameById.containsKey(id))
-          .toSet();
-      if (missingDs.isNotEmpty) {
-        final dsRows = await SupabaseBootstrap.client
-            .from('ds_divisions')
-            .select('id,name')
-            .eq('district_id', districtId);
-        for (final d in dsRows as List) {
-          final map = d as Map;
-          final id = map['id'];
-          if (id is int) {
-            dsNameById[id] = (map['name'] as String?) ?? '';
-          }
-        }
-      }
-
-      final mapped = <Map<String, dynamic>>[];
-      for (final row in rows) {
-        final p = Map<String, dynamic>.from(row as Map);
-        final dsId = p['ds_division_id'] as int?;
-        mapped.add({
-          'user_id': p['id'],
-          'full_name': p['full_name'],
-          'phone': p['phone'],
-          'ds_division_id': dsId,
-          'ds_division_name': dsId == null ? null : dsNameById[dsId],
-        });
-      }
       if (!mounted) return;
-      setState(() => _divisionAdmins = mapped);
+      setState(() {
+        _organizers = (raw as List)
+            .map((e) => Map<String, dynamic>.from(e as Map))
+            .toList();
+      });
     } catch (e) {
       if (mounted) {
-        setState(() => _divisionAdmins = []);
+        setState(() => _organizers = []);
         AppErrorMapper.showSnackBar(context, e);
       }
     } finally {
-      if (mounted) setState(() => _loadingDivisionAdmins = false);
+      if (mounted) setState(() => _loadingOrganizers = false);
     }
   }
 
@@ -368,10 +320,80 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
       } else {
         await _loadAllMembers();
       }
+      await _refreshNotedIds();
     } catch (e) {
       if (mounted) AppErrorMapper.showSnackBar(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _refreshNotedIds() async {
+    final ids = _rows
+        .map((r) => r['id'] as String?)
+        .whereType<String>()
+        .toList();
+    if (ids.isEmpty) {
+      if (mounted) setState(() => _notedIds.clear());
+      return;
+    }
+    try {
+      final raw = await SupabaseBootstrap.client.rpc(
+        'members_with_admin_notes',
+        params: {'p_member_ids': ids},
+      );
+      if (!mounted) return;
+      setState(() {
+        _notedIds
+          ..clear()
+          ..addAll((raw as List?)?.map((e) => '$e') ?? const <String>[]);
+      });
+    } catch (_) {
+      // Soft-fail: list still works without note indicators.
+    }
+  }
+
+  Future<void> _editAdminNote(Map<String, dynamic> p) async {
+    final id = p['id'] as String?;
+    if (id == null) return;
+    final name = (p['full_name'] as String?)?.trim().isNotEmpty == true
+        ? p['full_name'] as String
+        : 'Unnamed';
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (_) => _AdminNoteDialog(
+        memberId: id,
+        memberName: name,
+      ),
+    );
+    if (saved == true && mounted) {
+      await _refreshNotedIds();
+    }
+  }
+
+  Future<void> _changeMemberEmail(Map<String, dynamic> p) async {
+    final id = p['id'] as String?;
+    if (id == null) return;
+    if (p['must_change_password'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).changeMemberEmailHint),
+        ),
+      );
+      return;
+    }
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (_) => _ChangeMemberEmailDialog(
+        memberId: id,
+        currentEmail: (p['email'] as String?) ?? '',
+        memberName: (p['full_name'] as String?)?.trim().isNotEmpty == true
+            ? p['full_name'] as String
+            : 'Unnamed',
+      ),
+    );
+    if (updated == true && mounted) {
+      await _load();
     }
   }
 
@@ -415,6 +437,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
       setState(() {
         _rows = [];
         _total = 0;
+        _notedIds.clear();
       });
       return;
     }
@@ -426,14 +449,13 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
           'district_id,ds_division_id,gn_division_id,requested_youth_club_name,'
           'youth_club_registration_no,'
           'speaks_sinhala,speaks_tamil,speaks_english,other_qualification,'
-          'occupation,'
+          'occupation,must_change_password,'
+          'suspended_by_name,suspended_by_role,suspended_at,'
           'member_qualifications(qualification_id, qualifications(code,name_en,level_order))',
         )
         .inFilter('id', ids);
 
-    if (_status != 'all') {
-      query = query.eq('status', _status);
-    }
+    query = _applyStatusFilter(query);
     if (_gsFilter != null) {
       query = query.eq('gn_division_id', _gsFilter!);
     }
@@ -474,9 +496,17 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     var query = SupabaseBootstrap.client
         .from('admin_saved_members')
         .select(
-          'member_id,note,created_at, profiles!inner(id,full_name,email,nic,phone,status,created_at,date_of_birth,gender,district_id,ds_division_id,gn_division_id,requested_youth_club_name,speaks_sinhala,speaks_tamil,speaks_english,member_qualifications(qualification_id, qualifications(code,name_en,level_order)))',
+          'member_id,note,created_at, profiles!inner(id,full_name,email,nic,phone,status,created_at,date_of_birth,gender,district_id,ds_division_id,gn_division_id,requested_youth_club_name,speaks_sinhala,speaks_tamil,speaks_english,must_change_password,suspended_by_name,suspended_by_role,suspended_at,member_qualifications(qualification_id, qualifications(code,name_en,level_order)))',
         )
         .eq('admin_id', uid);
+
+    if (_status == 'suspended') {
+      query = query.eq('profiles.status', 'suspended');
+    } else if (_status == 'all') {
+      query = query.neq('profiles.status', 'suspended');
+    } else {
+      query = query.eq('profiles.status', _status);
+    }
 
     final q = _sanitizedSearch;
     if (q.isNotEmpty) {
@@ -547,20 +577,39 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
 
   Future<void> _setStatus(String id, String status) async {
     try {
-      await SupabaseBootstrap.client
-          .from('profiles')
-          .update({'status': status}).eq('id', id);
-      await SupabaseBootstrap.client.from('activity_logs').insert({
-        'actor_id': SupabaseBootstrap.client.auth.currentUser?.id,
-        'action': 'member_status_changed',
-        'entity_type': 'profile',
-        'entity_id': id,
-        'metadata': {'status': status},
-      });
+      await SupabaseBootstrap.client.rpc(
+        'admin_set_member_status',
+        params: {
+          'p_member_id': id,
+          'p_status': status,
+        },
+      );
       await _load();
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            status == 'suspended'
+                ? l10n.memberSuspended
+                : l10n.memberStatusUpdated,
+          ),
+        ),
+      );
     } catch (e) {
       if (mounted) AppErrorMapper.showSnackBar(context, e);
     }
+  }
+
+  /// Applies status filter: default/all hide suspended; explicit statuses match.
+  PostgrestFilterBuilder _applyStatusFilter(PostgrestFilterBuilder query) {
+    if (_status == 'suspended') {
+      return query.eq('status', 'suspended');
+    }
+    if (_status == 'all') {
+      return query.neq('status', 'suspended');
+    }
+    return query.eq('status', _status);
   }
 
   Future<void> _exportMembers() async {
@@ -625,7 +674,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
         dsName: _dsFilter == null ? null : _nameFrom(_dsDivisions, _dsFilter),
         gnName: _gsFilter == null ? null : _nameFrom(_gsDivisions, _gsFilter),
       );
-      downloadTextFile(filename: filename, content: csv);
+      await downloadTextFile(filename: filename, content: csv);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -719,9 +768,10 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                 'district_id,ds_division_id,gn_division_id,'
                 'requested_youth_club_name,youth_club_registration_no,'
                 'speaks_sinhala,speaks_tamil,speaks_english,'
+                'suspended_by_name,suspended_by_role,'
                 'member_qualifications(qualification_id, qualifications(code,name_en,level_order))',
               ).inFilter('id', ids);
-      if (_status != 'all') query = query.eq('status', _status);
+      query = _applyStatusFilter(query);
       if (_gsFilter != null) query = query.eq('gn_division_id', _gsFilter!);
       if (_filterSinhala == true) query = query.eq('speaks_sinhala', true);
       if (_filterTamil == true) query = query.eq('speaks_tamil', true);
@@ -841,7 +891,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     ].join(' · ');
     final status = p['status'] as String? ?? '';
     final line3 = <String>[
-      _statusLabel(status, l10n),
+      if (status != 'suspended') _statusLabel(status, l10n),
       _districtName(p['district_id'] as int?),
       if (_highestQualificationLabel(p).isNotEmpty)
         _highestQualificationLabel(p),
@@ -857,16 +907,56 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     return [line1, line2, line3].where((l) => l.isNotEmpty).join('\n');
   }
 
+  String? _suspendedByLabel(Map<String, dynamic> p) {
+    if ((p['status'] as String?) != 'suspended') return null;
+    final name = (p['suspended_by_name'] as String?)?.trim() ?? '';
+    final role = (p['suspended_by_role'] as String?)?.trim() ?? '';
+    if (name.isEmpty && role.isEmpty) return null;
+    if (name.isEmpty) return role;
+    if (role.isEmpty) return name;
+    return '$name | $role';
+  }
+
+  Widget _memberSubtitleWidget(
+    Map<String, dynamic> p,
+    AppLocalizations l10n,
+    TextTheme textTheme,
+  ) {
+    final body = _memberSubtitle(p, l10n);
+    final suspendedBy = _suspendedByLabel(p);
+    final mistStyle = textTheme.bodySmall?.copyWith(
+      color: SyuColors.mist,
+      fontSize: 11,
+      height: 1.3,
+    );
+    if (suspendedBy == null) {
+      return Text(body, style: mistStyle);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${l10n.suspendedBy}: $suspendedBy',
+          style: textTheme.bodySmall?.copyWith(
+            color: SyuColors.warning,
+            fontSize: 11,
+            height: 1.3,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        if (body.isNotEmpty) Text(body, style: mistStyle),
+      ],
+    );
+  }
+
   Future<void> _callPhone(String? raw) async {
-    final phone = raw?.trim() ?? '';
-    if (phone.isEmpty) return;
-    final digits = phone.replaceAll(RegExp(r'[^\d+]'), '');
-    if (digits.isEmpty) return;
-    final ok = await AppPermissions.openLink('tel:$digits');
+    final url = SyuPhoneLinks.telUrl(raw);
+    if (url == null) return;
+    final ok = await AppPermissions.openLink(url);
     if (!mounted) return;
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not start call')),
+        SnackBar(content: Text(AppLocalizations.of(context).couldNotOpenLink)),
       );
     }
   }
@@ -882,7 +972,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
     if (_districtFilter != null) n++;
     if (_dsFilter != null) n++;
     if (_gsFilter != null) n++;
-    if (_status != 'all') n++;
+    if (_status != 'active') n++;
     n += _languageFilterCount;
     if (!_userTypes.contains('member') ||
         _userTypes.length != 1 ||
@@ -925,10 +1015,10 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
         if (_userTypes.isEmpty) _userTypes.add('member');
       });
       await _load(resetPage: true);
-      if (_showDivisionAdminsStrip) {
-        await _loadDivisionAdmins();
+      if (_showOrganizersStrip) {
+        await _loadOrganizers();
       } else if (mounted) {
-        setState(() => _divisionAdmins = []);
+        setState(() => _organizers = []);
       }
     }
 
@@ -1018,6 +1108,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
         'pending_registration' => l10n.statusPending,
         'active' => l10n.statusActive,
         'suspended' => l10n.statusSuspended,
+        'all' => l10n.statusNotSuspended,
         _ => l10n.all,
       };
 
@@ -1222,6 +1313,21 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                     onPressed: _exportMembers,
                     icon: const Icon(Icons.download_rounded, size: 18),
                   ),
+                  IconButton(
+                    tooltip: l10n.addMember,
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                    onPressed: () async {
+                      await context.push<bool>('/admin/add-member');
+                      if (!mounted) return;
+                      await _load(resetPage: true);
+                    },
+                    icon: const SyuIcon(SyuIcons.userAdd, size: 18),
+                  ),
                 ],
               ),
               const SizedBox(height: 4),
@@ -1340,7 +1446,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                 final id = v == -1 ? null : v as int?;
                                 setState(() => _districtFilter = id);
                                 await _loadDs(id);
-                                await _loadDivisionAdmins();
+                                await _loadOrganizers();
                                 await _load(resetPage: true);
                               },
                               items: [
@@ -1370,7 +1476,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                 final id = v == -1 ? null : v as int?;
                                 setState(() => _dsFilter = id);
                                 await _loadGs(id);
-                                await _loadDivisionAdmins();
+                                await _loadOrganizers();
                                 await _load(resetPage: true);
                               },
                               items: [
@@ -1428,7 +1534,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                               items: [
                                 PopupMenuItem(
                                   value: 'all',
-                                  child: Text(l10n.all),
+                                  child: Text(l10n.statusNotSuspended),
                                 ),
                                 PopupMenuItem(
                                   value: 'pending_registration',
@@ -1459,11 +1565,10 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (_showDivisionAdminsStrip)
-                _DivisionAdminsHeader(
-                  loading: _loadingDivisionAdmins,
-                  admins: _divisionAdmins,
-                  onCall: _callPhone,
+              if (_showOrganizersStrip)
+                _OrganizersHeader(
+                  loading: _loadingOrganizers,
+                  organizers: _organizers,
                 ),
               Expanded(
                 child: _loading
@@ -1474,7 +1579,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                       )
                     : RefreshIndicator(
                         onRefresh: () async {
-                          await _loadDivisionAdmins();
+                          await _loadOrganizers();
                           await _load();
                         },
                         child: _rows.isEmpty
@@ -1506,6 +1611,7 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                   final p = _rows[i];
                                   final id = p['id'] as String;
                                   final saved = _savedIds.contains(id);
+                                  final hasNote = _notedIds.contains(id);
                                   final phone =
                                       (p['phone'] as String?)?.trim() ?? '';
                                   return ListTile(
@@ -1528,17 +1634,23 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                         height: 1.15,
                                       ),
                                     ),
-                                    subtitle: Text(
-                                      _memberSubtitle(p, l10n),
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: SyuColors.mist,
-                                        fontSize: 11,
-                                        height: 1.3,
-                                      ),
+                                    subtitle: _memberSubtitleWidget(
+                                      p,
+                                      l10n,
+                                      textTheme,
                                     ),
                                     trailing: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
+                                        if (hasNote)
+                                          const Padding(
+                                            padding: EdgeInsets.only(right: 2),
+                                            child: SyuIcon(
+                                              SyuIcons.info,
+                                              size: 16,
+                                              color: SyuColors.crimson,
+                                            ),
+                                          ),
                                         if (phone.isNotEmpty)
                                           IconButton(
                                             tooltip: 'Call $phone',
@@ -1561,13 +1673,21 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                           icon: Icon(
                                             Icons.more_vert,
                                             size: 18,
-                                            color: saved
+                                            color: saved || hasNote
                                                 ? SyuColors.crimson
                                                 : SyuColors.mist,
                                           ),
                                           onSelected: (s) async {
                                             if (s == 'message') {
                                               await _messageMember(p);
+                                              return;
+                                            }
+                                            if (s == 'note') {
+                                              await _editAdminNote(p);
+                                              return;
+                                            }
+                                            if (s == 'change_email') {
+                                              await _changeMemberEmail(p);
                                               return;
                                             }
                                             if (s == 'save' ||
@@ -1586,6 +1706,18 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
                                               PopupMenuItem(
                                                 value: 'call',
                                                 child: Text('Call $phone'),
+                                              ),
+                                            PopupMenuItem(
+                                              value: 'note',
+                                              child: Text(l10n.adminNote),
+                                            ),
+                                            if (p['must_change_password'] ==
+                                                true)
+                                              PopupMenuItem(
+                                                value: 'change_email',
+                                                child: Text(
+                                                  l10n.changeMemberEmail,
+                                                ),
                                               ),
                                             PopupMenuItem(
                                               value: 'message',
@@ -1647,34 +1779,307 @@ class _AdminMembersPanelState extends State<AdminMembersPanel> {
 
 }
 
-class _DivisionAdminsHeader extends StatefulWidget {
-  const _DivisionAdminsHeader({
+class _ChangeMemberEmailDialog extends StatefulWidget {
+  const _ChangeMemberEmailDialog({
+    required this.memberId,
+    required this.currentEmail,
+    required this.memberName,
+  });
+
+  final String memberId;
+  final String currentEmail;
+  final String memberName;
+
+  @override
+  State<_ChangeMemberEmailDialog> createState() =>
+      _ChangeMemberEmailDialogState();
+}
+
+class _ChangeMemberEmailDialogState extends State<_ChangeMemberEmailDialog> {
+  late final TextEditingController _email;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _email = TextEditingController(text: widget.currentEmail);
+  }
+
+  @override
+  void dispose() {
+    _email.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final l10n = AppLocalizations.of(context);
+    final next = _email.text.trim().toLowerCase();
+    if (next.isEmpty || !next.contains('@')) {
+      setState(() => _error = l10n.emailRequired);
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final res = await SupabaseBootstrap.client.functions.invoke(
+        'admin-update-member-email',
+        body: {
+          'member_id': widget.memberId,
+          'email': next,
+          'full_name': widget.memberName,
+        },
+      );
+      final data = res.data;
+      if (res.status != 200 || data is! Map || data['ok'] != true) {
+        final err = data is Map ? data['error'] : data;
+        throw Exception(err ?? 'Could not update email (${res.status})');
+      }
+      if (!mounted) return;
+      final mailFailed = data['mail_error'] != null;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            mailFailed
+                ? l10n.memberEmailUpdatedMailFailed
+                : l10n.memberEmailUpdated,
+          ),
+        ),
+      );
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = AppErrorMapper.message(e);
+        _saving = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text('${l10n.changeMemberEmail} — ${widget.memberName}'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.changeMemberEmailHint,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: SyuColors.mist,
+                ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _email,
+            keyboardType: TextInputType.emailAddress,
+            autofocus: true,
+            decoration: InputDecoration(labelText: l10n.email),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              _error!,
+              style: const TextStyle(color: SyuColors.crimson, fontSize: 12),
+            ),
+          ],
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.of(context).pop(false),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: _saving ? null : _save,
+          child: _saving
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(l10n.save),
+        ),
+      ],
+    );
+  }
+}
+
+class _AdminNoteDialog extends StatefulWidget {
+  const _AdminNoteDialog({
+    required this.memberId,
+    required this.memberName,
+  });
+
+  final String memberId;
+  final String memberName;
+
+  @override
+  State<_AdminNoteDialog> createState() => _AdminNoteDialogState();
+}
+
+class _AdminNoteDialogState extends State<_AdminNoteDialog> {
+  final _controller = TextEditingController();
+  bool _loading = true;
+  bool _saving = false;
+  String? _error;
+
+  static const _maxLen = 1024;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final note = await SupabaseBootstrap.client.rpc(
+        'get_member_admin_note',
+        params: {'p_member_id': widget.memberId},
+      );
+      if (!mounted) return;
+      _controller.text = note is String ? note : '';
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = AppErrorMapper.message(e));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _save({required bool clear}) async {
+    final l10n = AppLocalizations.of(context);
+    final value = clear ? '' : _controller.text;
+    if (!clear && value.length > _maxLen) {
+      setState(() => _error = l10n.adminNoteTooLong);
+      return;
+    }
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await SupabaseBootstrap.client.rpc(
+        'set_member_admin_note',
+        params: {
+          'p_member_id': widget.memberId,
+          'p_note': value,
+        },
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            clear || value.trim().isEmpty
+                ? l10n.adminNoteCleared
+                : l10n.adminNoteSaved,
+          ),
+        ),
+      );
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = AppErrorMapper.message(e);
+        _saving = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final remaining = _maxLen - _controller.text.length;
+    return AlertDialog(
+      title: Text('${l10n.adminNote} — ${widget.memberName}'),
+      content: _loading
+          ? const SizedBox(
+              height: 96,
+              child: Center(
+                child: CircularProgressIndicator(color: SyuColors.crimson),
+              ),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.adminNoteHint,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: SyuColors.mist,
+                      ),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _controller,
+                  enabled: !_saving,
+                  maxLines: 6,
+                  maxLength: _maxLen,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: l10n.adminNote,
+                    errorText: _error,
+                    counterText: '$remaining',
+                  ),
+                ),
+              ],
+            ),
+      actions: [
+        if (!_loading && _controller.text.trim().isNotEmpty)
+          TextButton(
+            onPressed: _saving ? null : () => _save(clear: true),
+            child: Text(l10n.clearNote),
+          ),
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.of(context).pop(false),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+        ),
+        FilledButton(
+          onPressed: (_loading || _saving) ? null : () => _save(clear: false),
+          child: Text(l10n.save),
+        ),
+      ],
+    );
+  }
+}
+
+class _OrganizersHeader extends StatefulWidget {
+  const _OrganizersHeader({
     required this.loading,
-    required this.admins,
-    required this.onCall,
+    required this.organizers,
   });
 
   final bool loading;
-  final List<Map<String, dynamic>> admins;
-  final Future<void> Function(String? phone) onCall;
+  final List<Map<String, dynamic>> organizers;
 
   @override
-  State<_DivisionAdminsHeader> createState() => _DivisionAdminsHeaderState();
+  State<_OrganizersHeader> createState() => _OrganizersHeaderState();
 }
 
-class _DivisionAdminsHeaderState extends State<_DivisionAdminsHeader> {
+class _OrganizersHeaderState extends State<_OrganizersHeader> {
   bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final admins = widget.admins;
-    final visible = (!widget.loading && admins.length > 1 && !_expanded)
-        ? admins.take(1).toList()
-        : admins;
+    final organizers = widget.organizers;
+    final visible = (!widget.loading && organizers.length > 1 && !_expanded)
+        ? organizers.take(1).toList()
+        : organizers;
     final hiddenCount =
-        admins.length > 1 && !_expanded ? admins.length - 1 : 0;
+        organizers.length > 1 && !_expanded ? organizers.length - 1 : 0;
 
     return Material(
       color: SyuColors.inkSoft,
@@ -1684,7 +2089,7 @@ class _DivisionAdminsHeaderState extends State<_DivisionAdminsHeader> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              l10n.divisionAdmins,
+              l10n.divisionalOrganizers,
               style: textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
@@ -1705,17 +2110,28 @@ class _DivisionAdminsHeaderState extends State<_DivisionAdminsHeader> {
                   ),
                 ),
               )
-            else if (admins.isEmpty)
+            else if (organizers.isEmpty)
               Text(
-                l10n.noDivisionAdmins,
+                l10n.noDivisionalOrganizers,
                 style: textTheme.bodySmall?.copyWith(
                   color: SyuColors.mist,
                   fontSize: 12,
                 ),
               )
             else ...[
-              ...visible.map(_adminTile),
-              if (admins.length > 1)
+              for (final a in visible)
+                OrganizerContactTile(
+                  fullName: (a['full_name'] as String?)?.trim().isNotEmpty ==
+                          true
+                      ? a['full_name'] as String
+                      : 'Unnamed',
+                  dsName: (a['ds_division_name'] as String?)?.trim() ?? '',
+                  mobile: (a['mobile'] as String?)?.trim() ?? '',
+                  landline: (a['landline'] as String?)?.trim(),
+                  email: (a['email'] as String?)?.trim(),
+                  dense: true,
+                ),
+              if (organizers.length > 1)
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton.icon(
@@ -1738,8 +2154,8 @@ class _DivisionAdminsHeaderState extends State<_DivisionAdminsHeader> {
                     ),
                     label: Text(
                       _expanded
-                          ? 'Show less'
-                          : 'Show $hiddenCount more',
+                          ? l10n.showLess
+                          : l10n.showNMore(hiddenCount),
                       style: textTheme.labelMedium?.copyWith(fontSize: 12),
                     ),
                   ),
@@ -1749,63 +2165,6 @@ class _DivisionAdminsHeaderState extends State<_DivisionAdminsHeader> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _adminTile(Map<String, dynamic> a) {
-    final textTheme = Theme.of(context).textTheme;
-    final name = (a['full_name'] as String?)?.trim().isNotEmpty == true
-        ? a['full_name'] as String
-        : 'Unnamed';
-    final phone = (a['phone'] as String?)?.trim() ?? '';
-    final ds = (a['ds_division_name'] as String?)?.trim() ?? '';
-    final titleLine = ds.isEmpty ? name : '$name | $ds';
-    return ListTile(
-      dense: true,
-      visualDensity: const VisualDensity(horizontal: 0, vertical: -3),
-      contentPadding: EdgeInsets.zero,
-      minVerticalPadding: 2,
-      onTap: phone.isEmpty ? null : () => widget.onCall(phone),
-      title: Text(
-        titleLine,
-        style: textTheme.titleSmall?.copyWith(
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
-        ),
-      ),
-      subtitle: phone.isNotEmpty
-          ? GestureDetector(
-              onTap: () => widget.onCall(phone),
-              child: Text(
-                phone,
-                style: textTheme.bodySmall?.copyWith(
-                  color: SyuColors.crimson,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  decoration: TextDecoration.underline,
-                  decorationColor: SyuColors.crimson,
-                ),
-              ),
-            )
-          : Text(
-              'No phone',
-              style: textTheme.bodySmall?.copyWith(
-                color: SyuColors.mist,
-                fontSize: 11,
-              ),
-            ),
-      trailing: phone.isEmpty
-          ? null
-          : IconButton(
-              tooltip: 'Call $phone',
-              visualDensity: VisualDensity.compact,
-              icon: const SyuIcon(
-                SyuIcons.phone,
-                size: 18,
-                color: SyuColors.crimson,
-              ),
-              onPressed: () => widget.onCall(phone),
-            ),
     );
   }
 }

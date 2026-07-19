@@ -99,17 +99,33 @@ class _SplashScreenState extends State<SplashScreen>
       return;
     }
     try {
+      final suspended =
+          await Supabase.instance.client.rpc('is_account_suspended');
+      if (!mounted) return;
+      if (suspended == true) {
+        await Supabase.instance.client.auth.signOut();
+        if (!mounted) return;
+        context.go('/login');
+        return;
+      }
       final verified =
           await Supabase.instance.client.rpc('is_app_email_verified');
       if (!mounted) return;
-      if (verified == true) {
-        context.go('/home');
-      } else {
+      if (verified != true) {
         final email = session.user.email ?? '';
         context.go(
           '/confirm-email?email=${Uri.encodeComponent(email)}',
         );
+        return;
       }
+      final mustChange =
+          await Supabase.instance.client.rpc('must_change_password');
+      if (!mounted) return;
+      if (mustChange == true) {
+        context.go('/force-password');
+        return;
+      }
+      context.go('/home');
     } catch (_) {
       if (!mounted) return;
       context.go('/home');

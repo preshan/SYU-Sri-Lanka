@@ -539,6 +539,18 @@ class AppLocalizationsSi extends AppLocalizations {
   String get statusSuspended => 'අත්හිටුවා ඇත';
 
   @override
+  String get statusNotSuspended => 'අත්හිටුවා නැත';
+
+  @override
+  String get suspendedBy => 'අත්හිටුවන ලද්දේ';
+
+  @override
+  String get memberSuspended => 'සාමාජිකයා අත්හිටුවන ලදී.';
+
+  @override
+  String get memberStatusUpdated => 'සාමාජික තත්ත්වය යාවත්කාලීන කරන ලදී.';
+
+  @override
   String get statusPending => 'බලාපොරොත්තුවෙන්';
 
   @override
@@ -638,6 +650,51 @@ class AppLocalizationsSi extends AppLocalizations {
   String get noDivisionAdmins => 'මෙම දිස්ත්‍රික්කයට අංශ පරිපාලකයන් නැත';
 
   @override
+  String get divisionalOrganizers => 'ප්‍රාදේශීය සංවිධායකයන්';
+
+  @override
+  String get divisionalOrganizersHint => 'මෙම දිස්ත්‍රික්කයේ සම්බන්ධතා';
+
+  @override
+  String get noDivisionalOrganizers => 'මෙම පෙරහනට ප්‍රාදේශීය සංවිධායකයන් නැත';
+
+  @override
+  String get divisionalOrganizersManageSubtitle =>
+      'ඔබේ දිස්ත්‍රික්කයේ එක් එක් ප්‍රා.ලේ. කොට්ඨාසය සඳහා සම්බන්ධතාවක් එක් කරන්න.';
+
+  @override
+  String get tapToAddOrganizer => 'සංවිධායක සම්බන්ධතාව එක් කිරීමට තට්ටු කරන්න';
+
+  @override
+  String get addOrganizer => 'සංවිධායකයා එක් කරන්න';
+
+  @override
+  String get editOrganizer => 'සංවිධායකයා සංස්කරණය කරන්න';
+
+  @override
+  String get removeOrganizer => 'ඉවත් කරන්න';
+
+  @override
+  String get organizerFieldsRequired => 'නම සහ ජංගම දුරකථන අංකය අවශ්‍යයි.';
+
+  @override
+  String get mobile => 'ජංගම';
+
+  @override
+  String get landline => 'ස්ථාවර දුරකථනය';
+
+  @override
+  String get save => 'සුරකින්න';
+
+  @override
+  String get showLess => 'අඩුවෙන් පෙන්වන්න';
+
+  @override
+  String showNMore(int count) {
+    return 'තවත් $count පෙන්වන්න';
+  }
+
+  @override
   String get divisionAdminContactRequired => 'ඔබේ නම සහ දුරකථන අංකය එක් කරන්න';
 
   @override
@@ -664,4 +721,136 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get userTypeDivisionAdmins => 'අංශ පරිපාලකයන්';
+
+  @override
+  String get adminNote => 'විශේෂ සටහන';
+
+  @override
+  String get adminNoteHint =>
+      'පෞද්ගලික — ඔබේ විෂය පථයේ පරිපාලකයන්ට පමණි. සාමාජිකයන්ට නොපෙනේ.';
+
+  @override
+  String get adminNoteSaved => 'සටහන සුරකින ලදී.';
+
+  @override
+  String get adminNoteCleared => 'සටහන ඉවත් කරන ලදී.';
+
+  @override
+  String get adminNoteTooLong => 'අක්ෂර 1024 කට වඩා අඩුවෙන් භාවිතා කරන්න.';
+
+  @override
+  String get clearNote => 'සටහන ඉවත් කරන්න';
+
+  @override
+  String get addMember => 'සාමාජිකයා එක් කරන්න';
+
+  @override
+  String get adminAddMemberSubtitle =>
+      'සක්‍රීය ගිණුමක් සාදා තාවකාලික මුරපදයක් ඊමේල් කරයි. පළමු පිවිසුමේදී නව මුරපදයක් සැකසිය යුතුය.';
+
+  @override
+  String get createMemberAccount => 'සාමාජික ගිණුම සාදන්න';
+
+  @override
+  String get adminMemberCreated =>
+      'සාමාජිකයා සාදන ලදී. තාවකාලික මුරපදය ඔවුන්ගේ ඊමේල් වෙත යවන ලදී.';
+
+  @override
+  String get adminMemberCreatedMailFailed =>
+      'සාමාජිකයා සාදන ලදී, නමුත් තාවකාලික මුරපද ඊමේල් යැවීම අසාර්ථක විය.';
+
+  @override
+  String get adminMemberTempPasswordSentHint =>
+      'ඔවුන් ඊමේල්හි තාවකාලික මුරපදයෙන් පිවිසී වහාම නව මුරපදයක් සැකසිය යුතුය.';
+
+  @override
+  String get adminMemberTempPasswordMailFailedHint =>
+      'පිවිසුම් තිරයේ මුරපදය අමතක වුණා භාවිතා කරන ලෙස කියන්න, නැතහොත් නිවැරදි ඊමේල් සමඟ නැවත උත්සාහ කරන්න.';
+
+  @override
+  String get adminMemberTempPasswordHint =>
+      'පිවිසීමෙන් පසු මුරපදය වෙනස් කළ යුතුය.';
+
+  @override
+  String get done => 'අවසන්';
+
+  @override
+  String get forcePasswordTitle => 'නව මුරපදයක් සකසන්න';
+
+  @override
+  String get forcePasswordBody =>
+      'ඔබේ ගිණුම පරිපාලකයෙකු විසින් සාදන ලදී. ඉදිරියට යාමට නව මුරපදයක් තෝරන්න.';
+
+  @override
+  String get newPassword => 'නව මුරපදය';
+
+  @override
+  String get confirmPassword => 'මුරපදය තහවුරු කරන්න';
+
+  @override
+  String get passwordsDoNotMatch => 'මුරපද නොගැලපේ';
+
+  @override
+  String get setNewPassword => 'මුරපදය සකසා ඉදිරියට';
+
+  @override
+  String get passwordUpdated => 'මුරපදය යාවත්කාලීන කරන ලදී.';
+
+  @override
+  String get changeMemberEmail => 'ඊමේල් වෙනස් කරන්න';
+
+  @override
+  String get changeMemberEmailHint =>
+      'සාමාජිකයා තම මුරපදය සකසන තෙක් පමණක් අවසර ඇත. නව තාවකාලික මුරපදයක් යාවත්කාලීන ලිපිනයට ඊමේල් කෙරේ.';
+
+  @override
+  String get memberEmailUpdated =>
+      'ඊමේල් යාවත්කාලීන කරන ලදී. තාවකාලික මුරපදය නව ලිපිනයට යවන ලදී.';
+
+  @override
+  String get memberEmailUpdatedMailFailed =>
+      'ඊමේල් යාවත්කාලීන කරන ලදී, නමුත් තාවකාලික මුරපද ඊමේල් යැවීම අසාර්ථක විය.';
+
+  @override
+  String get staffAdmins => 'දිස්ත්‍රික් සහ DN පරිපාලකයන්';
+
+  @override
+  String get staffAdminsSubtitle =>
+      'සුපිරි පරිපාලකට දිස්ත්‍රික් සහ DN පරිපාලකයන් එක් කළ හැක. දිස්ත්‍රික් පරිපාලකයන්ට DN පරිපාලකයන් එක් කළ හැක. නම, ඊමේල් සහ දුරකථනය අවශ්‍යයි.';
+
+  @override
+  String get staffAdminsManageSubtitle =>
+      'පරිපාලකයන් එක් කරන්න, සංස්කරණය, අත්හිටුවන්න';
+
+  @override
+  String get addStaffAdmin => 'පරිපාලක එක් කරන්න';
+
+  @override
+  String get editStaffAdmin => 'පරිපාලක සංස්කරණය';
+
+  @override
+  String get createStaffAdmin => 'පරිපාලක ගිණුම සාදන්න';
+
+  @override
+  String get staffAdminCreated =>
+      'පරිපාලක සාදන ලදී. තාවකාලික මුරපදය ඊමේල් කරන ලදී.';
+
+  @override
+  String get staffAdminUpdated => 'පරිපාලක යාවත්කාලීන කරන ලදී.';
+
+  @override
+  String get noStaffAdmins => 'මෙම පෙරහනට පරිපාලකයන් නැත.';
+
+  @override
+  String get districtRequired => 'දිස්ත්‍රික්කය අවශ්‍යයි';
+
+  @override
+  String get dsRequired => 'DS අංශය අවශ්‍යයි';
+
+  @override
+  String get edit => 'සංස්කරණය';
+
+  @override
+  String get accountSuspendedContactAdmin =>
+      'ඔබේ ගිණුම අත්හිටුවා ඇත. කරුණාකර පරිපාලකයෙකු අමතන්න.';
 }

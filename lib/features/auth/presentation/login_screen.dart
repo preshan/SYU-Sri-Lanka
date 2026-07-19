@@ -55,6 +55,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             password: _password.text,
           );
       if (!mounted) return;
+      final suspended =
+          await ref.read(authRepositoryProvider).isAccountSuspended();
+      if (!mounted) return;
+      if (suspended) {
+        await ref.read(authRepositoryProvider).signOut();
+        if (!mounted) return;
+        setState(() {
+          _banner = AppLocalizations.of(context).accountSuspendedContactAdmin;
+        });
+        return;
+      }
       final verified =
           await ref.read(authRepositoryProvider).isAppEmailVerified();
       if (!mounted) return;
@@ -62,6 +73,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         context.go(
           '/confirm-email?email=${Uri.encodeComponent(_email.text.trim())}',
         );
+        return;
+      }
+      final mustChange =
+          await ref.read(authRepositoryProvider).mustChangePassword();
+      if (!mounted) return;
+      if (mustChange) {
+        context.go('/force-password');
         return;
       }
       context.go('/home');

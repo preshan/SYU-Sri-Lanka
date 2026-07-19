@@ -47,6 +47,11 @@ class AppErrorMapper {
     }
 
     final text = error.toString().toLowerCase();
+    if (text.contains('csv download is only available') ||
+        text.contains('csv export is not supported') ||
+        text.contains('sharing is not available')) {
+      return 'Could not export the file on this device.';
+    }
     if (text.contains('socket') ||
         text.contains('network') ||
         text.contains('failed host lookup') ||

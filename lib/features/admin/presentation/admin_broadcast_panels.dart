@@ -709,7 +709,7 @@ class _AdminEventsPanelState extends State<AdminEventsPanel> {
     return out;
   }
 
-  void _exportEventUsers() {
+  Future<void> _exportEventUsers() async {
     final event = _openEvent;
     if (event == null) return;
     final title = event['title'] as String? ?? 'event';
@@ -746,10 +746,11 @@ class _AdminEventsPanelState extends State<AdminEventsPanel> {
           .toList(),
     );
     try {
-      downloadTextFile(
+      await downloadTextFile(
         filename: SyuCsv.eventFilename(title),
         content: csv,
       );
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -758,7 +759,7 @@ class _AdminEventsPanelState extends State<AdminEventsPanel> {
         ),
       );
     } catch (e) {
-      AppErrorMapper.showSnackBar(context, e);
+      if (mounted) AppErrorMapper.showSnackBar(context, e);
     }
   }
 
