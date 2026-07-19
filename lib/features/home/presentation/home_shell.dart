@@ -1163,21 +1163,17 @@ class _ActionTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.onTapRoute,
-    this.onTap,
-    this.iconColor,
   });
 
   final List<List<dynamic>> icon;
   final String title;
   final String subtitle;
   final String? onTapRoute;
-  final VoidCallback? onTap;
-  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
-    final tappable = onTapRoute != null || onTap != null;
-    final accent = iconColor ?? SyuIcons.accent;
+    final tappable = onTapRoute != null;
+    final accent = SyuIcons.accent;
     final child = Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -1220,7 +1216,7 @@ class _ActionTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: onTap ?? () => context.push(onTapRoute!),
+        onTap: () => context.push(onTapRoute!),
         child: child,
       ),
     );
