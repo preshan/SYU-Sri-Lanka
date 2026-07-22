@@ -66,6 +66,8 @@ flutter run -d chrome --web-port=5280
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, roles, Mermaid diagrams |
 | [docs/USE_CASES.md](docs/USE_CASES.md) | Actors, use cases, flows |
 | [docs/SCREENSHOT_GUIDE.md](docs/SCREENSHOT_GUIDE.md) | UI capture IDs for product documentation |
+| [tools/pdf_doc/](tools/pdf_doc/) | Temporary PDF generator (cover, TOC links, header/footer) |
+| [docs/samples/SYU-Sri-Lanka-doc-sample.pdf](docs/samples/SYU-Sri-Lanka-doc-sample.pdf) | 5-page sample PDF |
 | [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Schema overview |
 | [docs/ADR-001-backend.md](docs/ADR-001-backend.md) | Backend decision (Supabase) |
 | [docs/AUTH_RECOVERY.md](docs/AUTH_RECOVERY.md) | OTP mail / redirects |

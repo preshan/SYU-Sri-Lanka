@@ -1,0 +1,4 @@
+# Temporary PDF doc generator for SYU Sri Lanka product docs.
+# Not part of the Flutter app runtime.
+reportlab>=4.2,<5
+Pillow>=10.0,<12
