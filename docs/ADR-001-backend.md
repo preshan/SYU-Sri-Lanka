@@ -19,7 +19,9 @@ Use **Supabase** as the backend platform:
 ## Consequences
 - Mobile/admin clients talk to Supabase directly with the anon/publishable key
 - Authorization is enforced in Postgres RLS (not a custom API layer)
-- Edge Functions are an exception for server secrets (FCM), not a general backend rewrite
+- Edge Functions are an exception for server secrets (OTP mail, admin provision, future FCM), not a general backend rewrite
+
+See also: [ARCHITECTURE.md](./ARCHITECTURE.md), [USE_CASES.md](./USE_CASES.md).
 
 ## Rejected alternatives
 - Laravel / custom Node API for every CRUD endpoint
