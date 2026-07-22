@@ -48,8 +48,8 @@ def main() -> Path:
             "(Auth, Postgres with Row Level Security, Storage, and Edge Functions). "
             "Email verification and password recovery use a six-digit OTP sent through "
             "Gmail via the <b>send-app-otp</b> Edge Function, avoiding Supabase Auth email quotas.\n\n"
-            "Formatting of this sample follows a conventional training-report layout "
-            "(serif body text, centered chapter titles, Contents with page links).",
+            "Formatting of this sample follows a conventional product-report layout "
+            "(Calibri-like body text, centered chapter titles, Contents with page links).",
             image=logo if logo.exists() else None,
             image_caption="Figure 1: SYU Sri Lanka brand mark",
         )

@@ -1,7 +1,12 @@
 # Temporary PDF generator (SYU docs)
 
-NAITA-style academic report layout (Times / serif, white pages, centered chapter
-titles, justified body, Contents with clickable page links).
+Office-style report layout with **Calibri-like** fonts:
+
+1. System **Calibri** (if installed)
+2. Bundled **Carlito** in `fonts/` (Calibri-compatible, SIL OFL)
+3. Arial / Helvetica fallback
+
+White pages, centered chapter titles, justified body, Contents with clickable links.
 
 ## Setup
 
@@ -13,5 +18,3 @@ pip install -r requirements.txt
 python generate_sample.py
 # → output/SYU-Sri-Lanka-doc-sample.pdf
 ```
-
-Open the PDF and click **Contents** entries to jump to sections.

@@ -1,10 +1,10 @@
 """
-SYU PDF documentation builder — NAITA-style academic report formatting.
+SYU PDF documentation builder — clean Office-style report formatting.
 
-- White pages, Times (serif), black text
+- White pages, Calibri-like sans (Calibri → bundled Carlito → Arial)
 - Cover: centered titles + logo
 - Contents: clickable TOC, right-aligned page numbers
-- Body: Title / Heading 1–2, justified 12pt body
+- Body: centered chapter titles, justified 11–12pt body
 - Light header line + footer page number
 - End page (centered, clean)
 """
@@ -45,24 +45,32 @@ PAGE_W, PAGE_H = A4
 
 
 def _register_fonts() -> Tuple[str, str]:
-    """Prefer system Times New Roman; fall back to Times-Roman."""
-    candidates = [
-        "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
-        "/Library/Fonts/Times New Roman.ttf",
-        "/System/Library/Fonts/Times.ttc",
+    """Prefer Calibri, then bundled Carlito (Calibri-compatible), then Arial."""
+    bundle = Path(__file__).resolve().parent.parent / "fonts"
+    regular_candidates = [
+        "/Library/Fonts/Microsoft/Calibri.ttf",
+        "/Library/Fonts/Calibri.ttf",
+        "/System/Library/Fonts/Supplemental/Calibri.ttf",
+        str(bundle / "Carlito-Regular.ttf"),
+        "/System/Library/Fonts/Supplemental/Arial.ttf",
+        "/Library/Fonts/Arial.ttf",
     ]
     bold_candidates = [
-        "/System/Library/Fonts/Supplemental/Times New Roman Bold.ttf",
-        "/Library/Fonts/Times New Roman Bold.ttf",
+        "/Library/Fonts/Microsoft/Calibri Bold.ttf",
+        "/Library/Fonts/Calibri Bold.ttf",
+        "/System/Library/Fonts/Supplemental/Calibri Bold.ttf",
+        str(bundle / "Carlito-Bold.ttf"),
+        "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+        "/Library/Fonts/Arial Bold.ttf",
     ]
-    regular = "Times-Roman"
-    bold = "Times-Bold"
-    for path in candidates:
+    regular = "Helvetica"
+    bold = "Helvetica-Bold"
+    for path in regular_candidates:
         p = Path(path)
         if p.exists():
             try:
-                pdfmetrics.registerFont(TTFont("SYUTimes", str(p)))
-                regular = "SYUTimes"
+                pdfmetrics.registerFont(TTFont("SYUSans", str(p)))
+                regular = "SYUSans"
                 break
             except Exception:
                 continue
@@ -70,13 +78,11 @@ def _register_fonts() -> Tuple[str, str]:
         p = Path(path)
         if p.exists():
             try:
-                pdfmetrics.registerFont(TTFont("SYUTimes-Bold", str(p)))
-                bold = "SYUTimes-Bold"
+                pdfmetrics.registerFont(TTFont("SYUSans-Bold", str(p)))
+                bold = "SYUSans-Bold"
                 break
             except Exception:
                 continue
-    if regular == "SYUTimes" and bold == "Times-Bold":
-        bold = "Times-Bold"
     return regular, bold
 
 
