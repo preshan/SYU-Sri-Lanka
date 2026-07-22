@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a simple 5-page test PDF for SYU Sri Lanka app documentation."""
+"""Generate a 5-page NAITA-style sample PDF for SYU Sri Lanka documentation."""
 
 from __future__ import annotations
 
@@ -10,8 +10,6 @@ ROOT = Path(__file__).resolve().parents[2]
 BRAND = ROOT / "assets" / "brand"
 OUT_DIR = Path(__file__).resolve().parent / "output"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
-
-# Allow `python generate_sample.py` without installing the package.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from syu_pdf import SyuPdfBuilder  # noqa: E402
@@ -28,45 +26,59 @@ def main() -> Path:
             logo=logo if logo.exists() else None,
             icon=icon if icon.exists() else None,
             doc_title="SYU Sri Lanka",
-            doc_subtitle="App documentation — sample",
-            header_left="SYU Sri Lanka · Product documentation",
-            footer_center="SYU Sri Lanka — sample PDF (temporary generator)",
+            doc_subtitle="Product Documentation (Sample)",
+            header_left="SYU Sri Lanka — Product Documentation",
         )
         .cover(
-            title="SYU Sri Lanka",
-            subtitle="Membership app — documentation sample",
-            meta="v0.10.2  ·  Test PDF  ·  Click Contents links to jump",
+            title="State Youth Union Sri Lanka",
+            subtitle="Membership Application — Product Documentation",
+            meta_lines=[
+                "Document          : Product documentation (sample)",
+                "Application       : SYU Sri Lanka (Flutter + Supabase)",
+                "Version           : 0.10.2",
+                "Audience          : Stakeholders / UAT / internal training",
+            ],
         )
         .add_section(
             "1. Overview",
-            "SYU Sri Lanka is a Flutter + Supabase membership app for State Youth Union.\n\n"
-            "Members register with email OTP (Gmail via Edge Function), complete a registration "
-            "wizard, read news, RSVP to events, and chat. Staff roles manage members and publish content.\n\n"
-            "This sample demonstrates cover, clickable Contents, headers, footers, page numbers, "
-            "images, and an end page.",
+            "This document introduces the <b>SYU Sri Lanka</b> membership application. "
+            "The app supports youth member registration, profile management, news, events, "
+            "and messaging, together with staff tools for district and division administration.\n\n"
+            "The system is built with <b>Flutter</b> (Android and web) and <b>Supabase</b> "
+            "(Auth, Postgres with Row Level Security, Storage, and Edge Functions). "
+            "Email verification and password recovery use a six-digit OTP sent through "
+            "Gmail via the <b>send-app-otp</b> Edge Function, avoiding Supabase Auth email quotas.\n\n"
+            "Formatting of this sample follows a conventional training-report layout "
+            "(serif body text, centered chapter titles, Contents with page links).",
             image=logo if logo.exists() else None,
-            image_caption="Brand mark — assets/brand/syu_logo_full.png",
+            image_caption="Figure 1: SYU Sri Lanka brand mark",
         )
         .add_section(
-            "2. Roles, flows & screenshots",
-            "<b>Roles:</b> Member · Division admin · District admin · Super admin (<i>admin@syu.lk</i>).<br/><br/>"
-            "<b>Key flows:</b> Guest → Register → OTP → Home; Login gates (suspend / verify / force password); "
-            "Admin → Members → Add member; Publish news/events.<br/><br/>"
-            "Full catalogue: <b>docs/SCREENSHOT_GUIDE.md</b> (15 screenshots + 34 flows) · "
-            "<b>docs/USE_CASES.md</b> · <b>docs/ARCHITECTURE.md</b>.",
+            "2. Roles and Access",
+            "Access is controlled by roles stored in Postgres and enforced with RLS.\n\n"
+            "<b>Member</b> — Completes registration, maintains a profile, reads news, "
+            "RSVPs to events, and uses member chat.\n\n"
+            "<b>Division admin</b> — Manages members within a DS division, may add members, "
+            "and can set the division WhatsApp group link.\n\n"
+            "<b>District admin</b> — Manages members within a district, creates division admins, "
+            "and maintains divisional organizers.\n\n"
+            "<b>Super admin</b> — National scope: publish news and events, broadcast messages, "
+            "manage youth clubs and staff admins (reference account: admin@syu.lk).\n\n"
+            "Detailed flows and the screenshot checklist are maintained in the repository under "
+            "<b>docs/USE_CASES.md</b>, <b>docs/ARCHITECTURE.md</b>, and "
+            "<b>docs/SCREENSHOT_GUIDE.md</b> (fifteen required screenshots and thirty-four flows).",
             image=icon if icon.exists() else None,
-            image_caption="App icon — assets/brand/syu_icon_192.png",
+            image_caption="Figure 2: Application icon",
         )
         .end_page(
-            title="End of sample",
-            body="Replace this generator output with the full product PDF once screenshots are ready.\n"
-            "Generator: tools/pdf_doc/  ·  Repo: github.com/preshan/SYU-Sri-Lanka",
+            title="— End of Sample Document —",
+            body="Full product PDF will include captured screens (SS-01 … SS-15).\n"
+            "Generator: tools/pdf_doc/  ·  github.com/preshan/SYU-Sri-Lanka",
         )
     )
 
     path = builder.build()
     print(f"Wrote {path}")
-    print("Pages: cover + contents + 2 sections + end = 5")
     return path
 
 
