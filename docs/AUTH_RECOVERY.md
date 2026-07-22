@@ -2,10 +2,10 @@
 
 ## Email confirmation — 6-digit PIN (OTP)
 
-**TEMPORARY mail path:** Codes for signup and password reset are sent with Gmail
-credentials stored in `app_mail_settings`. The Flutter app triggers send via Edge
-Function `send-app-otp` (browsers cannot open raw SMTP sockets). The App Password
-stays in the DB / function — not baked into the APK as a constant.
+Codes for signup and password reset are sent with Gmail credentials stored in
+`app_mail_settings`. The Flutter app always triggers send via Edge Function
+`send-app-otp`. The App Password stays server-side (service role +
+`get_mail_settings_internal`) — never returned to the client.
 
 Supabase Auth **autoconfirm** is enabled so Auth does not send its own mail
 (avoids Auth rate limits). App gate: `profiles.app_email_verified`.
