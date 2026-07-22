@@ -67,6 +67,7 @@ flutter run -d chrome --web-port=5280
 | [docs/USE_CASES.md](docs/USE_CASES.md) | Actors, use cases, flows |
 | [docs/SCREENSHOT_GUIDE.md](docs/SCREENSHOT_GUIDE.md) | UI capture IDs for product documentation |
 | [tools/pdf_doc/](tools/pdf_doc/) | Temporary PDF generator (cover, TOC links, header/footer) |
+| [docs/samples/SYU-Sri-Lanka-Product-Documentation.pdf](docs/samples/SYU-Sri-Lanka-Product-Documentation.pdf) | Full product doc (screenshots + Mermaid) |
 | [docs/samples/SYU-Sri-Lanka-doc-sample.pdf](docs/samples/SYU-Sri-Lanka-doc-sample.pdf) | 5-page sample PDF |
 | [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Schema overview |
 | [docs/ADR-001-backend.md](docs/ADR-001-backend.md) | Backend decision (Supabase) |

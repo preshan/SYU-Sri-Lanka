@@ -96,6 +96,8 @@ class Section:
     level: int = 1
     image: Optional[Path] = None
     image_caption: Optional[str] = None
+    extra_images: List[Tuple[Path, Optional[str]]] = field(default_factory=list)
+    page_break_before: bool = True
 
 
 @dataclass
@@ -142,7 +144,13 @@ class SyuPdfBuilder:
         level: int = 1,
         image: Optional[Union[str, Path]] = None,
         image_caption: Optional[str] = None,
+        images: Optional[Sequence[Tuple[Union[str, Path], Optional[str]]]] = None,
+        page_break_before: bool = True,
     ) -> "SyuPdfBuilder":
+        extras: List[Tuple[Path, Optional[str]]] = []
+        if images:
+            for p, cap in images:
+                extras.append((Path(p), cap))
         self.sections.append(
             Section(
                 title=title,
@@ -150,6 +158,8 @@ class SyuPdfBuilder:
                 level=level,
                 image=Path(image) if image else None,
                 image_caption=image_caption,
+                extra_images=extras,
+                page_break_before=page_break_before,
             )
         )
         return self
@@ -163,8 +173,12 @@ class SyuPdfBuilder:
     ) -> "SyuPdfBuilder":
         p = Path(path)
         if under_last_section and self.sections:
-            self.sections[-1].image = p
-            self.sections[-1].image_caption = caption
+            sec = self.sections[-1]
+            if sec.image is None:
+                sec.image = p
+                sec.image_caption = caption
+            else:
+                sec.extra_images.append((p, caption))
         else:
             self.add_section("Figure", "", image=p, image_caption=caption)
         return self
@@ -232,8 +246,9 @@ class SyuPdfBuilder:
         story.append(PageBreak())
 
         for i, sec in enumerate(self.sections):
+            if i > 0 and sec.page_break_before:
+                story.append(PageBreak())
             heading_style = styles["Heading1"] if sec.level == 1 else styles["Heading2"]
-            # Centered chapter-style title like NAITA Acknowledgement / Preface
             if sec.level == 1:
                 story.append(Paragraph(sec.title, styles["ChapterTitle"]))
             else:
@@ -242,19 +257,27 @@ class SyuPdfBuilder:
             for para in _split_paras(sec.body):
                 story.append(Paragraph(para, styles["Body"]))
                 story.append(Spacer(1, 4 * mm))
-            if sec.image and sec.image.exists():
-                img = _fit_image(sec.image, max_w=120 * mm, max_h=80 * mm)
+
+            figures: List[Tuple[Path, Optional[str]]] = []
+            if sec.image:
+                figures.append((sec.image, sec.image_caption))
+            figures.extend(sec.extra_images)
+
+            for path, caption in figures:
+                if not path.exists():
+                    continue
+                # Phone screenshots are tall — prefer height budget
+                img = _fit_image(path, max_w=95 * mm, max_h=145 * mm)
                 bits = [Spacer(1, 4 * mm), img]
-                if sec.image_caption:
+                if caption:
                     bits.append(Spacer(1, 2 * mm))
-                    bits.append(Paragraph(sec.image_caption, styles["Caption"]))
+                    bits.append(Paragraph(caption, styles["Caption"]))
                 story.append(KeepTogether(bits))
-            if i < len(self.sections) - 1:
-                story.append(PageBreak())
-            elif self._include_end:
-                story.append(NextPageTemplate("End"))
-                story.append(PageBreak())
-                story.append(Spacer(1, 1))
+
+        if self._include_end:
+            story.append(NextPageTemplate("End"))
+            story.append(PageBreak())
+            story.append(Spacer(1, 1))
 
         doc.multiBuild(story)
         return out

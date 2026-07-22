@@ -40,7 +40,7 @@ Never use “Logged out” in **Login as**. Use a role:
 | SS-11 | `admin-add-member` | Add member form | `/admin/add-member` | Super admin |
 | SS-12 | `admin-news` | Admin news publish | Admin → News | Super admin |
 | SS-13 | `admin-events` | Admin events publish | Admin → Events | Super admin |
-| SS-14 | `whatsapp-link` | DS WhatsApp link | Admin home → WhatsApp tile | Division admin |
+| SS-14 | `staff-admins` | District & DN admins | Admin home → District & DN admins | Super admin |
 | SS-15 | `organizers` | Organizers list / add | Admin home → Organizers | District admin |
 
 **Capture order:** Guest SS-01–03 → Member SS-04–07 → Super SS-08, SS-10–13 → District SS-09, SS-15 → Division SS-14.
