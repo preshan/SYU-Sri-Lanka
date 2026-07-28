@@ -29,10 +29,41 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
   String? _message;
 
   @override
+  void initState() {
+    super.initState();
+    // Never trust a hand-edited ?email= when a session exists — sync URL to
+    // the signed-in account so the UI cannot imply deleting someone else.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncEmailToSession());
+  }
+
+  @override
   void dispose() {
     _pin.dispose();
     _pinFocus.dispose();
     super.dispose();
+  }
+
+  /// Prefer the signed-in user's email; URL query is display/fallback only.
+  String get _accountEmail {
+    final sessionEmail =
+        SupabaseBootstrap.client.auth.currentUser?.email?.trim();
+    if (sessionEmail != null && sessionEmail.isNotEmpty) {
+      return sessionEmail;
+    }
+    return widget.email.trim();
+  }
+
+  void _syncEmailToSession() {
+    if (!mounted) return;
+    final sessionEmail =
+        SupabaseBootstrap.client.auth.currentUser?.email?.trim();
+    if (sessionEmail == null || sessionEmail.isEmpty) return;
+    if (sessionEmail.toLowerCase() == widget.email.trim().toLowerCase()) {
+      return;
+    }
+    context.go(
+      '/confirm-email?email=${Uri.encodeComponent(sessionEmail)}',
+    );
   }
 
   String get _code => _pin.text.trim();
@@ -48,8 +79,9 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
       _message = null;
     });
     try {
+      final email = _accountEmail;
       await ref.read(authRepositoryProvider).verifySignupOtp(
-            email: widget.email,
+            email: email,
             token: _code,
           );
       if (!mounted) return;
@@ -59,7 +91,7 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
         context.go('/home');
       } else {
         context.go(
-          '/login?email=${Uri.encodeComponent(widget.email)}',
+          '/login?email=${Uri.encodeComponent(email)}',
         );
       }
     } catch (e) {
@@ -77,7 +109,9 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
       _message = null;
     });
     try {
-      await ref.read(authRepositoryProvider).resendSignupEmail(widget.email);
+      await ref
+          .read(authRepositoryProvider)
+          .resendSignupEmail(_accountEmail);
       if (!mounted) return;
       setState(() => _message = l10n.codeResent);
     } catch (_) {
@@ -88,14 +122,24 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
     }
   }
 
-  /// Confirm, delete the abandoned unverified signup, then open Create account.
+  /// Confirm, delete only the signed-in unverified account, then Create account.
   Future<void> _useDifferentEmail() async {
     final l10n = AppLocalizations.of(context);
+    final session = SupabaseBootstrap.client.auth.currentSession;
+    final sessionEmail =
+        SupabaseBootstrap.client.auth.currentUser?.email?.trim() ?? '';
+
+    // Without a session we cannot delete an Auth user; never imply we can.
+    if (session == null || sessionEmail.isEmpty) {
+      context.go('/register');
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.useDifferentEmailTitle),
-        content: Text(l10n.useDifferentEmailConfirm(widget.email)),
+        content: Text(l10n.useDifferentEmailConfirm(sessionEmail)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -115,12 +159,7 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
       _message = null;
     });
     try {
-      final auth = ref.read(authRepositoryProvider);
-      if (SupabaseBootstrap.client.auth.currentSession != null) {
-        await auth.abandonUnverifiedSignup();
-      } else {
-        await auth.signOut();
-      }
+      await ref.read(authRepositoryProvider).abandonUnverifiedSignup();
       if (!mounted) return;
       // Wait for GoRouter's auth refreshListenable to settle before navigating.
       await Future<void>.delayed(Duration.zero);
@@ -172,7 +211,7 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        widget.email,
+                        _accountEmail,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   color: SyuColors.paper,
