@@ -1,7 +1,7 @@
 name: syu_sri_lanka
 description: SYU Sri Lanka — youth membership, announcements, events, and messaging.
 publish_to: "none"
-version: 0.10.2+13
+version: 0.10.3+14
 
 environment:
   sdk: ^3.12.2
