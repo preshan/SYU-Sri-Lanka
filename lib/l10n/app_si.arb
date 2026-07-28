@@ -79,6 +79,16 @@
   "goToSignIn": "තහවුරු කළා - පිවිසුම් පිටුවට යන්න",
   "resendEmail": "කේතය නැවත එවන්න",
   "useDifferentEmail": "වෙනත් ඊමේල් ලිපිනයක් භාවිතා කරන්න",
+  "useDifferentEmailTitle": "වෙනත් ඊමේල් ලිපිනයක් භාවිතා කරන්නද?",
+  "useDifferentEmailConfirm": "මෙයින් {email} යෙදුමෙන් ඉවත් වන අතර තහවුරු කේතය අවලංගු වේ. ඉන්පසු වෙනත් ඊමේල් ලිපිනයකින් ලියාපදිංචි විය හැක.",
+  "@useDifferentEmailConfirm": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "useDifferentEmailYes": "ඔව්, ඉවත් කරන්න",
   "enterVerificationCode": "තහවුරු කේතය",
   "verifyAndContinue": "තහවුරු කර ඉදිරියට",
   "invalidVerificationCode": "ඊමේල් පණිවිඩයේ ඇති ඉලක්කම් 6ක කේතය ඇතුළත් කරන්න.",

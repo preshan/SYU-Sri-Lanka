@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:syu_sri_lanka/core/errors/app_error_mapper.dart';
 import 'package:syu_sri_lanka/core/localization/language_picker.dart';
 import 'package:syu_sri_lanka/core/navigation/syu_back_scope.dart';
+import 'package:syu_sri_lanka/core/supabase/supabase_bootstrap.dart';
 import 'package:syu_sri_lanka/core/theme/syu_theme.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_brand_mark.dart';
 import 'package:syu_sri_lanka/core/widgets/syu_icon.dart';
@@ -26,6 +27,23 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _loading = false;
 
   @override
+  void initState() {
+    super.initState();
+    // "Use a different email" may land here before sign-out fully clears;
+    // drop any leftover session so signup can create a new account.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _clearStaleSession());
+  }
+
+  Future<void> _clearStaleSession() async {
+    if (SupabaseBootstrap.client.auth.currentSession == null) return;
+    try {
+      await ref.read(authRepositoryProvider).signOut();
+    } catch (_) {
+      // Best-effort; signup will still surface auth errors if needed.
+    }
+  }
+
+  @override
   void dispose() {
     _name.dispose();
     _email.dispose();
@@ -37,6 +55,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
+      if (SupabaseBootstrap.client.auth.currentSession != null) {
+        await ref.read(authRepositoryProvider).signOut();
+      }
       await ref.read(authRepositoryProvider).signUp(
             email: _email.text.trim(),
             password: _password.text,

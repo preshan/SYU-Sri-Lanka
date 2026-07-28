@@ -256,6 +256,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get useDifferentEmail => 'Use a different email';
 
   @override
+  String get useDifferentEmailTitle => 'Use a different email?';
+
+  @override
+  String useDifferentEmailConfirm(String email) {
+    return 'This removes $email from the app and cancels the confirmation code. You can then register with another email.';
+  }
+
+  @override
+  String get useDifferentEmailYes => 'Yes, remove it';
+
+  @override
   String get enterVerificationCode => 'Verification code';
 
   @override

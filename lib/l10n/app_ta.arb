@@ -79,6 +79,16 @@
   "goToSignIn": "நான் உறுதிப்படுத்தினேன் - உள்நுழையச் செல்லவும்",
   "resendEmail": "குறியீட்டை மீண்டும் அனுப்பவும்",
   "useDifferentEmail": "வேறு மின்னஞ்சலைப் பயன்படுத்தவும்",
+  "useDifferentEmailTitle": "வேறு மின்னஞ்சலைப் பயன்படுத்தவா?",
+  "useDifferentEmailConfirm": "இது {email} ஐ செயலியிலிருந்து நீக்கி, உறுதிப்படுத்தல் குறியீட்டை ரத்துசெய்யும். பிறகு வேறு மின்னஞ்சலில் பதிவு செய்யலாம்.",
+  "@useDifferentEmailConfirm": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "useDifferentEmailYes": "ஆம், நீக்கவும்",
   "enterVerificationCode": "உறுதிப்படுத்தல் குறியீடு",
   "verifyAndContinue": "உறுதிப்படுத்தி தொடரவும்",
   "invalidVerificationCode": "மின்னஞ்சலில் உள்ள 6 இலக்கக் குறியீட்டை உள்ளிடவும்.",

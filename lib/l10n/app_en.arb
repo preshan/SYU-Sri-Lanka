@@ -82,6 +82,16 @@
   "goToSignIn": "I confirmed — go to sign in",
   "resendEmail": "Resend code",
   "useDifferentEmail": "Use a different email",
+  "useDifferentEmailTitle": "Use a different email?",
+  "useDifferentEmailConfirm": "This removes {email} from the app and cancels the confirmation code. You can then register with another email.",
+  "@useDifferentEmailConfirm": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "useDifferentEmailYes": "Yes, remove it",
   "enterVerificationCode": "Verification code",
   "verifyAndContinue": "Verify & continue",
   "invalidVerificationCode": "Enter the 6-digit code from your email.",

@@ -256,6 +256,17 @@ class AppLocalizationsSi extends AppLocalizations {
   String get useDifferentEmail => 'වෙනත් ඊමේල් ලිපිනයක් භාවිතා කරන්න';
 
   @override
+  String get useDifferentEmailTitle => 'වෙනත් ඊමේල් ලිපිනයක් භාවිතා කරන්නද?';
+
+  @override
+  String useDifferentEmailConfirm(String email) {
+    return 'මෙයින් $email යෙදුමෙන් ඉවත් වන අතර තහවුරු කේතය අවලංගු වේ. ඉන්පසු වෙනත් ඊමේල් ලිපිනයකින් ලියාපදිංචි විය හැක.';
+  }
+
+  @override
+  String get useDifferentEmailYes => 'ඔව්, ඉවත් කරන්න';
+
+  @override
   String get enterVerificationCode => 'තහවුරු කේතය';
 
   @override

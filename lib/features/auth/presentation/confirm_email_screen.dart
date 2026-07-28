@@ -25,6 +25,7 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
   final _pinFocus = FocusNode();
   bool _verifying = false;
   bool _resending = false;
+  bool _switchingEmail = false;
   String? _message;
 
   @override
@@ -84,6 +85,51 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
       setState(() => _message = l10n.codeResendFailed);
     } finally {
       if (mounted) setState(() => _resending = false);
+    }
+  }
+
+  /// Confirm, delete the abandoned unverified signup, then open Create account.
+  Future<void> _useDifferentEmail() async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.useDifferentEmailTitle),
+        content: Text(l10n.useDifferentEmailConfirm(widget.email)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.useDifferentEmailYes),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      _switchingEmail = true;
+      _message = null;
+    });
+    try {
+      final auth = ref.read(authRepositoryProvider);
+      if (SupabaseBootstrap.client.auth.currentSession != null) {
+        await auth.abandonUnverifiedSignup();
+      } else {
+        await auth.signOut();
+      }
+      if (!mounted) return;
+      // Wait for GoRouter's auth refreshListenable to settle before navigating.
+      await Future<void>.delayed(Duration.zero);
+      if (!mounted) return;
+      context.go('/register');
+    } catch (e) {
+      if (!mounted) return;
+      AppErrorMapper.showSnackBar(context, e);
+      setState(() => _switchingEmail = false);
     }
   }
 
@@ -185,7 +231,8 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
                       ],
                       const SizedBox(height: 28),
                       FilledButton(
-                        onPressed: _verifying ? null : _verify,
+                        onPressed:
+                            _verifying || _switchingEmail ? null : _verify,
                         child: _verifying
                             ? const SizedBox(
                                 height: 22,
@@ -199,7 +246,9 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
                       ),
                       const SizedBox(height: 12),
                       OutlinedButton(
-                        onPressed: _resending || _verifying ? null : _resend,
+                        onPressed: _resending || _verifying || _switchingEmail
+                            ? null
+                            : _resend,
                         child: _resending
                             ? const SizedBox(
                                 height: 22,
@@ -213,8 +262,19 @@ class _ConfirmEmailScreenState extends ConsumerState<ConfirmEmailScreen> {
                       ),
                       const SizedBox(height: 8),
                       TextButton(
-                        onPressed: () => context.go('/register'),
-                        child: Text(l10n.useDifferentEmail),
+                        onPressed: _verifying || _resending || _switchingEmail
+                            ? null
+                            : _useDifferentEmail,
+                        child: _switchingEmail
+                            ? const SizedBox(
+                                height: 18,
+                                width: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  color: SyuColors.paper,
+                                ),
+                              )
+                            : Text(l10n.useDifferentEmail),
                       ),
                     ],
                   ),

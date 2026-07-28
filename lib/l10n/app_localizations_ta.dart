@@ -258,6 +258,17 @@ class AppLocalizationsTa extends AppLocalizations {
   String get useDifferentEmail => 'வேறு மின்னஞ்சலைப் பயன்படுத்தவும்';
 
   @override
+  String get useDifferentEmailTitle => 'வேறு மின்னஞ்சலைப் பயன்படுத்தவா?';
+
+  @override
+  String useDifferentEmailConfirm(String email) {
+    return 'இது $email ஐ செயலியிலிருந்து நீக்கி, உறுதிப்படுத்தல் குறியீட்டை ரத்துசெய்யும். பிறகு வேறு மின்னஞ்சலில் பதிவு செய்யலாம்.';
+  }
+
+  @override
+  String get useDifferentEmailYes => 'ஆம், நீக்கவும்';
+
+  @override
   String get enterVerificationCode => 'உறுதிப்படுத்தல் குறியீடு';
 
   @override

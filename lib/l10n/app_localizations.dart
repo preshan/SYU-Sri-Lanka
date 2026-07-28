@@ -574,6 +574,24 @@ abstract class AppLocalizations {
   /// **'Use a different email'**
   String get useDifferentEmail;
 
+  /// No description provided for @useDifferentEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a different email?'**
+  String get useDifferentEmailTitle;
+
+  /// No description provided for @useDifferentEmailConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes {email} from the app and cancels the confirmation code. You can then register with another email.'**
+  String useDifferentEmailConfirm(String email);
+
+  /// No description provided for @useDifferentEmailYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, remove it'**
+  String get useDifferentEmailYes;
+
   /// No description provided for @enterVerificationCode.
   ///
   /// In en, this message translates to:

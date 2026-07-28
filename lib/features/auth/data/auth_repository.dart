@@ -65,6 +65,16 @@ class AuthRepository {
 
   Future<void> signOut() => _client.auth.signOut();
 
+  /// Deletes the current unverified Auth user + signup OTPs so the email is free.
+  Future<void> abandonUnverifiedSignup() async {
+    await _client.rpc('abandon_unverified_signup');
+    try {
+      await _client.auth.signOut();
+    } catch (_) {
+      // Session is already invalid after the Auth user was deleted.
+    }
+  }
+
   /// Issues OTP + sends via Flutter SMTP / Edge Function (not Supabase Auth mailer).
   Future<void> sendAppEmailOtp({
     required String email,
