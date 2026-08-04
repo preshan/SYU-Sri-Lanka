@@ -1,6 +1,6 @@
-# Localization scaffold
+# Localization
 
-Flutter gen-l10n is prepared under `lib/l10n/`.
+Flutter gen-l10n under `lib/l10n/`. UI strings use `AppLocalizations` with a language picker (EN / SI / TA).
 
 ## Languages
 
@@ -14,6 +14,4 @@ Flutter gen-l10n is prepared under `lib/l10n/`.
 
 1. Add keys to `app_en.arb`, then translate in `app_si.arb` / `app_ta.arb`.
 2. Run `flutter gen-l10n` (or build) to regenerate.
-3. Wire `AppLocalizations` into `MaterialApp.router` when ready to localize UI strings.
-
-Until strings are migrated, the app remains English-first.
+3. Prefer `AppLocalizations.of(context)` for user-facing copy (avoid hard-coded English in new screens).

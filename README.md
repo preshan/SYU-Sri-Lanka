@@ -4,6 +4,8 @@ Flutter membership app for **State Youth Union Sri Lanka** (Android-first, Flutt
 
 Brand crimson `#E10600` on near-black `#0A0A0A`.
 
+**Latest:** [v0.10.4](https://github.com/preshan/SYU-Sri-Lanka/releases/tag/v0.10.4) · Live web: [GitHub Pages](https://preshan.github.io/SYU-Sri-Lanka/)
+
 ## What it does
 
 - Member signup with **email OTP** (Gmail via Edge Function — bypasses Supabase Auth email quota)
@@ -30,8 +32,8 @@ Screenshot checklist for the product doc: **[docs/SCREENSHOT_GUIDE.md](docs/SCRE
 
 - Flutter 3.44+
 - Supabase (Auth + Postgres + Storage + Realtime + Edge Functions)
-- Flutter Web / [GitHub Pages](https://preshan.github.io/SYU-Sri-Lanka/)
-- FCM planned (deferred)
+- Flutter Web / GitHub Pages
+- Push (FCM) not shipped yet
 
 ## Android targets
 
@@ -66,7 +68,7 @@ flutter run -d chrome --web-port=5280
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, roles, Mermaid diagrams |
 | [docs/USE_CASES.md](docs/USE_CASES.md) | Actors, use cases, flows |
 | [docs/SCREENSHOT_GUIDE.md](docs/SCREENSHOT_GUIDE.md) | UI capture IDs for product documentation |
-| [tools/pdf_doc/](tools/pdf_doc/) | Temporary PDF generator (cover, TOC links, header/footer) |
+| [tools/pdf_doc/](tools/pdf_doc/) | PDF toolkit (cover, TOC links, header/footer) |
 | [docs/samples/SYU-Sri-Lanka-Product-Documentation.pdf](docs/samples/SYU-Sri-Lanka-Product-Documentation.pdf) | Full product doc (screenshots + Mermaid) |
 | [docs/samples/SYU-Sri-Lanka-doc-sample.pdf](docs/samples/SYU-Sri-Lanka-doc-sample.pdf) | 5-page sample PDF |
 | [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Schema overview |
@@ -74,8 +76,8 @@ flutter run -d chrome --web-port=5280
 | [docs/AUTH_RECOVERY.md](docs/AUTH_RECOVERY.md) | OTP mail / redirects |
 | [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md) | Production security |
 | [docs/RELEASE_RUNBOOK.md](docs/RELEASE_RUNBOOK.md) | Ship APK / Pages |
-| [docs/UAT_PLAN.md](docs/UAT_PLAN.md) | Critical journey tests |
-| [docs/LOCALIZATION.md](docs/LOCALIZATION.md) | EN / SI / TA scaffold |
+| [docs/UAT_PLAN.md](docs/UAT_PLAN.md) | Manual journey tests |
+| [docs/LOCALIZATION.md](docs/LOCALIZATION.md) | EN / SI / TA |
 | [docs/GITHUB_WORKFLOW.md](docs/GITHUB_WORKFLOW.md) | Project board / Insights |
 
 ## GitHub

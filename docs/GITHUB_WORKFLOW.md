@@ -16,56 +16,23 @@ Deferred work uses label **`sprint:future`** and Status **Backlog**.
 
 ## How we work
 1. Pick a child issue under an epic (not the epic itself unless coordinating)
-2. Create/work on `develop` (or a short-lived feature branch)
-3. Implement + close the GitHub issue with a completion comment
-4. Commit with **Preshan** author + **Cursor Agent** committer / Co-authored-by
-5. Cut a GitHub Release when an installable Android build is ready
+2. Work on `develop` (or a short-lived `dev/…` feature branch, then merge to `develop`)
+3. Close the GitHub issue with a short completion note
+4. Cut a GitHub Release when an installable Android build is ready (see [RELEASE_RUNBOOK.md](./RELEASE_RUNBOOK.md))
 
 ## Priority
 - Issue labels: `priority:critical|high|medium|low`
 - Project field: P0 / P1 / P2
 
-## Recommended Insights charts (PM)
+## Insights charts (optional)
 
-GitHub does **not** allow creating Insights charts via API — add them once under **Insights → + New chart** using these recipes. Keep the default **Burn up** chart.
+GitHub Insights charts are created in the UI (**Insights → + New chart**). Useful views:
 
-Filter all charts with `is:issue` (unless noted).
+| Chart | Group by | Filter |
+|-------|----------|--------|
+| Status by count | Status | `is:issue` |
+| Open by Priority | Priority | `is:issue is:open` |
+| Items by Iteration | Iteration | `is:issue` |
+| Sprint labels | Labels | `is:issue is:open` |
 
-### 1. Status flow (board health)
-- **Name:** Status by count  
-- **Layout:** Stacked column (or pie)  
-- **X-axis / group:** **Status**  
-- **Purpose:** See Backlog vs Ready vs In progress vs Done at a glance
-
-### 2. Priority breakdown
-- **Name:** Open by Priority  
-- **Layout:** Pie or stacked column  
-- **Group:** **Priority** (P0 / P1 / P2)  
-- **Filter:** `is:issue is:open`  
-- **Purpose:** Confirm P0/P1 aren’t drowning under nice-to-haves
-
-### 3. Sprint / iteration load
-- **Name:** Items by Iteration  
-- **Layout:** Stacked column  
-- **Group:** **Iteration**  
-- **Purpose:** Work committed per sprint (Sprint 1–6)
-
-### 4. Labels — current vs future
-- **Name:** Sprint labels  
-- **Layout:** Stacked column or pie  
-- **Group:** **Labels** (or filter `label:sprint:future` vs `label:sprint:6`)  
-- **Filter:** `is:issue is:open`  
-- **Purpose:** Separate deferred FCM/future work from current sprint
-
-### 5. Module hotspot (optional)
-- **Name:** Open by module  
-- **Layout:** Bar  
-- **Group:** **Labels**  
-- **Filter:** `is:issue is:open`  
-- **Purpose:** Which domain still has open work (messaging, notifications, etc.)
-
-### How to read Burn up (existing)
-- Green / total scope = work in the project over time  
-- Purple / completed = closed or Done  
-- Gap = remaining scope (includes `sprint:future` unless you filter it out)  
-- Tip: for “current sprint only,” add filter `label:sprint:6` (or the active sprint label)
+Keep the default **Burn up** chart. For “current sprint only,” filter e.g. `label:sprint:6`.

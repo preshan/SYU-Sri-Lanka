@@ -1,11 +1,11 @@
 # Architecture Decision Record — Backend approach
 
 ## Status
-Accepted (Sprint 1)
+Accepted
 
 ## Context
-SYU Sri Lanka needs auth, member data, realtime messaging, storage, and push notifications.
-The product owner requires Flutter + Supabase/Postgres/FCM and **no Laravel** unless unavoidable.
+SYU Sri Lanka needs auth, member data, realtime messaging, storage, and (later) push notifications.
+The stack choice is Flutter + Supabase/Postgres, with **no Laravel** unless unavoidable.
 
 ## Decision
 Use **Supabase** as the backend platform:
@@ -14,7 +14,7 @@ Use **Supabase** as the backend platform:
 - Data: PostgreSQL + Row Level Security
 - Files: Supabase Storage
 - Realtime: Supabase Realtime on chat tables
-- Push: Firebase Cloud Messaging, with a **Supabase Edge Function** only for privileged FCM send
+- Push: Firebase Cloud Messaging planned; Edge Function only for privileged FCM send when that lands
 
 ## Consequences
 - Mobile/admin clients talk to Supabase directly with the anon/publishable key

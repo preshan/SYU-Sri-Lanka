@@ -1,4 +1,4 @@
-# Database schema (Sprint 1–2)
+# Database schema
 
 ## Location hierarchy (existing)
 
@@ -14,7 +14,7 @@ Registration and profiles reuse these integer IDs (no UUID remapping).
 
 | Table | Purpose |
 |-------|---------|
-| `roles` | `member`, `district_admin`, `super_admin` |
+| `roles` | `member`, `division_admin`, `district_admin`, `super_admin` |
 | `user_roles` | Assignments with optional `scope_type` / `scope_id` |
 | `profiles` | 1:1 with `auth.users`; membership fields + status |
 
@@ -32,13 +32,13 @@ Registration and profiles reuse these integer IDs (no UUID remapping).
 | `member_qualifications` | Join profile ↔ qualification |
 | `youth_clubs` | Clubs linked to district/DS/GN |
 
-## Member app content (Sprint 3+)
+## Content & engagement
 
 | Table | Purpose |
 |-------|---------|
 | `announcements` | Published org/club updates with audience targeting |
 | `notifications` | In-app notification inbox per user |
-| `device_tokens` | FCM/APNs device registration |
+| `device_tokens` | FCM/APNs device registration (push not shipped yet) |
 | `events` | Published events |
 | `event_rsvps` | Member RSVP (`going` / `maybe` / `declined`) |
 

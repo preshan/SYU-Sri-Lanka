@@ -1,6 +1,6 @@
-# Temporary PDF generator (SYU docs)
+# PDF generator (SYU docs)
 
-Office-style report layout with **Calibri-like** fonts:
+Office-style report layout with Calibri-like fonts:
 
 1. System **Calibri** (if installed)
 2. Bundled **Carlito** in `fonts/` (Calibri-compatible, SIL OFL)

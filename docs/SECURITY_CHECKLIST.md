@@ -7,7 +7,7 @@ Execution record for [#119](https://github.com/preshan/SYU-Sri-Lanka/issues/119)
 - [x] Email confirmation required before login (app gate: `profiles.app_email_verified` + OTP)
 - [x] Password reset flow documented (`docs/AUTH_RECOVERY.md`)
 - [x] Anon key only in mobile/web client; service role never shipped in APK
-- [ ] Rotate any management token ever pasted into chat/logs *(ops — do in Supabase dashboard)*
+- [ ] Rotate any management token ever exposed in logs or tickets *(ops — do in Supabase dashboard)*
 - [x] Configure Auth redirect URLs for mobile deep link (`syu://auth/callback`) — see `docs/AUTH_RECOVERY.md`
 - [x] Client no longer fetches SMTP App Password (`get_smtp_credentials` dropped 2026-07-22)
 - [ ] **Rotate Gmail App Password** after prior client RPC exposure — [#128](https://github.com/preshan/SYU-Sri-Lanka/issues/128)
@@ -48,4 +48,4 @@ Execution record for [#119](https://github.com/preshan/SYU-Sri-Lanka/issues/119)
 | RLS on all public tables | **Pass** |
 | Storage buckets locked as designed | **Pass** |
 | SMTP secret not client-readable | **Pass** (after migration `20260722000100_*`; rotate App Password via #128) |
-| Phase 6 production gate | **Conditional pass** — complete #128 before treating mail secrets as fully remediated |
+| Mail secrets ready for production | **Conditional** — finish #128 before treating SMTP as fully remediated |

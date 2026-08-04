@@ -1,9 +1,9 @@
 # Screenshot & flow guide — product documentation
 
-Use this for the full product / features doc.
+Checklist for the full product / features doc.
 
-- **📷 Screenshot** — capture and save as `{ID}-{slug}.png` (15 required).
-- **📝 Text path** — describe steps in the doc; **no** screenshot.
+- **Screenshot** — capture and save as `{ID}-{slug}.png` (15 required).
+- **Text path** — describe steps in the doc; no screenshot.
 
 Never use “Logged out” in **Login as**. Use a role:
 
@@ -47,44 +47,44 @@ Never use “Logged out” in **Login as**. Use a role:
 
 ---
 
-## B. Full flow catalogue (~34) — shot or text path
+## B. Full flow catalogue (~34) — screenshot or text path
 
 | Flow # | Name | Type | Path / steps (no shot unless noted) | Login as | Shot |
 |--------|------|------|-------------------------------------|----------|------|
-| F-01 | Splash | 📷 | Cold start → `/splash` | Guest | SS-01 |
-| F-02 | Login | 📷 | `/login` → email + password → Continue | Guest | SS-02 |
-| F-03 | Register | 📷 | Login → Register → submit | Guest | SS-03 |
-| F-04 | Confirm email OTP | 📝 | After register → `/confirm-email` → enter 6-digit code from email → verified → `/home` | Member (pending verify) | — |
-| F-05 | Forgot password | 📝 | Login → Forgot password → `/forgot-password` → request code → enter code + new password → Login | Guest | — |
-| F-06 | Force password change | 📝 | Log in as admin-provisioned user → redirect `/force-password` → set new password → `/home` | Provisioned user | — |
-| F-07 | Suspended login block | 📝 | Suspend test member (Admin → Members) → log in as that user → see contact-admin message → signed out | Suspended member | — |
-| F-08 | Member dashboard | 📷 | `/home` Home tab (completeness / community tiles) | Member | SS-04 |
-| F-09 | Registration wizard | 📷 | Incomplete banner → Complete registration → personal → location → qualifications → club → Submit | Member | SS-05 |
-| F-10 | News feed | 📷 | Home → News → pull to refresh | Member | SS-06 |
-| F-11 | Events + RSVP | 📷 + 📝 | Home → Events (**SS-07**). RSVP: open event → Going (text only) | Member | SS-07 |
-| F-12 | Chat inbox | 📝 | Home → Chat → list conversations | Member | — |
-| F-13 | Chat thread | 📝 | Chat → open thread → send message | Member | — |
-| F-14 | Settings | 📝 | Home → Settings → language / notifications / website | Member | — |
-| F-15 | Edit profile | 📝 | Settings (or profile entry) → Edit profile → save → optional avatar | Member | — |
-| F-16 | Notifications center | 📝 | Open bell / `/notifications` → list items | Member | — |
-| F-17 | Community links (member) | 📝 | Member home → WhatsApp / Facebook tiles when configured | Member | — |
-| F-18 | Admin dashboard (super) | 📷 | `/home` as staff → full tile grid | Super admin | SS-08 |
-| F-19 | Admin dashboard (district) | 📷 | `/home` → district-scoped tiles (no super-only tools) | District admin | SS-09 |
-| F-20 | Admin dashboard (division) | 📝 | `/home` as division admin → fewer tiles; note WhatsApp | Division admin | — |
-| F-21 | Member list | 📷 | `/admin?tab=members` or Members tile → filters / Active vs Suspended | Super admin | SS-10 |
-| F-22 | Member actions (note / suspend / save) | 📝 | Members → open row actions → note / suspend / saved | Super admin | — |
-| F-23 | Add member | 📷 | `/admin/add-member` → fill form → submit → temp password emailed | Super admin | SS-11 |
-| F-24 | Change provisioned email | 📝 | Members → member still on force-password → update email action | Super admin | — |
-| F-25 | Admin news | 📷 | `/admin?tab=news` → Create → publish | Super admin | SS-12 |
-| F-26 | Admin events | 📷 | `/admin?tab=events` → Create → publish | Super admin | SS-13 |
-| F-27 | Broadcast | 📝 | `/admin?tab=broadcast` → compose → send to audience | Super admin | — |
-| F-28 | Admin chat | 📝 | `/admin?tab=chat` → open / start direct chat with member | Super admin | — |
-| F-29 | Youth clubs | 📝 | `/admin?tab=clubs` → Add club | Super admin | — |
-| F-30 | Audit log | 📝 | `/admin?tab=audit` → scroll activity | Super admin | — |
-| F-31 | Reports / Approvals | 📝 | `/admin?tab=reports` and `/admin?tab=approvals` | Super admin | — |
-| F-32 | Staff Admins | 📝 | Admin home → Staff Admins → add district or division admin | Super admin | — |
-| F-33 | WhatsApp (DS) | 📷 | Admin home → WhatsApp → set/view group URL | Division admin | SS-14 |
-| F-34 | Organizers | 📷 | Admin home → Organizers → list + add | District admin | SS-15 |
+| F-01 | Splash | Shot | Cold start → `/splash` | Guest | SS-01 |
+| F-02 | Login | Shot | `/login` → email + password → Continue | Guest | SS-02 |
+| F-03 | Register | Shot | Login → Register → submit | Guest | SS-03 |
+| F-04 | Confirm email OTP | Text | After register → `/confirm-email` → enter 6-digit code from email → verified → `/home` | Member (pending verify) | — |
+| F-05 | Forgot password | Text | Login → Forgot password → `/forgot-password` → request code → enter code + new password → Login | Guest | — |
+| F-06 | Force password change | Text | Log in as admin-provisioned user → redirect `/force-password` → set new password → `/home` | Provisioned user | — |
+| F-07 | Suspended login block | Text | Suspend test member (Admin → Members) → log in as that user → see contact-admin message → signed out | Suspended member | — |
+| F-08 | Member dashboard | Shot | `/home` Home tab (completeness / community tiles) | Member | SS-04 |
+| F-09 | Registration wizard | Shot | Incomplete banner → Complete registration → personal → location → qualifications → club → Submit | Member | SS-05 |
+| F-10 | News feed | Shot | Home → News → pull to refresh | Member | SS-06 |
+| F-11 | Events + RSVP | Shot + text | Home → Events (**SS-07**). RSVP: open event → Going (text only) | Member | SS-07 |
+| F-12 | Chat inbox | Text | Home → Chat → list conversations | Member | — |
+| F-13 | Chat thread | Text | Chat → open thread → send message | Member | — |
+| F-14 | Settings | Text | Home → Settings → language / notifications / website | Member | — |
+| F-15 | Edit profile | Text | Settings (or profile entry) → Edit profile → save → optional avatar | Member | — |
+| F-16 | Notifications center | Text | Open bell / `/notifications` → list items | Member | — |
+| F-17 | Community links (member) | Text | Member home → WhatsApp / Facebook tiles when configured | Member | — |
+| F-18 | Admin dashboard (super) | Shot | `/home` as staff → full tile grid | Super admin | SS-08 |
+| F-19 | Admin dashboard (district) | Shot | `/home` → district-scoped tiles (no super-only tools) | District admin | SS-09 |
+| F-20 | Admin dashboard (division) | Text | `/home` as division admin → fewer tiles; note WhatsApp | Division admin | — |
+| F-21 | Member list | Shot | `/admin?tab=members` or Members tile → filters / Active vs Suspended | Super admin | SS-10 |
+| F-22 | Member actions (note / suspend / save) | Text | Members → open row actions → note / suspend / saved | Super admin | — |
+| F-23 | Add member | Shot | `/admin/add-member` → fill form → submit → temp password emailed | Super admin | SS-11 |
+| F-24 | Change provisioned email | Text | Members → member still on force-password → update email action | Super admin | — |
+| F-25 | Admin news | Shot | `/admin?tab=news` → Create → publish | Super admin | SS-12 |
+| F-26 | Admin events | Shot | `/admin?tab=events` → Create → publish | Super admin | SS-13 |
+| F-27 | Broadcast | Text | `/admin?tab=broadcast` → compose → send to audience | Super admin | — |
+| F-28 | Admin chat | Text | `/admin?tab=chat` → open / start direct chat with member | Super admin | — |
+| F-29 | Youth clubs | Text | `/admin?tab=clubs` → Add club | Super admin | — |
+| F-30 | Audit log | Text | `/admin?tab=audit` → scroll activity | Super admin | — |
+| F-31 | Reports / Approvals | Text | `/admin?tab=reports` and `/admin?tab=approvals` | Super admin | — |
+| F-32 | Staff Admins | Text | Admin home → Staff Admins → add district or division admin | Super admin | — |
+| F-33 | WhatsApp (DS) | Shot | Admin home → WhatsApp → set/view group URL | Division admin | SS-14 |
+| F-34 | Organizers | Shot | Admin home → Organizers → list + add | District admin | SS-15 |
 
 ---
 
