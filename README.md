@@ -6,12 +6,30 @@ Brand crimson `#E10600` on near-black `#0A0A0A`.
 
 **Latest:** [v0.10.4](https://github.com/preshan/SYU-Sri-Lanka/releases/tag/v0.10.4) · Live web: [GitHub Pages](https://preshan.github.io/SYU-Sri-Lanka/)
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/samples/screenshots/SS-01.png" width="160" alt="Splash" />
+  <img src="docs/samples/screenshots/SS-02.png" width="160" alt="Login" />
+  <img src="docs/samples/screenshots/SS-03.png" width="160" alt="Register" />
+</p>
+<p align="center">
+  <img src="docs/samples/screenshots/SS-04.png" width="160" alt="Member home" />
+  <img src="docs/samples/screenshots/SS-08.png" width="160" alt="Admin dashboard" />
+  <img src="docs/samples/screenshots/SS-10.png" width="160" alt="Admin members" />
+</p>
+
+<p align="center"><em>Splash · Login · Register · Member home · Admin dashboard · Members</em></p>
+
+More captures: [docs/SCREENSHOT_GUIDE.md](docs/SCREENSHOT_GUIDE.md) · [docs/samples/screenshots/](docs/samples/screenshots/)
+
 ## What it does
 
 - Member signup with **email OTP** (Gmail via Edge Function — bypasses Supabase Auth email quota)
 - Profile / registration wizard, news, events + RSVP, in-app chat, notifications
 - Staff admin console: members, suspend/notes, provision members & staff, news/events/broadcast, clubs, organizers
 - Roles: `member` · `division_admin` · `district_admin` · `super_admin`
+
 
 ## Architecture (overview)
 
