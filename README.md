@@ -25,7 +25,7 @@ More captures: [docs/SCREENSHOT_GUIDE.md](docs/SCREENSHOT_GUIDE.md) · [docs/sam
 
 ## What it does
 
-- Member signup with **email OTP** (Gmail via Edge Function — bypasses Supabase Auth email quota)
+- Member signup with **email OTP** (via Edge Function)
 - Profile / registration wizard, news, events + RSVP, in-app chat, notifications
 - Staff admin console: members, suspend/notes, provision members & staff, news/events/broadcast, clubs, organizers
 - Roles: `member` · `division_admin` · `district_admin` · `super_admin`
@@ -39,7 +39,7 @@ flowchart LR
   App --> DB[(Postgres + RLS)]
   App --> Storage[Storage]
   App --> Edge[Edge Functions]
-  Edge --> Mail[Gmail SMTP]
+  Edge --> Mail[Transactional email]
 ```
 
 Details, role model, and navigation: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**  

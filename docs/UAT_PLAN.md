@@ -15,6 +15,6 @@
 
 ## Environments
 
-- Supabase project with app email OTP configured (`send-app-otp` + `app_mail_settings`)
+- Supabase project with app email OTP configured (`send-app-otp`)
 - Test accounts: one member, one `super_admin`
 - Android device or emulator (API 26+) and optional Chrome for admin

@@ -31,7 +31,7 @@ flowchart LR
   Web --> Edge
   Edge --> Auth
   Edge --> DB
-  Edge -.->|SMTP Gmail| Mail[Gmail SMTP]
+  Edge -.->|OTP mail| Mail[Transactional email]
 ```
 
 ## Logical layers
@@ -54,7 +54,7 @@ See [ADR-001-backend.md](./ADR-001-backend.md):
 
 - Authorization lives in **Postgres RLS** (not a custom API layer)
 - Clients use **anon key only**; service role stays in Edge Functions
-- Edge Functions: OTP mail, admin provision member/staff, email update, Auth SMTP sync
+- Edge Functions: OTP mail, admin provision member/staff, email update, mail settings sync
 
 ## Roles & scope
 
@@ -104,11 +104,11 @@ Full schema: [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md).
 
 | Function | Who calls | Purpose |
 |----------|-----------|---------|
-| `send-app-otp` | App (signup / recovery) | Issue OTP + send Gmail (avoids Auth email quota) |
+| `send-app-otp` | App (signup / recovery) | Issue OTP + send verification / recovery email |
 | `admin-create-member` | Staff | Create auth user, finalize profile, email temp password |
 | `admin-create-staff` | Super / district | Create district or division admin |
 | `admin-update-member-email` | Staff | Change email while force-password pending |
-| `sync-auth-smtp` | Ops / admin | Sync mail settings toward Auth SMTP |
+| `sync-auth-smtp` | Ops / admin | Sync mail settings toward Auth |
 
 ## App navigation map
 
