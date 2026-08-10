@@ -9,8 +9,7 @@ Execution record for [#119](https://github.com/preshan/SYU-Sri-Lanka/issues/119)
 - [x] Anon key only in mobile/web client; service role never shipped in APK
 - [ ] Rotate any management token ever exposed in logs or tickets *(ops — do in Supabase dashboard)*
 - [x] Configure Auth redirect URLs for mobile deep link (`syu://auth/callback`) — see `docs/AUTH_RECOVERY.md`
-- [x] Client no longer fetches SMTP App Password (`get_smtp_credentials` dropped 2026-07-22)
-- [ ] **Rotate Gmail App Password** after prior client RPC exposure — [#128](https://github.com/preshan/SYU-Sri-Lanka/issues/128)
+- [x] Mail credentials are not readable by the client (`get_smtp_credentials` revoked; send via Edge Function)
 
 ## Database / RLS
 
@@ -47,5 +46,4 @@ Execution record for [#119](https://github.com/preshan/SYU-Sri-Lanka/issues/119)
 | Service role absent from client | **Pass** |
 | RLS on all public tables | **Pass** |
 | Storage buckets locked as designed | **Pass** |
-| SMTP secret not client-readable | **Pass** (after migration `20260722000100_*`; rotate App Password via #128) |
-| Mail secrets ready for production | **Conditional** — finish #128 before treating SMTP as fully remediated |
+| Mail credentials not client-readable | **Pass** (Edge Function + migration `20260722000100_*`) |

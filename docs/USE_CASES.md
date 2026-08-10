@@ -68,7 +68,7 @@ flowchart LR
 
 ## Sequence flows
 
-### UC-01 — Sign up + OTP (Gmail via Edge Function)
+### UC-01 — Sign up + OTP (Edge Function)
 
 ```mermaid
 sequenceDiagram
@@ -77,7 +77,7 @@ sequenceDiagram
   participant Auth as Supabase Auth
   participant Fn as send-app-otp
   participant DB as Postgres
-  participant Mail as Gmail SMTP
+  participant Mail as Mail provider
 
   U->>App: Register email + password
   App->>Auth: signUp
@@ -133,7 +133,7 @@ sequenceDiagram
   participant Fn as admin-create-member
   participant Auth as Auth Admin API
   participant DB as Postgres
-  participant Mail as Gmail
+  participant Mail as Mail provider
 
   A->>App: Submit name, email, phone, location…
   App->>Fn: JWT + payload
