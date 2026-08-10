@@ -104,3 +104,4 @@ flutter run -d chrome --web-port=5280
 - Project: https://github.com/users/preshan/projects/2
 - Live web: https://preshan.github.io/SYU-Sri-Lanka/
 - Releases: installable APKs under [GitHub Releases](https://github.com/preshan/SYU-Sri-Lanka/releases)
+- License: [MIT](LICENSE)
