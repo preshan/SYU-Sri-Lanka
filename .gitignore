@@ -67,3 +67,6 @@ supabase/.temp/
 .github-project-seed.py
 .github-project-seed.log
 .github-project-seed.state.json
+
+# Cursor IDE (local agent rules — keep out of public repo)
+.cursor/
